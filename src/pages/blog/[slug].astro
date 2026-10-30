@@ -17,7 +17,7 @@ const settings = await getSiteSettings();
 const article = await getArticleBySlug(slug);
 
 if (!article) {
-  return new Response(null, { status: 404 });
+  return Astro.redirect('/blog');
 }
 
 const waUrl = buildWaFromPage(settings?.wa_number, article.judul);
@@ -27,14 +27,24 @@ const wordCount = (article.isi || '').trim().split(/\s+/).filter(Boolean).length
 const readingTime = Math.max(1, Math.ceil(wordCount / 180));
 
 // Fetch related articles from database
-let relatedArticles = await getRelatedArticles(article.slug, 3);
-if (relatedArticles.length === 0) {
-  const { articles: fallbackArticles } = await getArticles(1);
-  relatedArticles = fallbackArticles.filter(a => a.slug !== article.slug).slice(0, 3);
+let relatedArticles: any[] = [];
+try {
+  relatedArticles = await getRelatedArticles(article.slug, 3);
+  if (relatedArticles.length === 0) {
+    const { articles: fallbackArticles } = await getArticles(1);
+    relatedArticles = (fallbackArticles || []).filter((a: any) => a.slug !== article.slug).slice(0, 3);
+  }
+} catch {
+  relatedArticles = [];
 }
 
 // Fetch categories for sidebar
-const categories = await getCategories();
+let categories: any[] = [];
+try {
+  categories = await getCategories();
+} catch {
+  categories = [];
+}
 
 // Markdown processing & Table of Contents extraction
 const rawHtml = renderMarkdown(article.isi || '');
@@ -66,15 +76,20 @@ const shareWa = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${arti
 const shareLinkedin = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
 const shareTwitter = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(article.judul)}`;
 
-const schemas = [
-  organizationSchema(),
-  breadcrumbSchema([
-    { name: 'Beranda', url: siteUrl + '/' },
-    { name: 'Blog', url: siteUrl + '/blog' },
-    { name: article.judul, url: currentUrl },
-  ]),
-  articleSchema(article),
-];
+let schemas: any[] = [];
+try {
+  schemas = [
+    organizationSchema(),
+    breadcrumbSchema([
+      { name: 'Beranda', url: siteUrl + '/' },
+      { name: 'Blog', url: siteUrl + '/blog' },
+      { name: article.judul, url: currentUrl },
+    ]),
+    articleSchema(article),
+  ];
+} catch (err) {
+  console.error('Error generating schemas:', err);
+}
 ---
 <BaseLayout
   title={article.judul}

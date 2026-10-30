@@ -1,33 +1,26 @@
-// src/lib/markdown.ts — Render and sanitize Markdown
+// src/lib/markdown.ts — Render Markdown cleanly with marked
 import { marked } from 'marked';
-import sanitizeHtml from 'sanitize-html';
+
+// Custom renderer to format links safely with rel="noopener noreferrer"
+const renderer = new marked.Renderer();
+renderer.link = ({ href, title, text }) => {
+  const titleAttr = title ? ` title="${title}"` : '';
+  const isExternal = typeof href === 'string' && (href.startsWith('http://') || href.startsWith('https://'));
+  const relAttr = isExternal ? ' rel="noopener noreferrer" target="_blank"' : '';
+  return `<a href="${href}"${titleAttr}${relAttr}>${text}</a>`;
+};
 
 export function renderMarkdown(md: string): string {
-  const html = marked.parse(md, { async: false }) as string;
-  return sanitizeHtml(html, {
-    allowedTags: [
-      'h2','h3','h4','p','ul','ol','li','strong','em','a','blockquote',
-      'img','table','thead','tbody','tr','th','td','code','pre','hr','br',
-      'details','summary','div','span'
-    ],
-    allowedAttributes: {
-      a: ['href', 'title', 'rel', 'target'],
-      img: ['src', 'alt', 'width', 'height', 'loading', 'class'],
-      details: ['open', 'class'],
-      summary: ['class'],
-      div: ['class', 'id', 'style'],
-      span: ['class', 'style'],
-      h2: ['id', 'class'],
-      h3: ['id', 'class'],
-      h4: ['id', 'class'],
-      p: ['class'],
-      blockquote: ['class'],
-      table: ['class'],
-    },
-    allowedSchemes: ['http', 'https', 'mailto', 'tel', 'data'],
-    allowProtocolRelative: true,
-    transformTags: {
-      a: sanitizeHtml.simpleTransform('a', { rel: 'noopener noreferrer' }),
-    },
-  });
+  if (!md) return '';
+  try {
+    return marked.parse(md, {
+      async: false,
+      renderer,
+      breaks: true,
+      gfm: true,
+    }) as string;
+  } catch (err) {
+    console.error('Error rendering markdown:', err);
+    return md;
+  }
 }
