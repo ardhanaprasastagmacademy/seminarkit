@@ -14,13 +14,18 @@ const waUrl = buildWaFromPage(waNumber, currentPage);
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
+
+const isBlogDetail = Astro.url.pathname.startsWith('/blog/') && Astro.url.pathname !== '/blog';
 ---
 <a href="#main-content" class="skip-link">Lompat ke konten utama</a>
 
 <!-- Sentinel 16px at the very top of document for ultra-fast, bulletproof IntersectionObserver scroll detection -->
 <div id="sk-nav-sentinel" style="position: absolute; top: 0; left: 0; width: 100%; height: 16px; pointer-events: none; opacity: 0; z-index: -1;" aria-hidden="true"></div>
 
-<nav class="navbar navbar-expand-lg sk-navbar sticky-top" data-bs-theme="dark" aria-label="Navigasi utama">
+<nav class:list={[
+  'navbar navbar-expand-lg sk-navbar fixed-top',
+  isBlogDetail && 'sk-navbar--solid-always is-scrolled'
+]} data-bs-theme="dark" aria-label="Navigasi utama">
   <div class="container">
     
     <!-- Brand Logo: seminarkit Logo Image -->
@@ -119,49 +124,9 @@ const isActive = (href: string) =>
 <script is:inline>
   (function() {
     const navbar = document.querySelector('.sk-navbar');
-    const sentinel = document.getElementById('sk-nav-sentinel');
+    if (!navbar) return;
 
-    function applyScrolled(isScrolled) {
-      if (!navbar) return;
-      if (isScrolled) {
-        navbar.classList.add('is-scrolled');
-        navbar.style.setProperty('background', '#142822', 'important');
-        navbar.style.setProperty('background-color', '#142822', 'important');
-        navbar.style.setProperty('box-shadow', '0 4px 24px rgba(0, 0, 0, 0.45)', 'important');
-        navbar.style.setProperty('border-bottom', '1px solid rgba(255, 255, 255, 0.08)', 'important');
-      } else {
-        navbar.classList.remove('is-scrolled');
-        navbar.style.setProperty('background', 'transparent', 'important');
-        navbar.style.setProperty('background-color', 'transparent', 'important');
-        navbar.style.setProperty('box-shadow', 'none', 'important');
-        navbar.style.setProperty('border-bottom', '1px solid transparent', 'important');
-      }
-    }
-
-    // 1. IntersectionObserver (Hardware accelerated & 100% reliable)
-    if ('IntersectionObserver' in window && sentinel) {
-      const observer = new IntersectionObserver(function(entries) {
-        const entry = entries[0];
-        // If sentinel is visible at top -> transparent; if out of view -> solid
-        applyScrolled(!entry.isIntersecting);
-      }, { rootMargin: '0px', threshold: 0 });
-      observer.observe(sentinel);
-    }
-
-    // 2. Scroll event listeners as instantaneous backup
-    function checkScroll() {
-      const top = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
-      applyScrolled(top > 12);
-    }
-
-    window.addEventListener('scroll', checkScroll, { passive: true });
-    document.addEventListener('scroll', checkScroll, { passive: true });
-    window.addEventListener('wheel', checkScroll, { passive: true });
-    window.addEventListener('touchmove', checkScroll, { passive: true });
-    window.addEventListener('resize', checkScroll, { passive: true });
-    checkScroll();
-
-    // 3. Mobile Offcanvas Navigation Toggle
+    // 1. Mobile Offcanvas Navigation Toggle (Active on all pages)
     const toggler = document.getElementById('sk-nav-toggler') || document.querySelector('.navbar-toggler');
     const offcanvasEl = document.getElementById('nav-offcanvas');
     const closeBtn = document.getElementById('sk-nav-close') || (offcanvasEl ? offcanvasEl.querySelector('.btn-close') : null);
@@ -218,5 +183,51 @@ const isActive = (href: string) =>
         if (e.key === 'Escape') closeDrawer();
       });
     }
+
+    // If page is marked permanently solid on server (e.g. editorial blog detail), skip dynamic transparency
+    if (navbar.classList.contains('sk-navbar--solid-always')) {
+      return;
+    }
+
+    // 2. Dynamic Scroll Transparency Controller
+    const sentinel = document.getElementById('sk-nav-sentinel');
+
+    function applyScrolled(isScrolled) {
+      if (isScrolled) {
+        navbar.classList.add('is-scrolled');
+        navbar.style.setProperty('background', '#142822', 'important');
+        navbar.style.setProperty('background-color', '#142822', 'important');
+        navbar.style.setProperty('box-shadow', '0 4px 24px rgba(0, 0, 0, 0.45)', 'important');
+        navbar.style.setProperty('border-bottom', '1px solid rgba(255, 255, 255, 0.08)', 'important');
+      } else {
+        navbar.classList.remove('is-scrolled');
+        navbar.style.setProperty('background', 'transparent', 'important');
+        navbar.style.setProperty('background-color', 'transparent', 'important');
+        navbar.style.setProperty('box-shadow', 'none', 'important');
+        navbar.style.setProperty('border-bottom', '1px solid transparent', 'important');
+      }
+    }
+
+    // IntersectionObserver (Hardware accelerated)
+    if ('IntersectionObserver' in window && sentinel) {
+      const observer = new IntersectionObserver(function(entries) {
+        const entry = entries[0];
+        applyScrolled(!entry.isIntersecting);
+      }, { rootMargin: '0px', threshold: 0 });
+      observer.observe(sentinel);
+    }
+
+    // Scroll & Touchmove event listeners
+    function checkScroll() {
+      const top = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+      applyScrolled(top > 12);
+    }
+
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    document.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('wheel', checkScroll, { passive: true });
+    window.addEventListener('touchmove', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll, { passive: true });
+    checkScroll();
   })();
 </script>

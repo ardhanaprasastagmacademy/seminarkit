@@ -4,6 +4,13 @@
 html {
   scrollbar-width: thin;
   scrollbar-color: var(--sk-slate-700) #F8F5EE;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 ::-webkit-scrollbar {
