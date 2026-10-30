@@ -17,6 +17,9 @@ const isActive = (href: string) =>
 ---
 <a href="#main-content" class="skip-link">Lompat ke konten utama</a>
 
+<!-- Sentinel 16px at the very top of document for ultra-fast, bulletproof IntersectionObserver scroll detection -->
+<div id="sk-nav-sentinel" style="position: absolute; top: 0; left: 0; width: 100%; height: 16px; pointer-events: none; opacity: 0; z-index: -1;" aria-hidden="true"></div>
+
 <nav class="navbar navbar-expand-lg sk-navbar sticky-top" data-bs-theme="dark" aria-label="Navigasi utama">
   <div class="container">
     
@@ -110,29 +113,59 @@ const isActive = (href: string) =>
   </div>
 </nav>
 
+<!-- Backdrop overlay for mobile drawer -->
+<div id="sk-nav-backdrop" class="sk-nav-backdrop d-lg-none" aria-hidden="true"></div>
+
 <script is:inline>
   (function() {
-    // 1. Transparent Navbar with Solid Dark Green on Scroll
     const navbar = document.querySelector('.sk-navbar');
-    if (navbar) {
-      function checkScroll() {
-        const top = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
-        if (top > 12) {
-          navbar.classList.add('is-scrolled');
-        } else {
-          navbar.classList.remove('is-scrolled');
-        }
+    const sentinel = document.getElementById('sk-nav-sentinel');
+
+    function applyScrolled(isScrolled) {
+      if (!navbar) return;
+      if (isScrolled) {
+        navbar.classList.add('is-scrolled');
+        navbar.style.setProperty('background', '#142822', 'important');
+        navbar.style.setProperty('background-color', '#142822', 'important');
+        navbar.style.setProperty('box-shadow', '0 4px 24px rgba(0, 0, 0, 0.45)', 'important');
+        navbar.style.setProperty('border-bottom', '1px solid rgba(255, 255, 255, 0.08)', 'important');
+      } else {
+        navbar.classList.remove('is-scrolled');
+        navbar.style.setProperty('background', 'transparent', 'important');
+        navbar.style.setProperty('background-color', 'transparent', 'important');
+        navbar.style.setProperty('box-shadow', 'none', 'important');
+        navbar.style.setProperty('border-bottom', '1px solid transparent', 'important');
       }
-      window.addEventListener('scroll', checkScroll, { passive: true });
-      window.addEventListener('touchmove', checkScroll, { passive: true });
-      window.addEventListener('resize', checkScroll, { passive: true });
-      checkScroll();
     }
 
-    // 2. Mobile Drawer Navigation Toggle (Pure, Direct, 100% Reliable)
+    // 1. IntersectionObserver (Hardware accelerated & 100% reliable)
+    if ('IntersectionObserver' in window && sentinel) {
+      const observer = new IntersectionObserver(function(entries) {
+        const entry = entries[0];
+        // If sentinel is visible at top -> transparent; if out of view -> solid
+        applyScrolled(!entry.isIntersecting);
+      }, { rootMargin: '0px', threshold: 0 });
+      observer.observe(sentinel);
+    }
+
+    // 2. Scroll event listeners as instantaneous backup
+    function checkScroll() {
+      const top = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+      applyScrolled(top > 12);
+    }
+
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    document.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('wheel', checkScroll, { passive: true });
+    window.addEventListener('touchmove', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll, { passive: true });
+    checkScroll();
+
+    // 3. Mobile Offcanvas Navigation Toggle
     const toggler = document.getElementById('sk-nav-toggler') || document.querySelector('.navbar-toggler');
     const offcanvasEl = document.getElementById('nav-offcanvas');
     const closeBtn = document.getElementById('sk-nav-close') || (offcanvasEl ? offcanvasEl.querySelector('.btn-close') : null);
+    const backdrop = document.getElementById('sk-nav-backdrop');
 
     if (toggler && offcanvasEl) {
       function openDrawer(e) {
@@ -142,8 +175,11 @@ const isActive = (href: string) =>
         }
         offcanvasEl.classList.add('show', 'is-open');
         offcanvasEl.style.visibility = 'visible';
-        offcanvasEl.style.transform = 'none';
+        offcanvasEl.style.transform = 'translateX(0)';
         document.body.style.overflow = 'hidden';
+        if (backdrop) {
+          backdrop.classList.add('show');
+        }
       }
 
       function closeDrawer(e) {
@@ -152,21 +188,22 @@ const isActive = (href: string) =>
           e.stopPropagation();
         }
         offcanvasEl.classList.remove('show', 'is-open');
-        offcanvasEl.style.visibility = '';
         offcanvasEl.style.transform = '';
+        offcanvasEl.style.visibility = '';
         document.body.style.overflow = '';
+        if (backdrop) {
+          backdrop.classList.remove('show');
+        }
       }
 
       toggler.addEventListener('click', openDrawer);
-      toggler.addEventListener('touchstart', function(e) {
-        openDrawer(e);
-      }, { passive: false });
 
       if (closeBtn) {
         closeBtn.addEventListener('click', closeDrawer);
-        closeBtn.addEventListener('touchstart', function(e) {
-          closeDrawer(e);
-        }, { passive: false });
+      }
+
+      if (backdrop) {
+        backdrop.addEventListener('click', closeDrawer);
       }
 
       // Close when clicking any nav link
