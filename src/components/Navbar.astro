@@ -113,15 +113,11 @@ const isActive = (href: string) =>
   </div>
 </nav>
 
-<!-- Backdrop overlay for mobile drawer -->
-<div id="sk-nav-backdrop" class="sk-nav-backdrop d-lg-none" aria-hidden="true"></div>
-
 <script>
   function initMobileDrawer() {
     const toggler = document.getElementById('sk-nav-toggler') || document.querySelector('.navbar-toggler');
     const offcanvasEl = document.getElementById('nav-offcanvas');
     const closeBtn = document.getElementById('sk-nav-close') || (offcanvasEl ? offcanvasEl.querySelector('.btn-close') : null);
-    const backdrop = document.getElementById('sk-nav-backdrop');
 
     if (!toggler || !offcanvasEl) return;
 
@@ -130,12 +126,8 @@ const isActive = (href: string) =>
         e.preventDefault();
       }
       offcanvasEl.classList.add('show', 'is-open');
-      offcanvasEl.style.visibility = 'visible';
-      offcanvasEl.style.transform = 'translateX(0)';
+      document.body.classList.add('sk-nav-open');
       document.body.style.overflow = 'hidden';
-      if (backdrop) {
-        backdrop.classList.add('show');
-      }
     }
 
     function closeDrawer(e?: Event) {
@@ -143,12 +135,8 @@ const isActive = (href: string) =>
         e.preventDefault();
       }
       offcanvasEl.classList.remove('show', 'is-open');
-      offcanvasEl.style.transform = '';
-      offcanvasEl.style.visibility = '';
+      document.body.classList.remove('sk-nav-open');
       document.body.style.overflow = '';
-      if (backdrop) {
-        backdrop.classList.remove('show');
-      }
     }
 
     // Support both click and touchstart for instant mobile response
@@ -158,11 +146,6 @@ const isActive = (href: string) =>
     if (closeBtn) {
       closeBtn.addEventListener('click', closeDrawer);
       closeBtn.addEventListener('touchstart', (e) => closeDrawer(e), { passive: false });
-    }
-
-    if (backdrop) {
-      backdrop.addEventListener('click', closeDrawer);
-      backdrop.addEventListener('touchstart', (e) => closeDrawer(e), { passive: false });
     }
 
     // Close when clicking any nav link

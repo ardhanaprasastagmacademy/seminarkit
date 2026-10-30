@@ -155,11 +155,13 @@
     box-shadow: none;
   }
 
-  /* Fullscreen Mobile Offcanvas Sidebar with Silky Smooth Animation */
+  /* Fullscreen Mobile Offcanvas Sidebar (No animation, instant & clean) */
   .sk-nav-offcanvas.offcanvas-start {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     background-color: #142822 !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -167,19 +169,27 @@
     height: 100dvh !important;
     border: none !important;
     box-shadow: none !important;
-    transform: translateX(-100%);
-    transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.36s ease !important;
-    will-change: transform;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
     z-index: 999999 !important;
-    visibility: hidden;
-    pointer-events: none;
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
   .sk-nav-offcanvas.offcanvas-start.show,
   .sk-nav-offcanvas.offcanvas-start.is-open {
+    display: flex !important;
     visibility: visible !important;
-    transform: translateX(0) !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
     pointer-events: auto !important;
+  }
+
+  body.sk-nav-open .sk-navbar {
+    z-index: 999999 !important;
   }
 
   .sk-nav-offcanvas .offcanvas-header {
@@ -199,7 +209,7 @@
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.08);
     opacity: 0.85;
-    transition: all 0.2s ease;
+    transition: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,7 +219,7 @@
   .sk-nav-offcanvas .btn-close:focus {
     background-color: rgba(255, 255, 255, 0.16);
     opacity: 1;
-    transform: rotate(90deg);
+    transform: none;
   }
 
   .sk-nav-offcanvas .offcanvas-body {
@@ -229,32 +239,6 @@
     margin: 0 !important;
   }
 
-  /* Staggered entrance for menu items when sidebar opens */
-  .sk-nav-offcanvas.show .nav-item {
-    animation: skNavSlideIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .sk-nav-offcanvas.show .nav-item:nth-child(1) { animation-delay: 0.05s; }
-  .sk-nav-offcanvas.show .nav-item:nth-child(2) { animation-delay: 0.09s; }
-  .sk-nav-offcanvas.show .nav-item:nth-child(3) { animation-delay: 0.13s; }
-  .sk-nav-offcanvas.show .nav-item:nth-child(4) { animation-delay: 0.17s; }
-  .sk-nav-offcanvas.show .nav-item:nth-child(5) { animation-delay: 0.21s; }
-  .sk-nav-offcanvas.show .nav-item:nth-child(6) { animation-delay: 0.25s; }
-  .sk-nav-offcanvas.show .sk-offcanvas-cta-wrap {
-    animation: skNavSlideIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: 0.29s;
-  }
-
-  @keyframes skNavSlideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
   .sk-nav-offcanvas .nav-link {
     display: flex;
     align-items: center;
@@ -264,7 +248,7 @@
     font-size: 1.0625rem;
     font-weight: 500;
     text-decoration: none;
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: none;
     border: 1px solid transparent;
   }
 
@@ -272,7 +256,7 @@
   .sk-nav-offcanvas .nav-link:active {
     background: rgba(255, 255, 255, 0.08);
     color: #FFFFFF;
-    transform: translateX(4px);
+    transform: none;
   }
 
   .sk-nav-offcanvas .nav-link[aria-current="page"] {
@@ -298,40 +282,6 @@
     justify-content: center;
     border-radius: 50px;
   }
-}
-
-/* Dedicated Mobile Offcanvas Backdrop */
-.sk-nav-backdrop {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(10, 22, 18, 0.72);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 999998;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.36s ease, visibility 0.36s ease;
-  pointer-events: none;
-}
-
-.sk-nav-backdrop.show {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-/* Offcanvas Backdrop */
-.offcanvas-backdrop.fade {
-  transition: opacity 0.36s ease !important;
-}
-
-.offcanvas-backdrop.show {
-  background-color: rgba(10, 22, 18, 0.72) !important;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  opacity: 1 !important;
 }
 
 /* ---------- Tombol (tanpa ikon) ---------- */
