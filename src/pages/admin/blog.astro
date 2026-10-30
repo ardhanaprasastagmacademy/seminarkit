@@ -1,0 +1,1225 @@
+---
+// src/pages/admin/blog.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Artikel Blog" activePage="blog">
+  <!-- Top Action & Search Bar -->
+  <div class="sk-modern-card mb-3 p-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" id="btn-tambah" class="sk-pill-btn" style="padding:8px 20px;font-size:.8125rem;">
+          + Tulis Artikel Baru
+        </button>
+        <button type="button" id="btn-import-top" class="sk-pill-btn sk-pill-btn--outline" style="padding:8px 18px;font-size:.8125rem;">
+          📁 Import dari Dokumen Word (.docx)
+        </button>
+        <input type="file" id="global-doc-file" accept=".docx,.doc,.txt,.md" style="display:none;" />
+      </div>
+
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="sk-search-pill" style="width:260px;">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="search"
+            id="blog-search"
+            placeholder="Cari judul / kategori artikel…"
+            style="padding-top:8px;padding-bottom:8px;font-size:.8125rem;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="blog-notice" class="sk-notice mb-3" role="alert" aria-live="polite" style="display:none;"></div>
+
+  <!-- Articles Table Card -->
+  <div class="sk-modern-card">
+    <div class="sk-card-header-row">
+      <h2 class="sk-card-title">Daftar Publikasi Artikel & Panduan</h2>
+      <span id="blog-count" style="font-size:.8125rem;color:var(--sk-admin-text-muted);">Memuat artikel…</span>
+    </div>
+
+    <div class="sk-modern-table-wrap">
+      <table class="sk-modern-table">
+        <thead>
+          <tr>
+            <th style="width:70px;">Cover</th>
+            <th>Judul & Ringkasan</th>
+            <th>Kategori</th>
+            <th style="width:120px;">Penulis</th>
+            <th style="width:130px;">Tanggal</th>
+            <th style="width:95px;">Status</th>
+            <th style="width:130px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="blog-tbody">
+          <tr>
+            <td colspan="7" class="text-center py-5" style="color:var(--sk-admin-text-muted);">
+              Memuat daftar artikel blog…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit Artikel (Skema Sederhana & Ramah Admin) -->
+  <div class="modal fade" id="blogModal" tabindex="-1" aria-label="Form Artikel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5 font-weight-bold mb-0" id="modal-blog-title" style="color:var(--sk-admin-primary);">Tulis Artikel Baru</h2>
+            <small class="text-muted" style="font-size:.75rem;">Buat atau edit artikel panduan & wawasan seputar seminar kit</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- Banner Import Cepat Word (Opsional, 1-Klik Jadi Artikel) -->
+          <div class="sk-quick-import-card mb-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="sk-import-icon-badge">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                  </svg>
+                </div>
+                <div>
+                  <strong style="color:var(--sk-admin-primary);font-size:.9rem;display:block;">Punya Draf Dokumen Word (.docx)?</strong>
+                  <span style="font-size:.8rem;color:var(--sk-admin-text-muted);">
+                    Tinggal pilih file dari laptop, judul dan seluruh isi artikel otomatis langsung terisi rapi!
+                  </span>
+                </div>
+              </div>
+              <button type="button" id="btn-import-modal" class="sk-pill-btn sk-pill-btn--outline" style="padding:6px 16px;font-size:.8125rem;">
+                📁 Pilih File Word
+              </button>
+              <input type="file" id="modal-doc-file" accept=".docx,.doc,.txt,.md" style="display:none;" />
+            </div>
+          </div>
+
+          <form id="blog-form">
+            <input type="hidden" id="blog-id" />
+
+            <!-- Form Utama (Sederhana & Mudah Dipahami) -->
+            <div class="row g-3">
+              <!-- 1. Judul Artikel -->
+              <div class="col-md-8">
+                <label for="b-judul" class="sk-label">Judul Artikel <span class="text-danger">*</span></label>
+                <input
+                  type="text"
+                  id="b-judul"
+                  class="form-control sk-input form-control-lg"
+                  required
+                  placeholder="Contoh: 5 Tips Memilih Souvenir Seminar Kit Eksklusif untuk Acara Kantor"
+                  style="font-weight:600;font-size:1rem;"
+                />
+              </div>
+
+              <!-- 2. Kategori -->
+              <div class="col-md-4">
+                <label for="b-kategori" class="sk-label">Kategori / Topik</label>
+                <select id="b-kategori" class="form-select sk-input" style="height:48px;">
+                  <option value="Tips & Panduan">Tips & Panduan</option>
+                  <option value="Tren Souvenir">Tren Souvenir</option>
+                  <option value="Paket Seminar Kit">Paket Seminar Kit</option>
+                  <option value="Merchandise Kantor">Merchandise Kantor</option>
+                  <option value="Seputar Pengadaan">Seputar Pengadaan</option>
+                  <option value="Studi Kasus">Studi Kasus</option>
+                  <option value="Wawasan & Tips">Wawasan & Tips</option>
+                </select>
+              </div>
+
+              <!-- 3. Foto Sampul (Cover) -->
+              <div class="col-12">
+                <label class="sk-label">Foto Sampul Artikel (Opsional)</label>
+                <div class="sk-upload-box">
+                  <div id="b-preview-box" class="sk-upload-preview" style="width:110px;height:72px;">
+                    <img id="b-preview" src="" alt="Preview" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:6px;" />
+                    <span id="b-preview-placeholder" style="color:var(--sk-admin-text-muted);font-size:.7rem;text-align:center;padding:4px;">Tanpa Foto</span>
+                  </div>
+                  <div style="flex:1;">
+                    <input type="file" id="b-file" class="form-control sk-input form-control-sm" accept="image/webp,image/png,image/jpeg" />
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                      <small id="b-upload-status" style="color:var(--sk-admin-text-muted);font-size:.75rem;">Format JPG/PNG/WebP. Foto akan tampil di kartu blog dan header artikel.</small>
+                      <button type="button" id="b-hapus-gambar" class="btn btn-link p-0 text-danger" style="font-size:.75rem;text-decoration:none;display:none;">Hapus Gambar</button>
+                    </div>
+                    <input type="hidden" id="b-cover" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Lembar Isi Artikel (Editor Bersih & Natural) -->
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="sk-label mb-0" style="font-weight:700;font-size:.875rem;">
+                    Isi Konten Artikel <span class="text-danger">*</span>
+                  </label>
+                  <span id="word-stat-count" style="font-size:.75rem;color:var(--sk-admin-text-muted);font-weight:500;">0 kata</span>
+                </div>
+
+                <!-- Clean Editor Container -->
+                <div class="sk-clean-editor-wrap">
+                  <!-- Clean Minimalist Toolbar -->
+                  <div class="sk-clean-toolbar" role="toolbar" aria-label="Format Dokumen">
+                    <!-- Text Style (Heading / Paragraph) -->
+                    <select id="w-format-block" class="form-select form-select-sm sk-clean-select" title="Gaya Teks">
+                      <option value="p">Teks Biasa (Paragraf)</option>
+                      <option value="h2">Judul Bab (Heading 2)</option>
+                      <option value="h3">Sub-Bab (Heading 3)</option>
+                      <option value="blockquote">Kutipan / Catatan</option>
+                    </select>
+
+                    <div class="sk-toolbar-sep"></div>
+
+                    <!-- Bold, Italic, Underline -->
+                    <div class="sk-clean-btn-group">
+                      <button type="button" class="sk-tb-btn" data-cmd="bold" title="Tebal (Ctrl+B)"><b>B</b></button>
+                      <button type="button" class="sk-tb-btn" data-cmd="italic" title="Miring (Ctrl+I)"><i>I</i></button>
+                      <button type="button" class="sk-tb-btn" data-cmd="underline" title="Garis Bawah (Ctrl+U)"><u>U</u></button>
+                    </div>
+
+                    <div class="sk-toolbar-sep"></div>
+
+                    <!-- Lists -->
+                    <div class="sk-clean-btn-group">
+                      <button type="button" class="sk-tb-btn" data-cmd="insertUnorderedList" title="Daftar Poin (Bullet List)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="20" y2="18"></line><circle cx="4" cy="6" r="1.5" fill="currentColor"></circle><circle cx="4" cy="12" r="1.5" fill="currentColor"></circle><circle cx="4" cy="18" r="1.5" fill="currentColor"></circle></svg>
+                      </button>
+                      <button type="button" class="sk-tb-btn" data-cmd="insertOrderedList" title="Daftar Nomor (Numbered List)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="10" y1="6" x2="20" y2="6"></line><line x1="10" y1="12" x2="20" y2="12"></line><line x1="10" y1="18" x2="20" y2="18"></line><path d="M4 6h1.5v-2"></path><path d="M4 11h2.5"></path><path d="M4 17h2.5"></path></svg>
+                      </button>
+                    </div>
+
+                    <div class="sk-toolbar-sep"></div>
+
+                    <!-- Link & Divider -->
+                    <div class="sk-clean-btn-group">
+                      <button type="button" class="sk-tb-btn" id="w-btn-link" title="Sisipkan Link Web">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                      </button>
+                      <button type="button" class="sk-tb-btn" data-cmd="insertHorizontalRule" title="Garis Pemisah">―</button>
+                    </div>
+
+                    <div class="sk-toolbar-sep ms-auto"></div>
+
+                    <!-- Undo / Redo / Clear format -->
+                    <div class="sk-clean-btn-group">
+                      <button type="button" class="sk-tb-btn" data-cmd="undo" title="Batal / Undo">↺</button>
+                      <button type="button" class="sk-tb-btn" data-cmd="redo" title="Ulangi / Redo">↻</button>
+                      <button type="button" class="sk-tb-btn text-danger" data-cmd="removeFormat" title="Hapus Format">⌫</button>
+                    </div>
+                  </div>
+
+                  <!-- Clean Paper Contenteditable Area -->
+                  <div
+                    id="word-paper-page"
+                    class="sk-clean-editor-canvas"
+                    contenteditable="true"
+                    spellcheck="false"
+                    role="textbox"
+                    aria-multiline="true"
+                    data-placeholder="Mulai ketik isi artikel di sini secara bebas, atau klik 'Pilih File Word' di atas untuk import langsung dokumen Anda..."
+                  ></div>
+
+                  <!-- Hidden textarea for form value sync -->
+                  <textarea id="b-isi" style="display:none;"></textarea>
+                </div>
+              </div>
+
+              <!-- 5. Pengaturan Lanjutan (Opsional & Otomatis) -->
+              <div class="col-12 mt-2">
+                <details class="sk-advanced-details">
+                  <summary class="sk-advanced-summary">
+                    <div class="d-flex align-items-center gap-2">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                      <span><strong>⚙️ Pengaturan Tambahan (SEO & Penulis)</strong> — <small class="text-muted">Opsional, otomatis diisi sistem</small></span>
+                    </div>
+                    <span class="sk-summary-arrow">▾</span>
+                  </summary>
+
+                  <div class="sk-advanced-content">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="b-slug" class="sk-label">Alamat Slug URL</label>
+                        <input type="text" id="b-slug" class="form-control sk-input form-control-sm" placeholder="Otomatis dibuat dari judul..." />
+                        <small class="text-muted" style="font-size:.7rem;">Contoh link: <code>/blog/tips-memilih-seminar-kit</code></small>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="b-penulis" class="sk-label">Nama Penulis</label>
+                        <input type="text" id="b-penulis" class="form-control sk-input form-control-sm" value="Tim seminarkit" />
+                      </div>
+
+                      <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                          <label for="b-metadesc" class="sk-label mb-0">Ringkasan Meta Deskripsi (SEO Google)</label>
+                          <small id="char-counter" style="font-size:.75rem;color:var(--sk-admin-text-muted);">0 / 160</small>
+                        </div>
+                        <input type="text" id="b-metadesc" class="form-control sk-input form-control-sm" maxlength="160" placeholder="Otomatis diambil dari kalimat awal artikel jika dikosongkan..." />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="b-cover-alt" class="sk-label">Keterangan Foto Cover (Alt Text)</label>
+                        <input type="text" id="b-cover-alt" class="form-control sk-input form-control-sm" placeholder="Contoh: Paket seminar kit di meja kantor" />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="b-date" class="sk-label">Jadwal Tanggal Terbit</label>
+                        <input type="datetime-local" id="b-date" class="form-control sk-input form-control-sm" />
+                      </div>
+
+                      <input type="hidden" id="b-cover-caption" />
+                      <input type="hidden" id="b-penulis-bio" />
+                    </div>
+                  </div>
+                </details>
+              </div>
+
+              <!-- 6. Status Publikasi -->
+              <div class="col-12 mt-2">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="b-published" checked />
+                  <label class="form-check-label font-weight-bold" for="b-published" style="font-size:.875rem;">
+                    Publikasikan Langsung (Artikel langsung tampil di halaman Blog website)
+                  </label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="sk-pill-btn sk-pill-btn--outline" data-bs-dismiss="modal" style="padding:7px 20px;font-size:.8125rem;">Batal</button>
+          <button type="button" id="blog-save" class="sk-pill-btn" style="padding:7px 24px;font-size:.8125rem;">
+            Simpan & Terbitkan Artikel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/mammoth.browser.min.js" is:inline></script>
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+    import { postAdminAction } from '../../lib/admin-client';
+    import { marked } from 'marked';
+
+    const sb = getSupabaseBrowser();
+    let modal: any;
+    let allArticles: any[] = [];
+    let searchBlogQuery = '';
+
+    function createModal(modalId: string) {
+      const el = document.getElementById(modalId);
+      if (!el) return { show() {}, hide() {} };
+
+      function hide() {
+        if (typeof (window as any).bootstrap !== 'undefined' && (window as any).bootstrap.Modal) {
+          try {
+            const inst = (window as any).bootstrap.Modal.getInstance(el);
+            if (inst) { inst.hide(); return; }
+          } catch {}
+        }
+        el.classList.remove('show');
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+        el.removeAttribute('aria-modal');
+        const remaining = Array.from(document.querySelectorAll<HTMLElement>('.modal.show'))
+          .filter(m => m !== el && m.style.display !== 'none');
+        if (remaining.length === 0) {
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        }
+      }
+
+      el.querySelectorAll('[data-bs-dismiss="modal"], .btn-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          hide();
+        });
+      });
+
+      el.addEventListener('click', (e) => {
+        if (e.target === el) hide();
+      });
+
+      return {
+        show() {
+          if (typeof (window as any).bootstrap !== 'undefined' && (window as any).bootstrap.Modal) {
+            try {
+              const inst = (window as any).bootstrap.Modal.getOrCreateInstance(el);
+              if (inst) { inst.show(); return; }
+            } catch {}
+          }
+          el.classList.add('show');
+          el.style.display = 'block';
+          el.setAttribute('aria-modal', 'true');
+          el.removeAttribute('aria-hidden');
+          document.body.classList.add('modal-open');
+          let backdrop = document.querySelector('.modal-backdrop');
+          if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.addEventListener('click', hide);
+            document.body.appendChild(backdrop);
+          }
+        },
+        hide
+      };
+    }
+
+    function esc(str: string | null | undefined): string {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Slug generator
+    function slugify(text: string): string {
+      return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
+    }
+
+    const titleInput = document.getElementById('b-judul') as HTMLInputElement;
+    const slugInput = document.getElementById('b-slug') as HTMLInputElement;
+    const categoryInput = document.getElementById('b-kategori') as HTMLSelectElement;
+    const metaDescInput = document.getElementById('b-metadesc') as HTMLInputElement;
+    const coverAltInput = document.getElementById('b-cover-alt') as HTMLInputElement;
+    const coverCaptionInput = document.getElementById('b-cover-caption') as HTMLInputElement;
+    const penulisInput = document.getElementById('b-penulis') as HTMLInputElement;
+    const penulisBioInput = document.getElementById('b-penulis-bio') as HTMLInputElement;
+    const counterEl = document.getElementById('char-counter')!;
+
+    titleInput?.addEventListener('input', () => {
+      const id = (document.getElementById('blog-id') as HTMLInputElement).value;
+      if (!id && slugInput) {
+        slugInput.value = slugify(titleInput.value);
+      }
+    });
+
+    metaDescInput?.addEventListener('input', () => {
+      counterEl.textContent = `${metaDescInput.value.length} / 160`;
+    });
+
+    // Image Upload Controls & Helpers
+    const fileInput = document.getElementById('b-file') as HTMLInputElement | null;
+    const previewImg = document.getElementById('b-preview') as HTMLImageElement | null;
+    const previewPlaceholder = document.getElementById('b-preview-placeholder') as HTMLElement | null;
+    const statusText = document.getElementById('b-upload-status') as HTMLElement | null;
+    const hapusBtn = document.getElementById('b-hapus-gambar') as HTMLButtonElement | null;
+    const hiddenUrlInput = document.getElementById('b-cover') as HTMLInputElement | null;
+    const saveBtn = document.getElementById('blog-save') as HTMLButtonElement | null;
+
+    function setPreview(url: string | null) {
+      if (url) {
+        if (previewImg) {
+          previewImg.src = url;
+          previewImg.style.display = 'block';
+        }
+        if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+        if (hapusBtn) hapusBtn.style.display = 'inline-block';
+        if (hiddenUrlInput) hiddenUrlInput.value = url;
+        if (statusText) {
+          statusText.textContent = 'Gambar terpasang.';
+          statusText.style.color = 'var(--sk-admin-text-muted)';
+        }
+      } else {
+        if (previewImg) {
+          previewImg.src = '';
+          previewImg.style.display = 'none';
+        }
+        if (previewPlaceholder) previewPlaceholder.style.display = 'block';
+        if (hapusBtn) hapusBtn.style.display = 'none';
+        if (hiddenUrlInput) hiddenUrlInput.value = '';
+        if (fileInput) fileInput.value = '';
+        if (statusText) {
+          statusText.textContent = 'Format JPG/PNG/WebP. Foto akan tampil di kartu blog dan header artikel.';
+          statusText.style.color = 'var(--sk-admin-text-muted)';
+        }
+      }
+    }
+
+    function compressImage(file: File): Promise<File> {
+      return new Promise((resolve) => {
+        if (!file.type.startsWith('image/')) return resolve(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width;
+            let h = img.height;
+            const max = 1600;
+            if (w > max || h > max) {
+              if (w > h) {
+                h = Math.round((h * max) / w);
+                w = max;
+              } else {
+                w = Math.round((w * max) / h);
+                h = max;
+              }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return resolve(file);
+            ctx.drawImage(img, 0, 0, w, h);
+            canvas.toBlob(
+              (blob) => {
+                if (!blob || blob.size >= file.size) return resolve(file);
+                resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+              },
+              'image/webp',
+              0.85
+            );
+          };
+          img.onerror = () => resolve(file);
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadImageFile(file: File): Promise<string> {
+      const compressed = await compressImage(file);
+      const fd = new FormData();
+      fd.append('file', compressed);
+      fd.append('folder', 'blog');
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal mengunggah gambar');
+      return data.url;
+    }
+
+    hapusBtn?.addEventListener('click', () => {
+      setPreview(null);
+      if (statusText) {
+        statusText.textContent = 'Gambar telah dihapus.';
+        statusText.style.color = 'var(--sk-admin-text-muted)';
+      }
+    });
+
+    fileInput?.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+
+      if (previewImg) {
+        previewImg.src = URL.createObjectURL(file);
+        previewImg.style.display = 'block';
+      }
+      if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+      if (hapusBtn) hapusBtn.style.display = 'inline-block';
+
+      if (statusText) {
+        statusText.textContent = 'Mengunggah & mengoptimalkan gambar...';
+        statusText.style.color = 'var(--sk-admin-primary)';
+      }
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        const uploadedUrl = await uploadImageFile(file);
+        if (hiddenUrlInput) hiddenUrlInput.value = uploadedUrl;
+        if (previewImg) previewImg.src = uploadedUrl;
+        if (statusText) {
+          statusText.textContent = '✓ Gambar berhasil diunggah';
+          statusText.style.color = '#2E8540';
+        }
+      } catch (err: any) {
+        if (statusText) {
+          statusText.textContent = 'Gagal unggah: ' + (err?.message || err);
+          statusText.style.color = 'var(--sk-error)';
+        }
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+      }
+    });
+
+    // Clean Editor Canvas References & Logic
+    const editorCanvas = document.getElementById('word-paper-page') as HTMLElement;
+    const hiddenTextarea = document.getElementById('b-isi') as HTMLTextAreaElement;
+    const statCount = document.getElementById('word-stat-count') as HTMLElement;
+    const formatSelect = document.getElementById('w-format-block') as HTMLSelectElement;
+
+    function updateStats() {
+      if (!editorCanvas) return;
+      const text = editorCanvas.innerText || '';
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      if (statCount) statCount.textContent = `${words} kata`;
+      if (hiddenTextarea) hiddenTextarea.value = editorCanvas.innerHTML;
+    }
+
+    editorCanvas?.addEventListener('input', updateStats);
+    editorCanvas?.addEventListener('keyup', updateStats);
+
+    // Formatting Buttons (Bold, Italic, Underline, Lists, etc.)
+    document.querySelectorAll<HTMLButtonElement>('.sk-tb-btn[data-cmd]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cmd = btn.dataset.cmd;
+        if (!cmd) return;
+        editorCanvas.focus();
+        document.execCommand(cmd, false);
+        updateStats();
+      });
+    });
+
+    // Format Block (p, h2, h3, blockquote)
+    formatSelect?.addEventListener('change', () => {
+      const tag = formatSelect.value;
+      editorCanvas.focus();
+      document.execCommand('formatBlock', false, tag);
+      updateStats();
+    });
+
+    // Insert Link
+    document.getElementById('w-btn-link')?.addEventListener('click', () => {
+      editorCanvas.focus();
+      const url = prompt('Masukkan tautan website (contoh: https://seminarkit.id/produk):', 'https://');
+      if (url && url !== 'https://') {
+        document.execCommand('createLink', false, url);
+        updateStats();
+      }
+    });
+
+    // Document Import (.docx / .txt / .md) Auto-Extraction Logic
+    const btnImportTop = document.getElementById('btn-import-top');
+    const btnImportModal = document.getElementById('btn-import-modal');
+    const globalDocFileInput = document.getElementById('global-doc-file') as HTMLInputElement | null;
+    const modalDocFileInput = document.getElementById('modal-doc-file') as HTMLInputElement | null;
+
+    btnImportTop?.addEventListener('click', () => {
+      if (globalDocFileInput) {
+        globalDocFileInput.value = '';
+        globalDocFileInput.click();
+      }
+    });
+
+    btnImportModal?.addEventListener('click', () => {
+      if (modalDocFileInput) {
+        modalDocFileInput.value = '';
+        modalDocFileInput.click();
+      }
+    });
+
+    globalDocFileInput?.addEventListener('change', () => {
+      const file = globalDocFileInput.files?.[0];
+      if (file) processDocumentFile(file, true);
+    });
+
+    modalDocFileInput?.addEventListener('change', () => {
+      const file = modalDocFileInput.files?.[0];
+      if (file) processDocumentFile(file, false);
+    });
+
+    async function processDocumentFile(file: File, isNew: boolean = false) {
+      if (!file) return;
+
+      const fileName = file.name;
+      const isDocx = fileName.toLowerCase().endsWith('.docx');
+      const isTxtOrMd = fileName.toLowerCase().endsWith('.txt') || fileName.toLowerCase().endsWith('.md');
+
+      if (!isDocx && !isTxtOrMd) {
+        alert('Format file belum didukung. Harap pilih dokumen Word (.docx) atau berkas teks (.txt / .md).');
+        return;
+      }
+
+      if (isNew) {
+        (document.getElementById('blog-id') as HTMLInputElement).value = '';
+        (document.getElementById('blog-form') as HTMLFormElement).reset();
+        setPreview(null);
+        categoryInput.value = 'Tips & Panduan';
+        penulisInput.value = 'Tim seminarkit';
+        penulisBioInput.value = 'Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional.';
+      }
+
+      modal.show();
+      const modalTitleEl = document.getElementById('modal-blog-title')!;
+      const prevTitle = modalTitleEl.textContent;
+      modalTitleEl.textContent = `Sedang membaca file ${fileName}...`;
+
+      try {
+        let htmlContent = '';
+        if (isDocx) {
+          const arrayBuffer = await file.arrayBuffer();
+          const mammoth = (window as any).mammoth;
+          if (!mammoth) {
+            throw new Error('Pustaka pengonversi dokumen Word belum siap.');
+          }
+          const result = await mammoth.convertToHtml({ arrayBuffer });
+          htmlContent = result.value;
+        } else {
+          const text = await file.text();
+          htmlContent = marked.parse(text) as string;
+        }
+
+        if (!htmlContent || !htmlContent.trim()) {
+          throw new Error('Dokumen kosong atau tidak memiliki teks yang dapat diekstrak.');
+        }
+
+        // Auto-extract Title & Description
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+
+        // Extract first heading or first line as Title
+        let extractedTitle = '';
+        const firstH = tempDiv.querySelector('h1, h2, h3');
+        if (firstH && firstH.textContent?.trim()) {
+          extractedTitle = firstH.textContent.trim();
+          firstH.remove(); // Remove duplicate title from body
+        } else {
+          const firstP = tempDiv.querySelector('p');
+          if (firstP && firstP.textContent?.trim()) {
+            extractedTitle = firstP.textContent.trim();
+            firstP.remove();
+          } else {
+            extractedTitle = fileName.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+          }
+        }
+
+        extractedTitle = extractedTitle.slice(0, 150);
+        titleInput.value = extractedTitle;
+        slugInput.value = slugify(extractedTitle);
+
+        // Extract first paragraph as Meta Description
+        let extractedDesc = '';
+        const descP = tempDiv.querySelector('p');
+        if (descP && descP.textContent?.trim()) {
+          extractedDesc = descP.textContent.trim().slice(0, 160);
+        } else {
+          extractedDesc = `Ulasan dan panduan lengkap mengenai ${extractedTitle}.`;
+        }
+        metaDescInput.value = extractedDesc;
+        counterEl.textContent = `${extractedDesc.length} / 160`;
+
+        // Load document content into Clean Editor
+        const bodyContent = tempDiv.innerHTML.trim();
+        editorCanvas.innerHTML = bodyContent;
+        hiddenTextarea.value = bodyContent;
+        updateStats();
+
+        modalTitleEl.textContent = isNew ? 'Artikel Baru (Dari Dokumen Word)' : 'Edit Artikel (Dokumen Terimpor)';
+        alert(`✓ Berhasil Memuat Dokumen: "${fileName}"\n\n• Judul Artikel: ${extractedTitle}\n• Isi Dokumen: Berhasil dimuat ke editor.\n\nSilakan periksa dan klik "Simpan & Terbitkan Artikel" jika sudah sesuai.`);
+      } catch (err: any) {
+        alert('Gagal mengimpor dokumen: ' + (err?.message || err));
+        modalTitleEl.textContent = prevTitle || 'Tulis Artikel Baru';
+      }
+    }
+
+    async function loadBlog() {
+      try {
+        const res = await fetch('/api/admin/manage?table=articles').then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          allArticles = res.data;
+        } else {
+          const { data } = await sb.from('articles').select('*').order('created_at', { ascending: false });
+          allArticles = data ?? [];
+        }
+      } catch {
+        const { data } = await sb.from('articles').select('*').order('created_at', { ascending: false });
+        allArticles = data ?? [];
+      }
+      applyBlogFilterAndRender();
+    }
+
+    function applyBlogFilterAndRender() {
+      let filtered = allArticles;
+      if (searchBlogQuery) {
+        const q = searchBlogQuery.toLowerCase();
+        filtered = filtered.filter(a =>
+          (a.judul && a.judul.toLowerCase().includes(q)) ||
+          (a.slug && a.slug.toLowerCase().includes(q)) ||
+          (a.kategori && a.kategori.toLowerCase().includes(q)) ||
+          (a.penulis && a.penulis.toLowerCase().includes(q))
+        );
+      }
+      renderBlogTable(filtered);
+    }
+
+    function renderBlogTable(items: any[]) {
+      const tbody = document.getElementById('blog-tbody')!;
+      const countEl = document.getElementById('blog-count');
+      if (countEl) countEl.textContent = `${items.length} artikel terdaftar`;
+
+      if (!items.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <p style="font-weight:700;color:var(--sk-admin-primary);margin-bottom:4px;">Belum ada artikel dipublikasikan</p>
+              <p style="font-size:.875rem;color:var(--sk-admin-text-muted);margin:0;">Klik "+ Tulis Artikel Baru" atau "Import dari Dokumen Word" untuk mulai mempublikasikan konten.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(a => {
+        const isLive = a.is_published && (!a.published_at || new Date(a.published_at) <= new Date());
+        return `
+          <tr>
+            <td>
+              ${a.cover_url ? `<img src="${esc(a.cover_url)}" alt="" width="52" height="40" style="object-fit:cover;border-radius:8px;border:1px solid var(--sk-admin-card-border);" onerror="this.src='/favicon.svg';" />` : '<span style="color:var(--sk-admin-text-muted);font-size:.75rem;">—</span>'}
+            </td>
+            <td>
+              <strong style="color:var(--sk-admin-primary);display:block;font-size:.875rem;">${esc(a.judul)}</strong>
+              <div style="font-size:.75rem;color:var(--sk-admin-text-muted);max-width:380px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${esc(a.meta_description || a.slug)}
+              </div>
+            </td>
+            <td>
+              <span class="badge" style="background:#F4EFE6;color:#1F2D2D;border:1px solid #E2DCCF;font-size:.6875rem;font-weight:600;">${esc(a.kategori || 'Tips & Panduan')}</span>
+            </td>
+            <td style="font-size:.8125rem;">${esc(a.penulis || 'Tim seminarkit')}</td>
+            <td style="font-size:.75rem;white-space:nowrap;color:var(--sk-admin-text-muted);">
+              ${a.published_at ? new Date(a.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Hari ini'}
+            </td>
+            <td>
+              <span class="sk-status-pill ${isLive ? 'sk-status-pill--success' : (a.is_published ? 'sk-status-pill--info' : 'sk-status-pill--muted')}">
+                <span class="sk-status-dot"></span>
+                ${isLive ? 'Terbit' : (a.is_published ? 'Terjadwal' : 'Draf')}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn-sk-action edit-btn" data-id="${esc(a.id)}">Edit</button>
+                <button type="button" class="btn-sk-action btn-sk-action--danger delete-btn" data-id="${esc(a.id)}">Hapus</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Edit handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          let a = allArticles.find(x => x.id === btn.dataset.id);
+          if (!a) {
+            try {
+              const res = await sb.from('articles').select('*').eq('id', btn.dataset.id!).single();
+              a = res.data;
+            } catch {}
+          }
+          if (!a) return;
+          (document.getElementById('blog-id') as HTMLInputElement).value = a.id;
+          titleInput.value = a.judul;
+          slugInput.value = a.slug;
+          categoryInput.value = a.kategori || 'Tips & Panduan';
+          metaDescInput.value = a.meta_description || '';
+          counterEl.textContent = `${a.meta_description ? a.meta_description.length : 0} / 160`;
+          setPreview(a.cover_url ?? null);
+          coverAltInput.value = a.cover_alt ?? '';
+          coverCaptionInput.value = a.cover_caption ?? '';
+          penulisInput.value = a.penulis ?? 'Tim seminarkit';
+          penulisBioInput.value = a.penulis_bio ?? '';
+          if (a.published_at) {
+            const dt = new Date(a.published_at);
+            const pad = (n: number) => String(n).padStart(2, '0');
+            (document.getElementById('b-date') as HTMLInputElement).value = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+          } else {
+            (document.getElementById('b-date') as HTMLInputElement).value = '';
+          }
+          (document.getElementById('b-published') as HTMLInputElement).checked = a.is_published !== false;
+
+          // Parse markdown to HTML if needed
+          let content = a.isi || '';
+          if (content.includes('#') || (content.includes('- ') && !content.includes('<li>'))) {
+            try {
+              content = marked.parse(content) as string;
+            } catch {}
+          }
+          editorCanvas.innerHTML = content;
+          hiddenTextarea.value = content;
+          updateStats();
+
+          document.getElementById('modal-blog-title')!.textContent = 'Edit Artikel';
+          modal.show();
+        });
+      });
+
+      // Delete handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Yakin ingin menghapus artikel ini?')) return;
+          const id = btn.dataset.id!;
+          try {
+            const res = await postAdminAction('delete_article', { id });
+            if (res.ok) {
+              loadBlog();
+              return;
+            }
+          } catch {}
+
+          const { error } = await sb.from('articles').delete().eq('id', id);
+          if (error) {
+            alert('Gagal menghapus: ' + error.message);
+          } else {
+            loadBlog();
+          }
+        });
+      });
+    }
+
+    document.getElementById('blog-search')?.addEventListener('input', (e) => {
+      searchBlogQuery = (e.target as HTMLInputElement).value.trim();
+      applyBlogFilterAndRender();
+    });
+
+    document.getElementById('btn-tambah')?.addEventListener('click', () => {
+      (document.getElementById('blog-id') as HTMLInputElement).value = '';
+      (document.getElementById('blog-form') as HTMLFormElement).reset();
+      setPreview(null);
+      categoryInput.value = 'Tips & Panduan';
+      coverAltInput.value = '';
+      coverCaptionInput.value = '';
+      penulisInput.value = 'Tim seminarkit';
+      penulisBioInput.value = 'Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional.';
+      counterEl.textContent = '0 / 160';
+
+      // Start completely clean (no dummy template text to avoid confusion)
+      editorCanvas.innerHTML = '';
+      hiddenTextarea.value = '';
+      (document.getElementById('b-published') as HTMLInputElement).checked = true;
+      updateStats();
+
+      document.getElementById('modal-blog-title')!.textContent = 'Tulis Artikel Baru';
+      modal.show();
+      setTimeout(() => titleInput.focus(), 200);
+    });
+
+    document.getElementById('blog-save')?.addEventListener('click', async () => {
+      const id = (document.getElementById('blog-id') as HTMLInputElement).value;
+      const judul = titleInput.value.trim();
+      const isi = editorCanvas.innerHTML.trim();
+
+      if (!judul) {
+        alert('Mohon isi Judul Artikel terlebih dahulu.');
+        titleInput.focus();
+        return;
+      }
+
+      if (!isi || isi === '<p><br></p>' || isi === '<br>' || isi === '<p></p>') {
+        alert('Mohon isi konten artikel pada lembar editor di bawah.');
+        editorCanvas.focus();
+        return;
+      }
+
+      // Smart defaults if advanced settings left empty
+      const slug = slugInput.value.trim().toLowerCase() || slugify(judul);
+      const kategori = categoryInput.value.trim() || 'Tips & Panduan';
+
+      let meta_description = metaDescInput.value.trim();
+      if (!meta_description) {
+        const plainText = (editorCanvas.innerText || '').replace(/\s+/g, ' ').trim();
+        meta_description = plainText.slice(0, 150) || `Panduan dan ulasan lengkap mengenai ${judul}.`;
+      }
+
+      const dateVal = (document.getElementById('b-date') as HTMLInputElement).value;
+      const payload: any = {
+        judul,
+        slug,
+        kategori,
+        meta_description,
+        isi,
+        cover_url: (document.getElementById('b-cover') as HTMLInputElement).value.trim() || null,
+        cover_alt: coverAltInput.value.trim() || null,
+        cover_caption: coverCaptionInput.value.trim() || null,
+        penulis: penulisInput.value.trim() || 'Tim seminarkit',
+        penulis_bio: penulisBioInput.value.trim() || null,
+        published_at: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(),
+        is_published: (document.getElementById('b-published') as HTMLInputElement).checked,
+      };
+      if (id) payload.id = id;
+
+      const notice = document.getElementById('blog-notice')!;
+      try {
+        const res = await postAdminAction('save_article', payload);
+        if (res.ok) {
+          notice.style.display = 'none';
+          modal.hide();
+          loadBlog();
+          return;
+        }
+      } catch {}
+
+      let err;
+      if (id) {
+        ({ error: err } = await sb.from('articles').update(payload).eq('id', id));
+      } else {
+        ({ error: err } = await sb.from('articles').insert(payload));
+      }
+
+      if (err) {
+        notice.textContent = 'Gagal menyimpan: ' + err.message;
+        notice.className = 'sk-notice sk-notice--error mb-3';
+        notice.style.display = 'block';
+      } else {
+        notice.style.display = 'none';
+        modal.hide();
+        loadBlog();
+      }
+    });
+
+    // Init modal & load
+    (() => {
+      modal = createModal('blogModal');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const initSearch = urlParams.get('search');
+      if (initSearch) {
+        searchBlogQuery = initSearch;
+        const sInput = document.getElementById('blog-search') as HTMLInputElement | null;
+        if (sInput) sInput.value = initSearch;
+      }
+      if (urlParams.get('action') === 'tambah') {
+        setTimeout(() => document.getElementById('btn-tambah')?.click(), 300);
+      }
+
+      loadBlog();
+    })();
+  </script>
+
+  <style is:global>
+    /* ---------- Quick Import Card (Word .docx) ---------- */
+    .sk-quick-import-card {
+      background: #F4EFE6;
+      border: 1.5px dashed #C8BFAF;
+      border-radius: 12px;
+      padding: 14px 18px;
+      transition: all 0.2s ease;
+    }
+
+    .sk-quick-import-card:hover {
+      border-color: var(--sk-admin-primary, #0F2E22);
+      background: #ECE6D8;
+    }
+
+    .sk-import-icon-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--sk-admin-primary, #0F2E22);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ---------- Clean Visual Editor Wrap ---------- */
+    .sk-clean-editor-wrap {
+      border: 1px solid #CBD5E1;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: border-color 0.2s ease;
+    }
+
+    .sk-clean-editor-wrap:focus-within {
+      border-color: var(--sk-admin-primary, #0F2E22);
+      box-shadow: 0 0 0 3px rgba(15, 46, 34, 0.1);
+    }
+
+    /* Minimalist Toolbar */
+    .sk-clean-toolbar {
+      background: #F8FAFC;
+      border-bottom: 1px solid #E2E8F0;
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .sk-clean-select {
+      height: 32px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 2px 28px 2px 10px;
+      border-color: #CBD5E1;
+      background-color: #FFFFFF;
+      border-radius: 6px;
+      color: #1E293B;
+      cursor: pointer;
+    }
+
+    .sk-toolbar-sep {
+      width: 1px;
+      height: 20px;
+      background: #CBD5E1;
+      margin: 0 4px;
+    }
+
+    .sk-clean-btn-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .sk-tb-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      min-width: 32px;
+      padding: 0 8px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .sk-tb-btn:hover {
+      background: #F1F5F9;
+      border-color: #94A3B8;
+      color: #0F172A;
+    }
+
+    .sk-tb-btn:active {
+      background: #E2E8F0;
+      transform: translateY(1px);
+    }
+
+    /* Clean Editor Canvas */
+    .sk-clean-editor-canvas {
+      min-height: 380px;
+      max-height: 520px;
+      overflow-y: auto;
+      padding: 22px 26px;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      color: #1E293B;
+      outline: none;
+      background: #FFFFFF;
+      cursor: text;
+    }
+
+    .sk-clean-editor-canvas:empty:before {
+      content: attr(data-placeholder);
+      color: #94A3B8;
+      pointer-events: none;
+      font-style: italic;
+    }
+
+    .sk-clean-editor-canvas h1,
+    .sk-clean-editor-canvas h2,
+    .sk-clean-editor-canvas h3 {
+      color: #0F2E22;
+      font-weight: 700;
+    }
+
+    .sk-clean-editor-canvas h2 {
+      font-size: 1.35rem;
+      margin: 22px 0 10px;
+      border-bottom: 1.5px solid #E2E8F0;
+      padding-bottom: 6px;
+    }
+
+    .sk-clean-editor-canvas h3 {
+      font-size: 1.15rem;
+      margin: 18px 0 8px;
+    }
+
+    .sk-clean-editor-canvas p {
+      margin-bottom: 14px;
+    }
+
+    .sk-clean-editor-canvas ul,
+    .sk-clean-editor-canvas ol {
+      padding-left: 24px;
+      margin-bottom: 14px;
+    }
+
+    .sk-clean-editor-canvas li {
+      margin-bottom: 4px;
+    }
+
+    .sk-clean-editor-canvas blockquote {
+      border-left: 4px solid var(--sk-admin-primary, #0F2E22);
+      background: #F4EFE6;
+      padding: 12px 18px;
+      border-radius: 6px;
+      margin: 16px 0;
+      color: #1F2D2D;
+    }
+
+    .sk-clean-editor-canvas table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      border: 1px solid #CBD5E1;
+    }
+
+    .sk-clean-editor-canvas table th,
+    .sk-clean-editor-canvas table td {
+      border: 1px solid #CBD5E1;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .sk-clean-editor-canvas table th {
+      background: #F1F5F9;
+      font-weight: 700;
+    }
+
+    /* ---------- Accordion: Advanced Settings ---------- */
+    .sk-advanced-details {
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #FFFFFF;
+    }
+
+    .sk-advanced-summary {
+      background: #F8FAFC;
+      padding: 10px 16px;
+      font-size: 0.8125rem;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+
+    .sk-advanced-summary:hover {
+      background: #F1F5F9;
+    }
+
+    .sk-summary-arrow {
+      font-size: 0.875rem;
+      color: #64748B;
+      transition: transform 0.2s ease;
+    }
+
+    .sk-advanced-details[open] .sk-summary-arrow {
+      transform: rotate(180deg);
+    }
+
+    .sk-advanced-content {
+      padding: 16px;
+      border-top: 1px solid #E2E8F0;
+      background: #FFFFFF;
+    }
+  </style>
+</AdminLayout>

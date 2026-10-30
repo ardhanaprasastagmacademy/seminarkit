@@ -1,0 +1,774 @@
+---
+// src/pages/admin/login.astro
+export const prerender = false;
+
+import '@fontsource-variable/hanken-grotesk';
+import '@fontsource-variable/newsreader';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../../styles/tokens.css';
+import '../../styles/base.css';
+import '../../styles/components.css';
+import '../../styles/admin.css';
+
+const url = Astro.url;
+const errorParam = url.searchParams.get('error');
+const errorMsg = errorParam === 'unauthorized' ? 'Akun ini tidak memiliki akses administrator.' : null;
+---
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Masuk — Admin Dashboard seminarkit</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/webp" href="/images/favicon.webp" />
+</head>
+<body class="sk-login-body">
+  <!-- Outer Frame Container matching Reference Aesthetic -->
+  <div class="sk-login-frame">
+    <div class="sk-login-layout">
+      
+      <!-- ========================================================
+           LEFT PANEL: AUTHENTICATION FORM & LOGO
+           ======================================================== -->
+      <div class="sk-login-form-panel">
+        <!-- Top Logo -->
+        <div class="sk-login-brand-top">
+          <a href="/" class="sk-brand-link">
+            <svg class="sk-leaf-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+            </svg>
+            <span class="sk-brand-text">seminarkit</span>
+          </a>
+        </div>
+
+        <!-- Center Login Card Container -->
+        <div class="sk-login-card-container">
+          <div class="sk-login-card">
+            <h1 class="sk-login-title">Log in</h1>
+            <p class="sk-login-desc">
+              Selamat datang di dashboard admin seminarkit, silakan login untuk mengelola sistem pengadaan.
+            </p>
+
+            {errorMsg && (
+              <div class="sk-login-alert" role="alert">
+                {errorMsg}
+              </div>
+            )}
+
+            <div id="login-error" class="sk-login-alert" role="alert" aria-live="polite" style="display:none;"></div>
+
+            <form id="login-form" method="POST" action="#" onsubmit="event.preventDefault(); window.handleLogin && window.handleLogin(); return false;">
+              <!-- Email Field -->
+              <div class="sk-field-group">
+                <label for="email" class="sk-input-label">E-mail</label>
+                <input
+                  type="email"
+                  id="email"
+                  class="sk-form-input"
+                  required
+                  autocomplete="username"
+                  placeholder="adminseminarkit@gmail.com"
+                />
+              </div>
+
+              <!-- Password Field -->
+              <div class="sk-field-group">
+                <label for="password" class="sk-input-label">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  class="sk-form-input"
+                  required
+                  autocomplete="current-password"
+                  placeholder="Enter Your password"
+                />
+              </div>
+
+              <!-- Sub-links: Forgot password / Help -->
+              <div class="sk-form-meta">
+                <a href="https://wa.me/62822232730246?text=Halo%20Admin,%20saya%20butuh%20bantuan%20reset%20password%20dashboard" target="_blank" rel="noopener noreferrer" class="sk-forgot-link">
+                  Bantuan Akses?
+                </a>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="sk-btn-wrapper">
+                <button
+                  type="button"
+                  id="login-btn"
+                  onclick="window.handleLogin && window.handleLogin();"
+                  class="sk-login-submit-btn"
+                >
+                  Login
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bottom Copyright (Tanpa Tombol Kembali Sesuai Permintaan) -->
+        <div class="sk-login-footer">
+          <div class="sk-footer-line"></div>
+          <div class="sk-footer-content">
+            <span class="sk-copy">&copy; seminarkit.id</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           RIGHT PANEL: SEMINAR KIT PATTERN & FLOATING BADGE
+           ======================================================== -->
+      <div class="sk-login-illustration-panel">
+        <!-- SVG Vector Pattern of Seminar Kit Items (Notebook, Tumbler, Lanyard, Pen, Giftbox, etc.) -->
+        <svg class="sk-doodle-pattern" viewBox="0 0 600 750" fill="none" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- 1. VIP Gift Box with Ribbon (Top Left) -->
+          <g transform="translate(40, 50)" class="sk-doodle-item">
+            <rect x="0" y="20" width="110" height="75" rx="8" fill="#1B3131" stroke="#101F1F" stroke-width="3" />
+            <rect x="-5" y="10" width="120" height="22" rx="4" fill="#254444" stroke="#101F1F" stroke-width="3" />
+            <!-- Gold Ribbon -->
+            <rect x="46" y="10" width="18" height="85" fill="#E2DEAB" stroke="#BDB76B" stroke-width="2" />
+            <!-- Ribbon Bow -->
+            <path d="M44 10 C30 -6 18 10 46 10 Z" fill="#E2DEAB" stroke="#BDB76B" stroke-width="2" />
+            <path d="M64 10 C78 -6 90 10 62 10 Z" fill="#E2DEAB" stroke="#BDB76B" stroke-width="2" />
+            <circle cx="55" cy="10" r="5" fill="#BDB76B" />
+          </g>
+
+          <!-- 2. Thermal Tumbler Stainless (Top Right) -->
+          <g transform="translate(440, 40)" class="sk-doodle-item">
+            <rect x="20" y="25" width="55" height="130" rx="10" fill="#E8DEC8" stroke="#1B3131" stroke-width="3.5" />
+            <rect x="26" y="5" width="43" height="22" rx="5" fill="#1B3131" stroke="#101F1F" stroke-width="3" />
+            <line x1="20" y1="45" x2="75" y2="45" stroke="#1B3131" stroke-width="2.5" />
+            <line x1="20" y1="52" x2="75" y2="52" stroke="#BDB76B" stroke-width="2" />
+            <!-- Logo Grafir on Tumbler -->
+            <path d="M47 80 A5 5 0 0 1 45 74 C49 73 51 70 52 68 C52 73 49 77 47 80 Z" fill="#1B3131" />
+          </g>
+
+          <!-- 3. Canvas Tote Bag (Top Center) -->
+          <g transform="translate(250, 45)" class="sk-doodle-item">
+            <path d="M22 45 C22 15 45 15 45 45" fill="none" stroke="#1B3131" stroke-width="4" stroke-linecap="round" />
+            <path d="M55 45 C55 15 78 15 78 45" fill="none" stroke="#1B3131" stroke-width="4" stroke-linecap="round" />
+            <rect x="10" y="45" width="80" height="90" rx="8" fill="#FBFAF5" stroke="#1B3131" stroke-width="3.5" />
+            <!-- Print design on Bag -->
+            <rect x="25" y="65" width="50" height="30" rx="4" fill="#C8D7CB" stroke="#8B9364" stroke-width="2" />
+            <line x1="30" y1="80" x2="70" y2="80" stroke="#1B3131" stroke-width="2" />
+          </g>
+
+          <!-- 4. Executive Pen with Clip (Left Upper) -->
+          <g transform="translate(50, 200) rotate(-35)" class="sk-doodle-item">
+            <rect x="0" y="0" width="14" height="120" rx="6" fill="#BDB76B" stroke="#1B3131" stroke-width="3" />
+            <path d="M0 120 L7 145 L14 120 Z" fill="#1B3131" />
+            <rect x="-2" y="15" width="4" height="35" rx="2" fill="#1B3131" />
+            <rect x="0" y="60" width="14" height="5" fill="#FFFFFF" />
+          </g>
+
+          <!-- 5. Lanyard & ID Card Badge (Right Middle) -->
+          <g transform="translate(420, 240)" class="sk-doodle-item">
+            <!-- Ribbon Strap -->
+            <path d="M50 0 C40 40 20 70 45 100 C70 70 50 40 50 0" fill="none" stroke="#28453B" stroke-width="7" />
+            <rect x="42" y="98" width="12" height="14" rx="2" fill="#BDB76B" stroke="#1B3131" stroke-width="2" />
+            <!-- Card Badge Holder -->
+            <rect x="15" y="112" width="66" height="95" rx="6" fill="#FBFAF5" stroke="#1B3131" stroke-width="3" />
+            <rect x="25" y="124" width="46" height="42" rx="3" fill="#D5E4D8" />
+            <line x1="25" y1="178" x2="65" y2="178" stroke="#1B3131" stroke-width="3" stroke-linecap="round" />
+            <line x1="25" y1="188" x2="52" y2="188" stroke="#BDB76B" stroke-width="2.5" stroke-linecap="round" />
+          </g>
+
+          <!-- 6. Leather Hardcover Notebook (Left Lower) -->
+          <g transform="translate(30, 390)" class="sk-doodle-item">
+            <rect x="15" y="10" width="85" height="120" rx="8" fill="#8B9364" stroke="#1B3131" stroke-width="3.5" />
+            <rect x="10" y="10" width="12" height="120" rx="3" fill="#1B3131" />
+            <!-- Elastic Band -->
+            <rect x="75" y="10" width="8" height="120" fill="#E2DEAB" stroke="#BDB76B" stroke-width="1.5" />
+            <!-- Bookmark Ribbon -->
+            <path d="M52 130 L52 150 L58 142 L64 150 L64 130 Z" fill="#D32F2F" stroke="#B71C1C" stroke-width="1.5" />
+          </g>
+
+          <!-- 7. Ceramic Coffee Mug (Left Bottom) -->
+          <g transform="translate(70, 580)" class="sk-doodle-item">
+            <path d="M70 30 C95 30 95 65 70 65" fill="none" stroke="#1B3131" stroke-width="5" stroke-linecap="round" />
+            <rect x="15" y="15" width="60" height="70" rx="8" fill="#FBFAF5" stroke="#1B3131" stroke-width="3.5" />
+            <!-- Steam -->
+            <path d="M30 5 C30 -5 36 -5 36 -12" fill="none" stroke="#8B9364" stroke-width="2.5" stroke-linecap="round" />
+            <path d="M45 7 C45 -3 51 -3 51 -10" fill="none" stroke="#8B9364" stroke-width="2.5" stroke-linecap="round" />
+          </g>
+
+          <!-- 8. Compact Folding Umbrella (Right Bottom) -->
+          <g transform="translate(420, 520) rotate(25)" class="sk-doodle-item">
+            <rect x="15" y="20" width="38" height="120" rx="8" fill="#28453B" stroke="#1B3131" stroke-width="3" />
+            <rect x="22" y="10" width="24" height="12" rx="3" fill="#BDB76B" stroke="#1B3131" stroke-width="2" />
+            <line x1="15" y1="50" x2="53" y2="50" stroke="#E2DEAB" stroke-width="3" />
+            <path d="M34 140 L34 165 C34 175 18 175 18 165" fill="none" stroke="#1B3131" stroke-width="4.5" stroke-linecap="round" />
+          </g>
+
+          <!-- 9. Award Scroll / Certificate (Center Bottom) -->
+          <g transform="translate(250, 600)" class="sk-doodle-item">
+            <rect x="15" y="10" width="85" height="60" rx="5" fill="#FFFBE6" stroke="#1B3131" stroke-width="3" />
+            <circle cx="57" cy="40" r="12" fill="#BDB76B" stroke="#1B3131" stroke-width="2" />
+            <path d="M52 48 L46 68 L57 62 L68 68 L62 48 Z" fill="#D32F2F" />
+          </g>
+
+          <!-- Decorative Confetti & Accent Dots -->
+          <circle cx="210" cy="210" r="6" fill="#BDB76B" />
+          <circle cx="390" cy="180" r="5" fill="#E2DEAB" />
+          <circle cx="160" cy="340" r="7" fill="#8B9364" />
+          <circle cx="430" cy="460" r="8" fill="#BDB76B" opacity="0.8" />
+          <circle cx="210" cy="540" r="5" fill="#28453B" />
+          <circle cx="380" cy="620" r="6" fill="#E2DEAB" />
+          <path d="M 180 120 L 195 130 L 180 140 Z" fill="#8B9364" opacity="0.7" />
+          <path d="M 370 330 L 385 340 L 370 350 Z" fill="#BDB76B" opacity="0.8" />
+        </svg>
+
+        <!-- Floating Frosted Center Brand Card (Mirip Kartu Putih di Referensi) -->
+        <div class="sk-illustration-floating-card">
+          <div class="sk-card-brand-lockup">
+            <svg class="sk-floating-leaf" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+            </svg>
+            <h2 class="sk-floating-name">seminarkit</h2>
+            <svg class="sk-floating-leaf sk-leaf-right" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 20A7 7 0 0 0 14.2 6.1C8.5 5 7 4.48 5 2c-1 2-2 4.18-2 8 0 5.5 4.78 10 10 10Z"></path>
+              <path d="M22 21c0-3-1.85-5.36-5.08-6C14.5 14.52 12 13 11 12"></path>
+            </svg>
+          </div>
+          <p class="sk-floating-tagline">
+            Kualitas, Ketepatan Waktu &amp; Pengadaan Terpercaya
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Client-side Logic (Preserved Supabase Auth & Session Check) -->
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+    import { getLocalAdminSession, setLocalAdminSession } from '../../lib/admin-client';
+
+    const sb = getSupabaseBrowser();
+
+    // Check existing session and redirect to /admin
+    try {
+      const local = getLocalAdminSession();
+      if (local) {
+        window.location.href = '/admin';
+      } else {
+        sb.auth.getSession().then((res) => {
+          if (res?.data?.session?.user) {
+            const email = res.data.session.user.email || 'adminseminarkit@gmail.com';
+            const prefix = email.split('@')[0];
+            const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            setLocalAdminSession({
+              email,
+              name,
+              token: res.data.session.access_token,
+              user: res.data.session.user
+            });
+            window.location.href = '/admin';
+          }
+        }).catch(() => {});
+      }
+    } catch (e) {}
+
+    async function handleLogin() {
+      const errorEl = document.getElementById('login-error');
+      const btn = document.getElementById('login-btn') as HTMLButtonElement | null;
+      const emailInput = document.getElementById('email') as HTMLInputElement | null;
+      const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+
+      if (errorEl) errorEl.style.display = 'none';
+
+      const email = emailInput?.value.trim() || '';
+      const password = passwordInput?.value || '';
+
+      if (!email || !password) {
+        if (errorEl) {
+          errorEl.textContent = 'Harap masukkan email dan kata sandi akun Anda.';
+          errorEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.textContent = 'Memeriksa kredensial…';
+        btn.disabled = true;
+      }
+
+      try {
+        // 1. Coba verifikasi via API admin manage
+        const res = await fetch('/api/admin/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'admin_login',
+            payload: { email, password }
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.ok && data.session) {
+          const userEmail = data.session.user?.email || email;
+          const prefix = userEmail.split('@')[0];
+          const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+
+          setLocalAdminSession({
+            email: userEmail,
+            name,
+            token: data.session.access_token || 'sk-admin-token',
+            user: data.session.user
+          });
+
+          // Coba login juga ke Supabase jika password cocok
+          try { await sb.auth.signInWithPassword({ email, password }); } catch {}
+
+          window.location.href = '/admin';
+          return;
+        }
+
+        // 2. Jika API tidak mengenali master credentials, coba langsung Supabase
+        const { data: sbData, error: sbError } = await sb.auth.signInWithPassword({ email, password });
+
+        if (!sbError && sbData?.session) {
+          const userEmail = sbData.session.user.email || email;
+          const prefix = userEmail.split('@')[0];
+          const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+
+          setLocalAdminSession({
+            email: userEmail,
+            name,
+            token: sbData.session.access_token,
+            user: sbData.session.user
+          });
+
+          window.location.href = '/admin';
+          return;
+        }
+
+        // 3. Kredensial tidak valid
+        if (errorEl) {
+          errorEl.textContent = 'Email atau password Anda salah.';
+          errorEl.style.display = 'block';
+        }
+      } catch (err: any) {
+        if (errorEl) {
+          errorEl.textContent = 'Terjadi kesalahan saat memeriksa kredensial. Silakan coba kembali.';
+          errorEl.style.display = 'block';
+        }
+      } finally {
+        if (btn) {
+          btn.textContent = 'Login';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Attach to global window object
+    (window as any).handleLogin = handleLogin;
+
+    // Attach to elements
+    const btnEl = document.getElementById('login-btn');
+    const formEl = document.getElementById('login-form');
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+
+    if (btnEl) btnEl.addEventListener('click', handleLogin);
+    if (formEl) formEl.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(); });
+
+    [emailEl, passEl].forEach((input) => {
+      input?.addEventListener('keydown', (e: any) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleLogin();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+<style is:global>
+  /* ========================================================
+     GLOBAL VIEWPORT LOCK & SCROLLBAR SUPPRESSION
+     ======================================================== */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    background-color: #55916A !important;
+  }
+
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+</style>
+
+<style>
+  /* ========================================================
+     BASE & OUTER GREEN FRAME
+     ======================================================== */
+  .sk-login-body {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background-color: #55916A; /* Outer vibrant border matching reference */
+    overflow: hidden !important;
+  }
+
+  .sk-login-frame {
+    width: 100%;
+    max-width: 1100px;
+    height: calc(100vh - 32px);
+    height: calc(100dvh - 32px);
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    background-color: #F8FAF7;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(27, 49, 49, 0.25);
+    display: flex;
+    position: relative;
+  }
+
+  .sk-login-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ========================================================
+     LEFT FORM PANEL
+     ======================================================== */
+  .sk-login-form-panel {
+    flex: 1 1 50%;
+    background-color: #F3F7F2;
+    padding: 20px 40px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sk-login-form-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Top Brand Header */
+  .sk-login-brand-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .sk-brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #274D36;
+    transition: transform 0.2s ease;
+  }
+
+  .sk-brand-link:hover {
+    transform: scale(1.03);
+  }
+
+  .sk-leaf-icon {
+    stroke: #5CAE53;
+  }
+
+  .sk-brand-text {
+    font-family: var(--sk-font-serif, Georgia, serif);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1B3131;
+    letter-spacing: -0.02em;
+  }
+
+  /* Rounded Login Box Card (Pale Sage Green Container) */
+  .sk-login-card-container {
+    display: flex;
+    justify-content: center;
+    margin: 2px 0 10px;
+  }
+
+  .sk-login-card {
+    background-color: #D3E6CF; /* Pale mint/sage card container matching reference */
+    border-radius: 22px;
+    padding: 20px 28px 18px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 10px 24px rgba(47, 90, 62, 0.08);
+  }
+
+  .sk-login-title {
+    font-family: var(--sk-font-serif, Georgia, serif);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1E3B27;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-login-desc {
+    font-size: 0.8rem;
+    color: #3B5B43;
+    line-height: 1.4;
+    margin: 0 0 14px;
+  }
+
+  /* Form Inputs */
+  .sk-field-group {
+    margin-bottom: 10px;
+  }
+
+  .sk-input-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2B4E34;
+    margin-bottom: 3px;
+  }
+
+  .sk-form-input {
+    width: 100%;
+    height: 38px;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(43, 78, 52, 0.12);
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 0.875rem;
+    color: #1B3131;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .sk-form-input:focus {
+    border-color: #4A8C43;
+    box-shadow: 0 0 0 3px rgba(74, 140, 67, 0.2);
+  }
+
+  .sk-form-input::placeholder {
+    color: #A0B3A3;
+    font-size: 0.8rem;
+  }
+
+  /* Sub links */
+  .sk-form-meta {
+    text-align: right;
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+
+  .sk-forgot-link {
+    font-size: 0.75rem;
+    color: #3B5B43;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .sk-forgot-link:hover {
+    color: #1B3131;
+    text-decoration: underline;
+  }
+
+  /* Pill Submit Button */
+  .sk-btn-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+
+  .sk-login-submit-btn {
+    background-color: #5AA952; /* Bright vibrant green pill button */
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9999px;
+    padding: 8px 38px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(90, 169, 82, 0.35);
+    transition: all 0.25s ease;
+  }
+
+  .sk-login-submit-btn:hover {
+    background-color: #489341;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(90, 169, 82, 0.45);
+  }
+
+  .sk-login-submit-btn:active {
+    transform: translateY(0);
+  }
+
+  .sk-login-submit-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Alert Notices */
+  .sk-login-alert {
+    background-color: #FFEFEF;
+    border-left: 4px solid #D32F2F;
+    color: #9C1414;
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  /* Footer Section */
+  .sk-login-footer {
+    margin-top: 6px;
+  }
+
+  .sk-footer-line {
+    height: 1px;
+    background-color: #2F5A3E;
+    opacity: 0.25;
+    margin-bottom: 8px;
+  }
+
+  .sk-footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #4C6A53;
+  }
+
+  /* ========================================================
+     RIGHT ILLUSTRATION PANEL
+     ======================================================== */
+  .sk-login-illustration-panel {
+    flex: 1 1 50%;
+    background-color: #C1E1B9; /* Light green pattern background matching reference */
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid rgba(43, 78, 52, 0.1);
+  }
+
+  .sk-doodle-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.95;
+    pointer-events: none;
+  }
+
+  .sk-doodle-item {
+    transition: transform 0.4s ease;
+  }
+
+  /* Floating Frosted Center Brand Card */
+  .sk-illustration-floating-card {
+    position: relative;
+    z-index: 4;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 22px;
+    padding: 28px 34px 26px;
+    max-width: 290px;
+    text-align: center;
+    box-shadow: 0 16px 36px rgba(47, 90, 62, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: transform 0.3s ease;
+  }
+
+  .sk-illustration-floating-card:hover {
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  .sk-card-brand-lockup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .sk-floating-leaf {
+    stroke: #5CAE53;
+    flex-shrink: 0;
+  }
+
+  .sk-leaf-right {
+    transform: scaleX(-1);
+  }
+
+  .sk-floating-name {
+    font-family: var(--sk-font-serif, Georgia, serif);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1B3131;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .sk-floating-tagline {
+    font-size: 0.78125rem;
+    color: #4A634E;
+    line-height: 1.45;
+    margin: 4px 0 0;
+    font-weight: 500;
+  }
+
+  /* ========================================================
+     RESPONSIVE ADAPTATIONS
+     ======================================================== */
+  @media (max-width: 900px) {
+    .sk-login-layout {
+      flex-direction: column;
+      height: 100%;
+    }
+    .sk-login-illustration-panel {
+      display: none; /* Focus on login card on mobile */
+    }
+    .sk-login-form-panel {
+      padding: 24px 20px;
+      height: 100%;
+    }
+    .sk-login-card {
+      padding: 22px 18px;
+    }
+    .sk-login-frame {
+      height: calc(100vh - 24px);
+      height: calc(100dvh - 24px);
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
+      max-width: 440px;
+    }
+  }
+</style>

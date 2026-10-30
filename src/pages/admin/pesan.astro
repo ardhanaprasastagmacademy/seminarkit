@@ -1,0 +1,366 @@
+---
+// src/pages/admin/pesan.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Pesan Masuk" activePage="pesan">
+  <!-- Top Action & Filter Row -->
+  <div class="sk-modern-card mb-3 p-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <!-- Date Filter Pills -->
+      <div class="d-flex flex-wrap align-items-center gap-2" id="filter-bar">
+        <span style="font-size:.75rem;font-weight:700;color:var(--sk-admin-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;">Filter:</span>
+        <button type="button" class="sk-filter-pill active" data-filter="semua">Semua</button>
+        <button type="button" class="sk-filter-pill" data-filter="hari_ini">Hari Ini</button>
+        <button type="button" class="sk-filter-pill" data-filter="kemarin">Kemarin</button>
+        <button type="button" class="sk-filter-pill" data-filter="1_minggu">1 Minggu yang Lalu</button>
+      </div>
+
+      <!-- Search & CSV Action -->
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="sk-search-pill" style="width:240px;">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="search"
+            id="pesan-search"
+            placeholder="Cari pengirim / no WA…"
+            style="padding-top:8px;padding-bottom:8px;font-size:.8125rem;"
+          />
+        </div>
+        <button type="button" id="export-csv" class="sk-pill-btn sk-pill-btn--outline" style="padding:8px 18px;font-size:.8125rem;white-space:nowrap;">
+          Ekspor CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Table Card -->
+  <div class="sk-modern-card">
+    <div class="sk-card-header-row">
+      <h2 class="sk-card-title">Daftar Permintaan Penawaran</h2>
+      <span id="pesan-count" style="font-size:.8125rem;color:var(--sk-admin-text-muted);">Memuat data…</span>
+    </div>
+
+    <div class="sk-modern-table-wrap">
+      <table class="sk-modern-table" id="pesan-table">
+        <thead>
+          <tr>
+            <th style="width:140px;">Waktu</th>
+            <th>Pengirim & Instansi</th>
+            <th>Kontak WhatsApp</th>
+            <th>Produk Diminati</th>
+            <th>Jumlah</th>
+            <th style="width:140px;">Status</th>
+            <th style="width:120px;">Tindakan</th>
+          </tr>
+        </thead>
+        <tbody id="pesan-tbody">
+          <tr>
+            <td colspan="7" class="text-center py-5" style="color:var(--sk-admin-text-muted);">
+              Memuat data pesan masuk…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+    import { postAdminAction } from '../../lib/admin-client';
+    const sb = getSupabaseBrowser();
+
+    let currentFilter = 'semua';
+    let allPesan: any[] = [];
+    let currentFilteredRows: any[] = [];
+    let searchQuery = '';
+
+    const STATUSES = ['baru', 'dihubungi', 'penawaran', 'selesai', 'batal'];
+
+    function isSameDay(d1: Date, d2: Date): boolean {
+      return (
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate()
+      );
+    }
+
+    function checkDateFilter(recordDateStr: string, filterType: string): boolean {
+      if (!recordDateStr) return false;
+      const d = new Date(recordDateStr);
+      if (isNaN(d.getTime())) return false;
+
+      const now = new Date();
+
+      if (filterType === 'hari_ini') {
+        return isSameDay(d, now);
+      }
+
+      if (filterType === 'kemarin') {
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        return isSameDay(d, yesterday);
+      }
+
+      if (filterType === '1_minggu') {
+        const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 0, 0, 0, 0);
+        return d >= sevenDaysAgo;
+      }
+
+      // 'semua'
+      return true;
+    }
+
+    function formatWaktu(dateStr: string): string {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '—';
+      const now = new Date();
+      const timePart = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+
+      if (isSameDay(d, now)) {
+        return `<span style="color:var(--sk-admin-primary);font-weight:700;">Hari ini</span>, ${timePart}`;
+      }
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      if (isSameDay(d, yesterday)) {
+        return `<span style="font-weight:600;">Kemarin</span>, ${timePart}`;
+      }
+      const datePart = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      return `${datePart}, ${timePart}`;
+    }
+
+    function esc(str: any): string {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function syncBadgeWithLocal() {
+      const unread = allPesan.filter(p => p.status === 'baru').length;
+      if (typeof (window as any).refreshUnreadBadge === 'function') {
+        (window as any).refreshUnreadBadge(unread);
+      }
+    }
+
+    async function loadPesan() {
+      try {
+        const res = await fetch('/api/admin/manage?table=inquiries', { cache: 'no-store' }).then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          allPesan = res.data;
+        } else {
+          const { data } = await sb
+            .from('inquiries')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(300);
+          allPesan = data ?? [];
+        }
+      } catch {
+        const { data } = await sb
+          .from('inquiries')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(300);
+        allPesan = data ?? [];
+      }
+
+      syncBadgeWithLocal();
+      applyFilterAndRender();
+    }
+
+    function applyFilterAndRender() {
+      let filtered = allPesan;
+
+      // 1. Date filter
+      if (currentFilter && currentFilter !== 'semua') {
+        filtered = filtered.filter(r => checkDateFilter(r.created_at, currentFilter));
+      }
+
+      // 2. Search query filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(r =>
+          (r.nama && r.nama.toLowerCase().includes(q)) ||
+          (r.perusahaan && r.perusahaan.toLowerCase().includes(q)) ||
+          (r.no_wa && r.no_wa.toLowerCase().includes(q)) ||
+          (r.produk_diminati && r.produk_diminati.toLowerCase().includes(q)) ||
+          (r.pesan && r.pesan.toLowerCase().includes(q)) ||
+          (r.status && r.status.toLowerCase().includes(q))
+        );
+      }
+
+      currentFilteredRows = filtered;
+      renderTable(filtered);
+    }
+
+    function renderTable(rows: any[]) {
+      const tbody = document.getElementById('pesan-tbody')!;
+      const countEl = document.getElementById('pesan-count');
+      if (countEl) countEl.textContent = `${rows.length} permintaan ditemukan`;
+
+      if (!rows.length) {
+        const filterLabels: Record<string, string> = {
+          hari_ini: 'Hari Ini',
+          kemarin: 'Kemarin',
+          '1_minggu': '1 Minggu yang Lalu',
+          semua: 'Semua',
+        };
+        const currentLabel = filterLabels[currentFilter] || 'Semua';
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <div style="max-width:420px;margin:0 auto;">
+                <div style="width:48px;height:48px;border-radius:50%;background:var(--sk-admin-surface-subtle);border:1px solid var(--sk-admin-card-border);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--sk-admin-primary);">
+                  <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                  </svg>
+                </div>
+                <p style="font-weight:700;color:var(--sk-admin-primary);margin-bottom:4px;font-size:1rem;">Tidak ada pesan (${esc(currentLabel)})</p>
+                <p style="font-size:.875rem;color:var(--sk-admin-text-muted);margin-bottom:14px;">
+                  ${searchQuery 
+                    ? `Tidak ditemukan pesan yang cocok dengan kata kunci "${esc(searchQuery)}".`
+                    : allPesan.length > 0 
+                      ? `Belum ada pesan untuk periode ${esc(currentLabel)}. Terdapat total ${allPesan.length} pesan di database.`
+                      : 'Belum ada permintaan penawaran yang tercatat di database.'}
+                </p>
+                ${allPesan.length > 0 && currentFilter !== 'semua' ? `
+                  <button type="button" id="btn-show-all-empty" class="sk-pill-btn sk-pill-btn--primary" style="font-size:.8125rem;padding:7px 20px;">
+                    Lihat Semua Pesan (${allPesan.length})
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+
+        document.getElementById('btn-show-all-empty')?.addEventListener('click', () => {
+          const btn = document.querySelector('#filter-bar [data-filter="semua"]') as HTMLButtonElement | null;
+          if (btn) btn.click();
+        });
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        const cleanWa = String(r.no_wa || '').replace(/\D/g, '');
+        const waUrl = `https://wa.me/${cleanWa}`;
+        const waktuHtml = formatWaktu(r.created_at);
+
+        return `
+          <tr>
+            <td style="font-size:.8125rem;white-space:nowrap;color:var(--sk-admin-text-muted);">
+              ${waktuHtml}
+            </td>
+            <td>
+              <div style="font-weight:700;color:var(--sk-admin-primary);">${esc(r.nama ?? 'Tanpa Nama')}</div>
+              <div style="font-size:.8125rem;color:var(--sk-admin-text-muted);">${esc(r.perusahaan ?? 'Pribadi')}</div>
+              ${r.email ? `<div style="font-size:.75rem;color:var(--sk-admin-text-muted);">${esc(r.email)}</div>` : ''}
+              ${r.pesan ? `
+                <div style="font-size:.8125rem;background:var(--sk-admin-surface-subtle);border:1px solid var(--sk-admin-card-border);padding:6px 12px;border-radius:10px;margin-top:6px;max-width:380px;">
+                  <span style="font-weight:600;font-size:.75rem;color:var(--sk-admin-text-muted);display:block;">Catatan Klien:</span>
+                  ${esc(r.pesan)}
+                </div>
+              ` : ''}
+            </td>
+            <td>
+              <a href="${esc(waUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--sk-admin-primary);font-weight:600;text-decoration:underline;">
+                ${esc(r.no_wa ?? '—')}
+              </a>
+            </td>
+            <td>
+              <span style="font-weight:500;">${esc(r.produk_diminati ?? 'Konsultasi Umum')}</span>
+              ${r.tanggal_dibutuhkan ? `<div style="font-size:.75rem;color:var(--sk-admin-text-muted);">Dibutuhkan: ${esc(r.tanggal_dibutuhkan)}</div>` : ''}
+            </td>
+            <td style="font-variant-numeric:tabular-nums;font-weight:600;">
+              ${r.jumlah ? `${Number(r.jumlah).toLocaleString('id-ID')} pcs` : '—'}
+            </td>
+            <td>
+              <select class="form-select sk-input status-select" data-id="${esc(r.id)}" style="min-height:34px;font-size:.8125rem;border-radius:var(--sk-admin-radius-pill);padding:4px 12px;">
+                ${STATUSES.map(s => `<option value="${s}"${s === r.status ? ' selected' : ''}>${s.toUpperCase()}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <a href="${esc(waUrl)}" target="_blank" rel="noopener noreferrer" class="sk-pill-btn" style="padding:6px 14px;font-size:.75rem;width:100%;">
+                Balas WA
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Status change listener
+      tbody.querySelectorAll<HTMLSelectElement>('.status-select').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const id = sel.dataset.id!;
+          const newStatus = sel.value;
+          
+          const item = allPesan.find(item => String(item.id) === id);
+          if (item) item.status = newStatus;
+          syncBadgeWithLocal();
+
+          try {
+            await postAdminAction('update_inquiry_status', { id, status: newStatus });
+          } catch {}
+          try {
+            await sb.from('inquiries').update({ status: newStatus }).eq('id', id);
+          } catch {}
+        });
+      });
+    }
+
+    // Filter buttons listener
+    document.getElementById('filter-bar')?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('[data-filter]') as HTMLButtonElement | null;
+      if (!btn) return;
+      currentFilter = btn.dataset.filter ?? 'hari_ini';
+      document.querySelectorAll('#filter-bar [data-filter]').forEach(b => {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      applyFilterAndRender();
+    });
+
+    // Real-time search filter
+    document.getElementById('pesan-search')?.addEventListener('input', (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.trim();
+      applyFilterAndRender();
+    });
+
+    // CSV Export
+    document.getElementById('export-csv')?.addEventListener('click', () => {
+      const sanitizeCell = (val: string) => {
+        const s = String(val ?? '').replace(/"/g, '""');
+        return /^[=+\-@]/.test(s) ? `'${s}` : s;
+      };
+      const rowsToExport = currentFilteredRows.length > 0 ? currentFilteredRows : allPesan;
+      const rows = [
+        ['Waktu','Nama','Perusahaan','WA','Email','Produk','Jumlah','Tanggal Dibutuhkan','Status','Pesan'],
+        ...rowsToExport.map(r => [
+          r.created_at, r.nama, r.perusahaan, r.no_wa, r.email,
+          r.produk_diminati, r.jumlah, r.tanggal_dibutuhkan, r.status, r.pesan,
+        ].map(v => `"${sanitizeCell(v ?? '')}"`)
+        ),
+      ];
+      const csv = rows.map(r => r.join(',')).join('\r\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `inquiries-${currentFilter}-${Date.now()}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Read initial search query from URL if navigated from global search
+    const urlParams = new URLSearchParams(window.location.search);
+    const initSearch = urlParams.get('search');
+    if (initSearch) {
+      searchQuery = initSearch;
+      const sInput = document.getElementById('pesan-search') as HTMLInputElement | null;
+      if (sInput) sInput.value = initSearch;
+      currentFilter = 'semua';
+      document.querySelectorAll('#filter-bar [data-filter]').forEach(b => b.classList.remove('active'));
+      document.querySelector('#filter-bar [data-filter="semua"]')?.classList.add('active');
+    }
+
+    loadPesan();
+  </script>
+</AdminLayout>

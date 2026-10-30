@@ -1,0 +1,319 @@
+---
+// src/components/PageBanner.astro
+import { breadcrumbSchema } from '../lib/seo';
+
+export interface Props {
+  judul: string;
+  deskripsi?: string;
+  badgeText?: string;
+  badgeIcon?: 'chat' | 'book' | 'article' | 'box' | 'package' | 'produk' | 'camera' | 'gallery' | 'galeri' | 'info' | 'tentang' | 'tag' | 'alert' | string;
+  breadcrumbs?: Array<{ label: string; href?: string }>;
+  waveFill?: string;
+  bannerImage?: string;
+}
+
+const {
+  judul,
+  deskripsi,
+  badgeText,
+  badgeIcon,
+  breadcrumbs = [],
+  waveFill = '#FBFAF5',
+  bannerImage = '/images/pagebanner.webp',
+} = Astro.props;
+
+const effectiveBreadcrumbs =
+  breadcrumbs && breadcrumbs.length > 0
+    ? breadcrumbs
+    : [{ label: judul }];
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const bcSchema = breadcrumbSchema([
+  { name: 'Beranda', url: siteUrl + '/' },
+  ...effectiveBreadcrumbs
+    .filter(b => b.href)
+    .map(b => ({ name: b.label, url: siteUrl + b.href })),
+  ...effectiveBreadcrumbs
+    .filter(b => !b.href)
+    .map(b => ({ name: b.label, url: siteUrl + Astro.url.pathname })),
+]);
+const safeJson = (obj: unknown) => JSON.stringify(obj).replace(/</g, '\\u003c');
+---
+
+{breadcrumbs && breadcrumbs.length > 0 && (
+  <script type="application/ld+json" set:html={safeJson(bcSchema)} />
+)}
+
+<section class="sk-page-banner">
+  <!-- Seminar Kit Products Backdrop Image -->
+  <div class="sk-banner-media" aria-hidden="true">
+    <img
+      src={bannerImage}
+      alt=""
+      class="sk-banner-img"
+      loading="eager"
+      fetchpriority="high"
+      width="1376"
+      height="768"
+    />
+    <div class="sk-banner-overlay"></div>
+  </div>
+
+  <div class="container position-relative" style="z-index: 3;">
+    <!-- Breadcrumb Capsule Navigation (Replaces static pill tag) -->
+    <nav aria-label="Breadcrumb" class="sk-banner-breadcrumb-nav">
+      <ol class="sk-banner-breadcrumb">
+        <!-- Home / Beranda -->
+        <li class="sk-breadcrumb-item">
+          <a href="/" class="sk-breadcrumb-link" title="Kembali ke Beranda">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Beranda</span>
+          </a>
+        </li>
+
+        {effectiveBreadcrumbs.map((crumb, idx) => {
+          const isLast = idx === effectiveBreadcrumbs.length - 1;
+          return (
+            <li class={`sk-breadcrumb-item${isLast ? ' active' : ''}`} aria-current={isLast ? 'page' : undefined}>
+              <span class="sk-breadcrumb-separator" aria-hidden="true">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </span>
+              {crumb.href && !isLast ? (
+                <a href={crumb.href} class="sk-breadcrumb-link">
+                  {crumb.label}
+                </a>
+              ) : (
+                <span class="sk-breadcrumb-current" title={crumb.label}>{crumb.label}</span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+
+    <!-- Main Title (Newsreader Serif) -->
+    <h1 class="sk-banner-title">{judul}</h1>
+
+    <!-- Subtitle / Short Description -->
+    {deskripsi && (
+      <p class="sk-banner-desc">{deskripsi}</p>
+    )}
+  </div>
+
+  <!-- Organic Wave Divider to match Lawncare Reference -->
+  <div class="sk-banner-wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 70" fill="none" preserveAspectRatio="none">
+      <path d="M0,0 C320,50 480,10 720,38 C960,65 1120,20 1440,48 L1440,80 L0,80 Z" fill={waveFill}></path>
+    </svg>
+  </div>
+</section>
+
+<style>
+  /* ---------- Compact & Consistent Page Banner (Lawncare Reference) ---------- */
+  .sk-page-banner {
+    position: relative;
+    background-color: #1B3131;
+    padding: 118px 0 68px;
+    text-align: center;
+    color: #FFFFFF;
+    overflow: hidden;
+    border: none;
+    outline: none;
+  }
+
+  .sk-banner-media {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .sk-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 36%;
+    filter: brightness(0.96) contrast(1.06);
+  }
+
+  .sk-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      /* Accent highlight over products on the left */
+      radial-gradient(circle at 18% 45%, rgba(189, 183, 107, 0.16), transparent 55%),
+      /* Horizontal blend: reveals seminar kit items on the left, high contrast over text in center/right */
+      linear-gradient(to right, rgba(27, 49, 49, 0.68) 0%, rgba(27, 49, 49, 0.78) 36%, rgba(22, 40, 40, 0.90) 100%),
+      /* Vertical blend for seamless top/bottom transitions */
+      linear-gradient(to bottom, rgba(27, 49, 49, 0.90) 0%, rgba(27, 49, 49, 0.60) 25%, rgba(27, 49, 49, 0.82) 100%);
+  }
+
+  /* ---------- Breadcrumb Capsule Navigation ---------- */
+  .sk-banner-breadcrumb-nav {
+    display: inline-flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    max-width: 100%;
+  }
+
+  .sk-banner-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    padding: 4px 14px;
+    list-style: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.14);
+    font-size: 0.75rem;
+    line-height: 1.35;
+    white-space: nowrap;
+    max-width: 95vw;
+  }
+
+  .sk-breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .sk-breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #D6E1DD;
+    text-decoration: none !important;
+    outline: none;
+    font-weight: 500;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .sk-breadcrumb-link:hover {
+    color: #FFFFFF;
+    text-decoration: none !important;
+    outline: none;
+  }
+
+  .sk-breadcrumb-separator {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.45);
+    flex-shrink: 0;
+  }
+
+  .sk-breadcrumb-current {
+    color: #FFFFFF;
+    font-weight: 600;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 576px) {
+    .sk-breadcrumb-current {
+      max-width: 100px;
+    }
+  }
+
+  .sk-banner-title {
+    font-family: var(--sk-font-serif);
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  .sk-banner-desc {
+    font-size: 0.875rem;
+    color: #D6E3DE;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .sk-banner-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  .sk-banner-wave svg {
+    display: block;
+    width: 100%;
+    height: 38px;
+    margin-bottom: -1px;
+    transform: translateY(1px);
+  }
+
+  @media (max-width: 768px) {
+    .sk-page-banner {
+      padding: 96px 16px 54px;
+    }
+    .sk-banner-img {
+      object-position: 25% center;
+    }
+    .sk-banner-overlay {
+      background:
+        linear-gradient(to bottom, rgba(27, 49, 49, 0.92) 0%, rgba(27, 49, 49, 0.75) 40%, rgba(27, 49, 49, 0.92) 100%),
+        linear-gradient(to right, rgba(27, 49, 49, 0.78) 0%, rgba(27, 49, 49, 0.88) 100%);
+    }
+    .sk-banner-breadcrumb {
+      padding: 3.5px 11px;
+      font-size: 0.6875rem;
+      gap: 4px;
+    }
+    .sk-breadcrumb-item {
+      gap: 4px;
+    }
+    .sk-breadcrumb-current {
+      max-width: 95px;
+    }
+    .sk-banner-title {
+      font-size: 1.68rem;
+    }
+    .sk-banner-desc {
+      font-size: 0.8125rem;
+      line-height: 1.55;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .sk-banner-breadcrumb {
+      padding: 3px 9px;
+      font-size: 0.625rem;
+      gap: 3px;
+    }
+    .sk-breadcrumb-item {
+      gap: 3px;
+    }
+    .sk-breadcrumb-current {
+      max-width: 75px;
+    }
+  }
+</style>

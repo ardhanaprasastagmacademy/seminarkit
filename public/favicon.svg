@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="12" fill="#2F4F4F"/>
+  <rect x="3" y="3" width="58" height="58" rx="9" fill="none" stroke="#BDB76B" stroke-width="2" stroke-opacity="0.5"/>
+  <!-- Elegant geometric monogram: 'sk' -->
+  <text x="32" y="42" font-family="'Newsreader', 'Georgia', serif" font-size="28" font-style="italic" font-weight="600" fill="#FBF9F5" text-anchor="middle" letter-spacing="-1">sk</text>
+  <circle cx="48" cy="22" r="3" fill="#BDB76B"/>
+</svg>

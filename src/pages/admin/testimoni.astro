@@ -1,0 +1,402 @@
+---
+// src/pages/admin/testimoni.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Testimoni Klien" activePage="testimoni">
+  <!-- Top Action & Search Bar -->
+  <div class="sk-modern-card mb-3 p-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" id="btn-tambah" class="sk-pill-btn" style="padding:8px 20px;font-size:.8125rem;">
+          + Tambah Testimoni
+        </button>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="sk-search-pill" style="width:260px;">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="search"
+            id="testimoni-search"
+            placeholder="Cari nama / instansi…"
+            style="padding-top:8px;padding-bottom:8px;font-size:.8125rem;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="testimoni-notice" class="sk-notice mb-3" role="alert" aria-live="polite" style="display:none;"></div>
+
+  <!-- Testimonials Table Card -->
+  <div class="sk-modern-card">
+    <div class="sk-card-header-row">
+      <h2 class="sk-card-title">Daftar Testimoni & Ulasan Klien</h2>
+      <span id="testimoni-count" style="font-size:.8125rem;color:var(--sk-admin-text-muted);">Memuat ulasan…</span>
+    </div>
+
+    <div class="sk-modern-table-wrap">
+      <table class="sk-modern-table">
+        <thead>
+          <tr>
+            <th>Klien & Perusahaan</th>
+            <th style="width:120px;">Penilaian</th>
+            <th>Kutipan Ulasan</th>
+            <th style="width:70px;">Urutan</th>
+            <th style="width:100px;">Status</th>
+            <th style="width:140px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="testimoni-tbody">
+          <tr>
+            <td colspan="6" class="text-center py-5" style="color:var(--sk-admin-text-muted);">
+              Memuat daftar testimoni…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit Testimoni -->
+  <div class="modal fade" id="testimoniModal" tabindex="-1" aria-label="Form Testimoni" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 font-weight-bold" id="modal-testimoni-title" style="color:var(--sk-admin-primary);">Tambah Testimoni</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="testimoni-form">
+            <input type="hidden" id="testimoni-id" />
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="t-nama" class="sk-label">Nama Klien <span>*</span></label>
+                <input type="text" id="t-nama" class="form-control sk-input" required placeholder="Budi Santoso" />
+              </div>
+              <div class="col-md-6">
+                <label for="t-perusahaan" class="sk-label">Instansi / Perusahaan</label>
+                <input type="text" id="t-perusahaan" class="form-control sk-input" placeholder="PT Maju Bersama" />
+              </div>
+              <div class="col-md-6">
+                <label for="t-jabatan" class="sk-label">Jabatan Klien</label>
+                <input type="text" id="t-jabatan" class="form-control sk-input" placeholder="HR Manager / Ketua Panitia" />
+              </div>
+              <div class="col-md-6">
+                <label for="t-rating" class="sk-label">Penilaian Rating</label>
+                <select id="t-rating" class="form-select sk-input">
+                  <option value="5" selected>5 / 5 — Sangat Memuaskan</option>
+                  <option value="4">4 / 5 — Memuaskan</option>
+                  <option value="3">3 / 5 — Cukup</option>
+                  <option value="2">2 / 5 — Kurang</option>
+                  <option value="1">1 / 5 — Kecewa</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="t-isi" class="sk-label">Isi Testimoni Klien <span>*</span></label>
+                <textarea id="t-isi" class="form-control sk-input" rows="4" required placeholder="Pengalaman memesan seminar kit, ketepatan waktu pengiriman, dan kualitas produk..."></textarea>
+              </div>
+              <div class="col-md-8">
+                <label for="t-foto" class="sk-label">URL Foto Klien (Opsional)</label>
+                <input type="url" id="t-foto" class="form-control sk-input" placeholder="https://..." />
+              </div>
+              <div class="col-md-4">
+                <label for="t-urutan" class="sk-label">Urutan Tampil</label>
+                <input type="number" id="t-urutan" class="form-control sk-input" value="0" />
+              </div>
+              <div class="col-12 pt-1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="t-published" checked />
+                  <label class="form-check-label font-weight-bold" for="t-published" style="font-size:.875rem;">Tampilkan di Halaman Website</label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="sk-pill-btn sk-pill-btn--outline" data-bs-dismiss="modal" style="padding:6px 18px;font-size:.8125rem;">Batal</button>
+          <button type="button" id="testimoni-save" class="sk-pill-btn" style="padding:6px 20px;font-size:.8125rem;">Simpan Testimoni</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+
+    const sb = getSupabaseBrowser();
+    let modal: any;
+    let allTestimonials: any[] = [];
+    let searchTestimoniQuery = '';
+
+    function createModal(modalId: string) {
+      const el = document.getElementById(modalId);
+      if (!el) return { show() {}, hide() {} };
+
+      function hide() {
+        const BS = (window as any).bootstrap?.Modal;
+        if (BS) {
+          try {
+            const inst = BS.getInstance ? BS.getInstance(el) : null;
+            if (inst) { inst.hide(); return; }
+          } catch {}
+        }
+        el.classList.remove('show');
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+        el.removeAttribute('aria-modal');
+        const remaining = Array.from(document.querySelectorAll<HTMLElement>('.modal.show'))
+          .filter(m => m !== el && m.style.display !== 'none');
+        if (remaining.length === 0) {
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        }
+      }
+
+      el.querySelectorAll('[data-bs-dismiss="modal"], .btn-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          hide();
+        });
+      });
+
+      el.addEventListener('click', (e) => {
+        if (e.target === el) hide();
+      });
+
+      return {
+        show() {
+          const BS = (window as any).bootstrap?.Modal;
+          if (BS) {
+            try {
+              const inst = BS.getOrCreateInstance ? BS.getOrCreateInstance(el) : new BS(el);
+              inst.show();
+              return;
+            } catch {}
+          }
+          el.classList.add('show');
+          el.style.display = 'block';
+          el.setAttribute('aria-modal', 'true');
+          el.removeAttribute('aria-hidden');
+          document.body.classList.add('modal-open');
+          let backdrop = document.querySelector('.modal-backdrop');
+          if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.addEventListener('click', hide);
+            document.body.appendChild(backdrop);
+          }
+        },
+        hide
+      };
+    }
+
+    function esc(str: string | null | undefined): string {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function loadTestimoni() {
+      try {
+        const res = await fetch('/api/admin/manage?table=testimonials').then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          allTestimonials = res.data;
+        } else {
+          const { data } = await sb.from('testimonials').select('*').order('urutan');
+          allTestimonials = data ?? [];
+        }
+      } catch {
+        const { data } = await sb.from('testimonials').select('*').order('urutan');
+        allTestimonials = data ?? [];
+      }
+      applyTestimoniFilterAndRender();
+    }
+
+    function applyTestimoniFilterAndRender() {
+      let filtered = allTestimonials;
+      if (searchTestimoniQuery) {
+        const q = searchTestimoniQuery.toLowerCase();
+        filtered = filtered.filter(t =>
+          (t.nama && t.nama.toLowerCase().includes(q)) ||
+          (t.perusahaan && t.perusahaan.toLowerCase().includes(q)) ||
+          (t.isi && t.isi.toLowerCase().includes(q))
+        );
+      }
+      renderTestimoniTable(filtered);
+    }
+
+    function renderTestimoniTable(items: any[]) {
+      const tbody = document.getElementById('testimoni-tbody')!;
+      const countEl = document.getElementById('testimoni-count');
+      if (countEl) countEl.textContent = `${items.length} testimoni terdaftar`;
+
+      if (!items.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-5">
+              <p style="font-weight:700;color:var(--sk-admin-primary);margin-bottom:4px;">Belum ada testimoni</p>
+              <p style="font-size:.875rem;color:var(--sk-admin-text-muted);margin:0;">Klik "+ Tambah Testimoni" untuk menambahkan ulasan dari klien.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(t => `
+        <tr>
+          <td>
+            <div style="font-weight:700;color:var(--sk-admin-primary);">${esc(t.nama)}</div>
+            <div style="font-size:.8125rem;color:var(--sk-admin-text-muted);">
+              ${esc(t.perusahaan || 'Klien Pribadi')} ${t.jabatan ? `— ${esc(t.jabatan)}` : ''}
+            </div>
+          </td>
+          <td>
+            <span style="font-size:.8125rem;font-weight:700;color:var(--sk-admin-khaki-dark);letter-spacing:1px;">
+              ${'★'.repeat(t.rating || 5)}${'☆'.repeat(5 - (t.rating || 5))}
+            </span>
+            <div style="font-size:.75rem;color:var(--sk-admin-text-muted);">${t.rating || 5}/5 Bintang</div>
+          </td>
+          <td>
+            <div style="font-size:.8125rem;max-width:360px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--sk-admin-text-main);">
+              “${esc(t.isi)}”
+            </div>
+          </td>
+          <td style="font-variant-numeric:tabular-nums;">${t.urutan}</td>
+          <td>
+            <span class="sk-status-pill ${t.is_published ? 'sk-status-pill--success' : 'sk-status-pill--muted'}">
+              <span class="sk-status-dot"></span>
+              ${t.is_published ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn-sk-action edit-btn" data-id="${esc(t.id)}">Edit</button>
+              <button type="button" class="btn-sk-action btn-sk-action--danger delete-btn" data-id="${esc(t.id)}">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Edit handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          let t = allTestimonials.find(x => x.id === btn.dataset.id);
+          if (!t) {
+            try {
+              const res = await sb.from('testimonials').select('*').eq('id', btn.dataset.id!).single();
+              t = res.data;
+            } catch {}
+          }
+          if (!t) return;
+          (document.getElementById('testimoni-id') as HTMLInputElement).value = t.id;
+          (document.getElementById('t-nama') as HTMLInputElement).value = t.nama;
+          (document.getElementById('t-perusahaan') as HTMLInputElement).value = t.perusahaan ?? '';
+          (document.getElementById('t-jabatan') as HTMLInputElement).value = t.jabatan ?? '';
+          (document.getElementById('t-rating') as HTMLSelectElement).value = String(t.rating ?? 5);
+          (document.getElementById('t-isi') as HTMLTextAreaElement).value = t.isi;
+          (document.getElementById('t-foto') as HTMLInputElement).value = t.foto_url ?? '';
+          (document.getElementById('t-urutan') as HTMLInputElement).value = t.urutan;
+          (document.getElementById('t-published') as HTMLInputElement).checked = t.is_published;
+          document.getElementById('modal-testimoni-title')!.textContent = 'Edit Testimoni';
+          modal.show();
+        });
+      });
+
+      // Delete handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Yakin ingin menghapus testimoni ini?')) return;
+          try {
+            await fetch('/api/admin/manage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'delete_testimonial', payload: { id: btn.dataset.id } })
+            });
+          } catch {}
+          try { await sb.from('testimonials').delete().eq('id', btn.dataset.id!); } catch {}
+          loadTestimoni();
+        });
+      });
+    }
+
+    document.getElementById('testimoni-search')?.addEventListener('input', (e) => {
+      searchTestimoniQuery = (e.target as HTMLInputElement).value.trim();
+      applyTestimoniFilterAndRender();
+    });
+
+    document.getElementById('btn-tambah')?.addEventListener('click', () => {
+      (document.getElementById('testimoni-id') as HTMLInputElement).value = '';
+      (document.getElementById('testimoni-form') as HTMLFormElement).reset();
+      (document.getElementById('t-published') as HTMLInputElement).checked = true;
+      (document.getElementById('t-urutan') as HTMLInputElement).value = '0';
+      (document.getElementById('t-rating') as HTMLSelectElement).value = '5';
+      document.getElementById('modal-testimoni-title')!.textContent = 'Tambah Testimoni';
+      modal.show();
+    });
+
+    document.getElementById('testimoni-save')?.addEventListener('click', async () => {
+      const id = (document.getElementById('testimoni-id') as HTMLInputElement).value;
+      const nama = (document.getElementById('t-nama') as HTMLInputElement).value.trim();
+      const isi = (document.getElementById('t-isi') as HTMLTextAreaElement).value.trim();
+
+      if (!nama || !isi) {
+        alert('Nama klien dan Isi testimoni wajib diisi.');
+        return;
+      }
+
+      const payload: any = {
+        id: id || undefined,
+        nama,
+        isi,
+        perusahaan: (document.getElementById('t-perusahaan') as HTMLInputElement).value.trim() || null,
+        jabatan: (document.getElementById('t-jabatan') as HTMLInputElement).value.trim() || null,
+        rating: Number((document.getElementById('t-rating') as HTMLSelectElement).value) || 5,
+        foto_url: (document.getElementById('t-foto') as HTMLInputElement).value.trim() || null,
+        urutan: Number((document.getElementById('t-urutan') as HTMLInputElement).value) || 0,
+        is_published: (document.getElementById('t-published') as HTMLInputElement).checked,
+      };
+
+      const saveBtn = document.getElementById('testimoni-save') as HTMLButtonElement | null;
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        await fetch('/api/admin/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_testimonial', payload })
+        });
+      } catch (e) {
+        console.warn('API save error:', e);
+      }
+
+      try {
+        if (id) await sb.from('testimonials').update(payload).eq('id', id);
+        else await sb.from('testimonials').insert(payload);
+      } catch {}
+
+      if (saveBtn) saveBtn.disabled = false;
+      modal.hide();
+      loadTestimoni();
+    });
+
+    // Init modal & load data
+    (async () => {
+      modal = createModal('testimoniModal');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const initSearch = urlParams.get('search');
+      if (initSearch) {
+        searchTestimoniQuery = initSearch;
+        const sInput = document.getElementById('testimoni-search') as HTMLInputElement | null;
+        if (sInput) sInput.value = initSearch;
+      }
+      if (urlParams.get('action') === 'tambah') {
+        setTimeout(() => document.getElementById('btn-tambah')?.click(), 300);
+      }
+
+      await loadTestimoni();
+    })();
+  </script>
+</AdminLayout>

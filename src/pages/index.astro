@@ -1,0 +1,1915 @@
+---
+// src/pages/index.astro
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import CTA from '../components/CTA.astro';
+import {
+  getSiteSettings,
+  getFeaturedProducts,
+  getCategories,
+  getHomeGallery,
+  getTestimonials,
+  getFaqs,
+} from '../lib/queries';
+import { hero, tentangSingkat, keunggulan4 } from '../data/site';
+import { buildWaFromPage, buildWaUrl, buildWaFromProduct } from '../lib/wa';
+import { formatRupiah } from '../lib/format';
+import { organizationSchema, websiteSchema, faqSchema } from '../lib/seo';
+
+// Fetch all backend data directly without altering any schema or queries
+const settings = await getSiteSettings();
+const products = await getFeaturedProducts(3);
+const categories = await getCategories();
+const categoryMap = new Map(categories.map(c => [c.id, c.nama]));
+const gallery = await getHomeGallery();
+const testimonials = await getTestimonials();
+const fallbackTestimonials = [
+  {
+    nama: 'Rian Hidayat',
+    jabatan: 'Head of People Operations',
+    perusahaan: 'PT Telekomunikasi Nusantara',
+    isi: 'Pemesanan 350 paket seminar kit selesai 3 hari sebelum tenggat waktu acara. Kualitas finishing bahan kulitnya sangat memuaskan dan disukai para peserta dewan direksi.',
+    rating: 5,
+  },
+  {
+    nama: 'dr. Fitriani Prasetyo',
+    jabatan: 'Ketua Panitia Simposium Nasional',
+    perusahaan: 'Ikatan Ahli Kesehatan Masyarakat',
+    isi: 'Komunikasi sangat responsif via WhatsApp. Sampel produk dikirimkan cepat sehingga panitia yakin sebelum produksi massal 800 pcs. Sangat profesional.',
+    rating: 5,
+  },
+  {
+    nama: 'Darmawan Santosa',
+    jabatan: 'Procurement Specialist',
+    perusahaan: 'Astra Internasional Partner',
+    isi: 'Transparansi rincian harga per komponen dan ketepatan jumlah barang tanpa ada yang cacat. Rekomendasi vendor seminar kit terbaik di Jakarta.',
+    rating: 5,
+  },
+  {
+    nama: 'Nabila Syakira',
+    jabatan: 'Event Coordinator',
+    perusahaan: 'Yayasan Pendidikan Global',
+    isi: 'Totebag dan tumblernya ramah lingkungan sesuai tema acara kami. Kemasan rapi dan sudah dikelompokkan per sesi sehingga pembagian ke peserta berjalan mulus.',
+    rating: 5,
+  },
+];
+const displayTestimonials = (testimonials && testimonials.length >= 2) ? testimonials : fallbackTestimonials;
+const fallbackGallery = [
+  {
+    id: '1',
+    judul: 'Paket Seminar Kit Premium',
+    kategori: 'Seminar Kit BUMN',
+    gambar_url: '/images/seminakit-set.webp',
+    alt_text: 'Paket seminar kit premium untuk instansi dan korporasi',
+  },
+  {
+    id: '2',
+    judul: 'Tumbler Termos Laser Grafir',
+    kategori: 'Souvenir Instansi',
+    gambar_url: '/images/tumble.webp',
+    alt_text: 'Tumbler termos custom logo grafir rapi',
+  },
+  {
+    id: '3',
+    judul: 'Totebag Kanvas Pelatihan',
+    kategori: 'Pelatihan Nasional',
+    gambar_url: '/images/totebag.webp',
+    alt_text: 'Totebag kanvas twill ramah lingkungan',
+  },
+  {
+    id: '4',
+    judul: 'Buku Agenda Kulit Sintetis',
+    kategori: 'Stationery Eksklusif',
+    gambar_url: '/images/notebook.webp',
+    alt_text: 'Buku agenda kerja kulit doff minimalis',
+  },
+];
+const displayGallery = (gallery && gallery.length > 0) ? gallery : fallbackGallery;
+const faqs = await getFaqs();
+const fallbackFaqs = [
+  {
+    id: 'f1',
+    pertanyaan: 'Berapa jumlah minimal pemesanan (MOQ) di seminarkit?',
+    jawaban: 'Minimal order mulai dari 30 pcs untuk paket custom hardbox eksklusif dan mulai dari 50 pcs untuk souvenir satuan seperti tumbler atau totebag. Untuk kebutuhan di bawah MOQ standar, silakan konsultasikan dengan tim sales kami lewat WhatsApp.',
+  },
+  {
+    id: 'f2',
+    pertanyaan: 'Berapa lama estimasi waktu pengerjaan produksi?',
+    jawaban: 'Waktu produksi standar berkisar antara 7 hingga 14 hari kerja setelah approval sampel fisik / mockup digital final. Untuk kebutuhan mendesak (urgent order), kami menyediakan layanan pengerjaan kilat tergantung ketersediaan stok material.',
+  },
+  {
+    id: 'f3',
+    pertanyaan: 'Apakah bisa mengirim sampel fisik sebelum produksi massal?',
+    jawaban: 'Ya, kami dapat mengirimkan sampel material fisik (dummy produk) atau proofing digital dengan logo perusahaan Anda agar Anda dapat memastikan warna, tekstur, dan proporsinya sesuai standar sebelum produksi penuh.',
+  },
+  {
+    id: 'f4',
+    pertanyaan: 'Apakah isi paket seminar kit bisa dikustomisasi bebas?',
+    jawaban: 'Tentu. Anda bebas mengombinasikan item apa pun, misalnya agenda + flashdisk saja, atau totebag + tumbler + pulpen + kartu tanda pengenal (lanyard), sesuai anggaran dan tema kegiatan Anda.',
+  },
+  {
+    id: 'f5',
+    pertanyaan: 'Bagaimana prosedur pembayaran dan faktur pajak resmi?',
+    jawaban: 'Kami melayani pembayaran transfer bank resmi rekening giro perusahaan dan siap menerbitkan Faktur Pajak resmi (PPN) serta invoice resmi untuk keperluan pertanggungjawaban anggaran instansi Anda.',
+  },
+];
+const displayFaqs = (faqs && faqs.length > 0) ? faqs : fallbackFaqs;
+
+const waUrl = buildWaFromPage(settings?.wa_number, 'Beranda');
+
+const schemas = [
+  organizationSchema(),
+  websiteSchema(),
+  ...(displayFaqs.length ? [faqSchema(displayFaqs)] : []),
+];
+---
+
+<BaseLayout
+  title="Souvenir Kantor & Seminar Kit Berkualitas"
+  description="seminarkit — produsen souvenir kantor dan paket seminar kit berkualitas untuk perusahaan dan instansi di seluruh Indonesia. Harga transparan, minimum order fleksibel, garansi tepat waktu."
+  settings={settings}
+  currentPage="Beranda"
+  jsonLd={schemas}
+>
+  <!-- ========================================================
+       1. HERO SECTION (Sporoforia Reference Style)
+       ======================================================== -->
+  <section class="sk-sporoforia-hero" aria-labelledby="hero-heading">
+    <div class="container position-relative" style="z-index: 2;">
+      <!-- Brand Monogram / Eyebrow -->
+      <div class="sk-hero-brand-tag">
+        <span class="sk-hero-monogram">SEMINARKIT</span>
+      </div>
+
+      <!-- Main Headline in Newsreader Serif -->
+      <h1 id="hero-heading" class="sk-hero-headline">
+        {hero.judul}
+      </h1>
+
+      <!-- Subtitle Description -->
+      <p class="sk-hero-subtext">
+        {hero.subjudul}
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="sk-hero-actions">
+        <a href="/produk" class="sk-pill-btn sk-pill-btn--khaki">
+          {hero.btnProduk || 'Lihat Katalog Produk'}
+        </a>
+        <a href={waUrl} class="sk-pill-btn sk-pill-btn--glass" target="_blank" rel="noopener noreferrer">
+          <svg width="15" height="15" viewBox="0 0 448 512" fill="currentColor" aria-hidden="true">
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path>
+          </svg>
+          <span>{hero.btnWa || 'Konsultasi WhatsApp'}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Organic Wave Cutout Transition into Cream Background -->
+    <div class="sk-hero-wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 90" fill="none" preserveAspectRatio="none">
+        <path d="M0,0 C320,65 520,15 720,48 C920,80 1140,25 1440,60 L1440,94 L0,94 Z" fill="#FBFAF5"></path>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       1.5 KEY PILLARS ICON STRIP (Reference Style: Our Key Pillars)
+       ======================================================== -->
+  <section class="sk-key-pillars-strip" aria-label="Pilar Komitmen seminarkit">
+    <div class="container">
+      <div class="text-center mb-4 pb-1">
+        <p class="sk-pillars-tag">Pilar Komitmen Utama</p>
+      </div>
+
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-4 justify-content-center text-center">
+        <!-- Pillar 1: Integritas & Kualitas (Heart in Hands) -->
+        <div class="col">
+          <div class="sk-pillar-item">
+            <div class="sk-pillar-icon-box">
+              <svg width="46" height="46" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="24" y1="5" x2="24" y2="8"></line>
+                <line x1="16" y1="8" x2="18" y2="10.5"></line>
+                <line x1="32" y1="8" x2="30" y2="10.5"></line>
+                <path d="M24 13.5 C21 10 16 10 14 13.5 C12 17 15 20.5 24 26 C33 20.5 36 17 34 13.5 C32 10 27 10 24 13.5 Z"></path>
+                <path d="M8 32 C12 30 16 31 20 34 L24 37 L28 34 C32 31 36 30 40 32"></path>
+                <path d="M12 36 L15 41 C17 43 21 44 24 44 C27 44 31 43 33 41 L36 36"></path>
+              </svg>
+            </div>
+            <h4 class="sk-pillar-name">Integritas &amp; Kualitas</h4>
+          </div>
+        </div>
+
+        <!-- Pillar 2: Ramah Lingkungan (Plant in Hands) -->
+        <div class="col">
+          <div class="sk-pillar-item">
+            <div class="sk-pillar-icon-box">
+              <svg width="46" height="46" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M24 36 V17"></path>
+                <path d="M24 17 C24 11 19 8 15 9 C15 14 18 17 24 17 Z"></path>
+                <path d="M24 13 C24 8 29 5 33 6 C33 11 30 14 24 14 Z"></path>
+                <path d="M24 23 C24 19 28 17 31 18 C31 22 28 24 24 24 Z"></path>
+                <path d="M10 32 C13 28 17 29 20 33 L22 36"></path>
+                <path d="M38 32 C35 28 31 29 28 33 L26 36"></path>
+                <path d="M13 37 L17 42 C19 44 22 44 24 44 C26 44 29 44 31 42 L35 37"></path>
+              </svg>
+            </div>
+            <h4 class="sk-pillar-name">Bahan Berkelanjutan</h4>
+          </div>
+        </div>
+
+        <!-- Pillar 3: Kemitraan Terpercaya (Globe in Hands) -->
+        <div class="col">
+          <div class="sk-pillar-item">
+            <div class="sk-pillar-icon-box">
+              <svg width="46" height="46" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="24" cy="18" r="10"></circle>
+                <ellipse cx="24" cy="18" rx="4.5" ry="10"></ellipse>
+                <line x1="14" y1="18" x2="34" y2="18"></line>
+                <path d="M8 32 C12 29 17 30 21 34 L24 37 L27 34 C31 30 36 29 40 32"></path>
+                <path d="M12 37 L15 41 C18 43 21 44 24 44 C27 44 30 43 33 41 L36 37"></path>
+              </svg>
+            </div>
+            <h4 class="sk-pillar-name">Kemitraan Terpercaya</h4>
+          </div>
+        </div>
+
+        <!-- Pillar 4: Kustomisasi Presisi (Diamond with Network Nodes) -->
+        <div class="col">
+          <div class="sk-pillar-item">
+            <div class="sk-pillar-icon-box">
+              <svg width="46" height="46" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="24 10 33 20 24 35 15 20"></polygon>
+                <line x1="15" y1="20" x2="33" y2="20"></line>
+                <circle cx="9" cy="20" r="3"></circle>
+                <circle cx="39" cy="20" r="3"></circle>
+                <circle cx="16" cy="40" r="3"></circle>
+                <circle cx="32" cy="40" r="3"></circle>
+                <circle cx="24" cy="5" r="2.5"></circle>
+                <line x1="12" y1="20" x2="15" y2="20"></line>
+                <line x1="33" y1="20" x2="36" y2="20"></line>
+                <line x1="18" y1="38" x2="21" y2="32"></line>
+                <line x1="30" y1="38" x2="27" y2="32"></line>
+                <line x1="24" y1="7.5" x2="24" y2="10"></line>
+              </svg>
+            </div>
+            <h4 class="sk-pillar-name">Kustomisasi Presisi</h4>
+          </div>
+        </div>
+
+        <!-- Pillar 5: Transparansi Harga (Fair Trade Scales) -->
+        <div class="col">
+          <div class="sk-pillar-item">
+            <div class="sk-pillar-icon-box">
+              <svg width="46" height="46" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="24" cy="11" r="3.5"></circle>
+                <line x1="24" y1="5" x2="24" y2="7.5"></line>
+                <line x1="20" y1="8" x2="21.5" y2="9.5"></line>
+                <line x1="28" y1="8" x2="26.5" y2="9.5"></line>
+                <line x1="24" y1="14.5" x2="24" y2="41"></line>
+                <line x1="16" y1="41" x2="32" y2="41"></line>
+                <line x1="11" y1="16" x2="37" y2="16"></line>
+                <line x1="11" y1="16" x2="7" y2="26"></line>
+                <line x1="11" y1="16" x2="15" y2="26"></line>
+                <path d="M6 26 C6 30 16 30 16 26 Z"></path>
+                <line x1="37" y1="16" x2="33" y2="26"></line>
+                <line x1="37" y1="16" x2="41" y2="26"></line>
+                <path d="M32 26 C32 30 42 30 42 26 Z"></path>
+              </svg>
+            </div>
+            <h4 class="sk-pillar-name">Harga Transparan</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       2. TENTANG SEMINARKIT (Reference Style: Adventure Showcase / Two-Column)
+       ======================================================== -->
+  <section class="sk-intro-section" aria-labelledby="intro-heading">
+    <!-- Hidden SVG Defs for Torn Deckle Paper Clip Paths -->
+    <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+      <defs>
+        <clipPath id="sk-torn-outer-clip" clipPathUnits="objectBoundingBox">
+          <path d="M 0.0200 0.0268 L 0.0474 0.0270 L 0.0749 0.0365 L 0.1023 0.0341 L 0.1297 0.0245 L 0.1571 0.0287 L 0.1846 0.0213 L 0.2120 0.0246 L 0.2394 0.0266 L 0.2669 0.0185 L 0.2943 0.0150 L 0.3217 0.0284 L 0.3491 0.0288 L 0.3766 0.0239 L 0.4040 0.0243 L 0.4314 0.0310 L 0.4589 0.0339 L 0.4863 0.0308 L 0.5137 0.0171 L 0.5411 0.0224 L 0.5686 0.0265 L 0.5960 0.0110 L 0.6234 0.0210 L 0.6509 0.0125 L 0.6783 0.0195 L 0.7057 0.0188 L 0.7331 0.0237 L 0.7606 0.0359 L 0.7880 0.0313 L 0.8154 0.0208 L 0.8429 0.0208 L 0.8703 0.0298 L 0.8977 0.0207 L 0.9251 0.0248 L 0.9526 0.0159 L 0.9800 0.0196 L 0.9726 0.0300 L 0.9721 0.0636 L 0.9783 0.0971 L 0.9764 0.1307 L 0.9682 0.1643 L 0.9729 0.1979 L 0.9654 0.2314 L 0.9678 0.2650 L 0.9767 0.2986 L 0.9813 0.3321 L 0.9781 0.3657 L 0.9749 0.3993 L 0.9765 0.4329 L 0.9756 0.4664 L 0.9699 0.5000 L 0.9767 0.5336 L 0.9746 0.5671 L 0.9733 0.6007 L 0.9770 0.6343 L 0.9648 0.6679 L 0.9807 0.7014 L 0.9752 0.7350 L 0.9856 0.7686 L 0.9740 0.8021 L 0.9736 0.8357 L 0.9706 0.8693 L 0.9738 0.9029 L 0.9731 0.9364 L 0.9730 0.9700 L 0.9800 0.9822 L 0.9526 0.9706 L 0.9251 0.9844 L 0.8977 0.9888 L 0.8703 0.9755 L 0.8429 0.9804 L 0.8154 0.9675 L 0.7880 0.9708 L 0.7606 0.9749 L 0.7331 0.9627 L 0.7057 0.9807 L 0.6783 0.9761 L 0.6509 0.9857 L 0.6234 0.9793 L 0.5960 0.9823 L 0.5686 0.9766 L 0.5411 0.9784 L 0.5137 0.9701 L 0.4863 0.9746 L 0.4589 0.9654 L 0.4314 0.9686 L 0.4040 0.9780 L 0.3766 0.9785 L 0.3491 0.9872 L 0.3217 0.9875 L 0.2943 0.9797 L 0.2669 0.9803 L 0.2394 0.9730 L 0.2120 0.9661 L 0.1846 0.9740 L 0.1571 0.9657 L 0.1297 0.9747 L 0.1023 0.9791 L 0.0749 0.9677 L 0.0474 0.9778 L 0.0200 0.9863 L 0.0191 0.9700 L 0.0353 0.9364 L 0.0244 0.9029 L 0.0333 0.8693 L 0.0320 0.8357 L 0.0220 0.8021 L 0.0222 0.7686 L 0.0158 0.7350 L 0.0225 0.7014 L 0.0178 0.6679 L 0.0176 0.6343 L 0.0271 0.6007 L 0.0339 0.5671 L 0.0268 0.5336 L 0.0346 0.5000 L 0.0271 0.4664 L 0.0205 0.4329 L 0.0294 0.3993 L 0.0191 0.3657 L 0.0122 0.3321 L 0.0243 0.2986 L 0.0245 0.2650 L 0.0310 0.2314 L 0.0343 0.1979 L 0.0249 0.1643 L 0.0316 0.1307 L 0.0286 0.0971 L 0.0213 0.0636 L 0.0163 0.0300 Z" />
+        </clipPath>
+        <clipPath id="sk-torn-inner-clip" clipPathUnits="objectBoundingBox">
+          <path d="M 0.0320 0.0388 L 0.0587 0.0390 L 0.0855 0.0485 L 0.1122 0.0461 L 0.1390 0.0365 L 0.1657 0.0407 L 0.1925 0.0333 L 0.2192 0.0366 L 0.2459 0.0386 L 0.2727 0.0305 L 0.2994 0.0270 L 0.3262 0.0404 L 0.3529 0.0408 L 0.3797 0.0359 L 0.4064 0.0363 L 0.4331 0.0430 L 0.4599 0.0459 L 0.4866 0.0428 L 0.5134 0.0291 L 0.5401 0.0344 L 0.5669 0.0385 L 0.5936 0.0230 L 0.6203 0.0330 L 0.6471 0.0245 L 0.6738 0.0315 L 0.7006 0.0308 L 0.7273 0.0357 L 0.7541 0.0479 L 0.7808 0.0433 L 0.8075 0.0328 L 0.8343 0.0328 L 0.8610 0.0418 L 0.8878 0.0327 L 0.9145 0.0368 L 0.9413 0.0279 L 0.9680 0.0316 L 0.9606 0.0420 L 0.9601 0.0747 L 0.9663 0.1074 L 0.9644 0.1401 L 0.9562 0.1729 L 0.9609 0.2056 L 0.9534 0.2383 L 0.9558 0.2710 L 0.9647 0.3037 L 0.9693 0.3364 L 0.9661 0.3691 L 0.9629 0.4019 L 0.9645 0.4346 L 0.9636 0.4673 L 0.9579 0.5000 L 0.9647 0.5327 L 0.9626 0.5654 L 0.9613 0.5981 L 0.9650 0.6309 L 0.9528 0.6636 L 0.9687 0.6963 L 0.9632 0.7290 L 0.9736 0.7617 L 0.9620 0.7944 L 0.9616 0.8271 L 0.9586 0.8599 L 0.9618 0.8926 L 0.9611 0.9253 L 0.9610 0.9580 L 0.9680 0.9702 L 0.9413 0.9586 L 0.9145 0.9724 L 0.8878 0.9768 L 0.8610 0.9635 L 0.8343 0.9684 L 0.8075 0.9555 L 0.7808 0.9588 L 0.7541 0.9629 L 0.7273 0.9507 L 0.7006 0.9687 L 0.6738 0.9641 L 0.6471 0.9737 L 0.6203 0.9673 L 0.5936 0.9703 L 0.5669 0.9646 L 0.5401 0.9664 L 0.5134 0.9581 L 0.4866 0.9626 L 0.4599 0.9534 L 0.4331 0.9566 L 0.4064 0.9660 L 0.3797 0.9665 L 0.3529 0.9752 L 0.3262 0.9755 L 0.2994 0.9677 L 0.2727 0.9683 L 0.2459 0.9610 L 0.2192 0.9541 L 0.1925 0.9620 L 0.1657 0.9537 L 0.1390 0.9627 L 0.1122 0.9671 L 0.0855 0.9557 L 0.0587 0.9658 L 0.0320 0.9743 L 0.0311 0.9580 L 0.0473 0.9253 L 0.0364 0.8926 L 0.0453 0.8599 L 0.0440 0.8271 L 0.0340 0.7944 L 0.0342 0.7617 L 0.0278 0.7290 L 0.0345 0.6963 L 0.0298 0.6636 L 0.0296 0.6309 L 0.0391 0.5981 L 0.0459 0.5654 L 0.0388 0.5327 L 0.0466 0.5000 L 0.0391 0.4673 L 0.0325 0.4346 L 0.0414 0.4019 L 0.0311 0.3691 L 0.0242 0.3364 L 0.0363 0.3037 L 0.0365 0.2710 L 0.0430 0.2383 L 0.0463 0.2056 L 0.0369 0.1729 L 0.0436 0.1401 L 0.0406 0.1074 L 0.0333 0.0747 L 0.0283 0.0420 Z" />
+        </clipPath>
+      </defs>
+    </svg>
+
+    <div class="container">
+      <div class="row align-items-center g-4 g-lg-5 sk-intro-row">
+        <!-- Photo Column: Tampil di atas pada mobile & di sebelah kiri pada desktop -->
+        <div class="col-lg-6 order-1">
+          <div class="sk-torn-media-box">
+            <div class="sk-torn-frame-outer">
+              <div class="sk-torn-frame-inner">
+                <img
+                  src="/images/about-seminarkit.webp"
+                  alt="Proses Produksi dan Kualitas Seminar Kit seminarkit"
+                  class="sk-torn-img"
+                  loading="lazy"
+                  decoding="async"
+                  width="600"
+                  height="420"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Story & Description Column: Tampil di bawah foto pada mobile & di sebelah kanan pada desktop -->
+        <div class="col-lg-6 order-2">
+          <div class="sk-adventure-content ps-lg-4">
+            <h2 id="intro-heading" class="sk-adventure-heading mb-4">
+              <span class="sk-adventure-title-bottom">SEMINAR KIT TERBAIK?</span>
+            </h2>
+
+            <div class="sk-adventure-body">
+              <p>
+                seminarkit hadir untuk memastikan pengadaan souvenir kantor dan paket seminar kit instansi Anda berjalan tanpa kendala. Kami memahami bahwa merchandise acara bukan sekadar cinderamata pelengkap, melainkan cerminan reputasi dan citra profesional organisasi Anda di hadapan tamu kehormatan.
+              </p>
+              <p>
+                Dari kurasi bahan baku berkualitas, ketelitian cetak grafir dan sablon berpresisi tinggi, hingga perakitan kemasan individual rapi yang siap dibagikan. Kami telah dipercaya oleh berbagai kementerian, BUMN, perguruan tinggi, dan instansi swasta nasional untuk menyukseskan ribuan agenda penting.
+              </p>
+            </div>
+
+            <!-- Craft Ticket Badge Button (Reference Style) -->
+            <div class="mt-4 pt-2">
+              <a href="/tentang" class="sk-craft-ticket-btn">
+                PELAJARI PROFIL KAMI
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       3. SLATE GREEN HIGHLIGHT SECTION (Kenapa Memilih Kami & 3 Pillars)
+       ======================================================== -->
+  <section class="sk-cta-strip-section" aria-labelledby="cta-strip-heading">
+    <div class="container text-center max-w-1040 mx-auto">
+      <h2 id="cta-strip-heading" class="sk-strip-title mb-5">
+        Kenapa Memilih Kami?
+      </h2>
+
+      <!-- 3 Pillars Row inside the dark green section -->
+      <div class="row g-4 justify-content-center mt-2 mb-4 text-center">
+        <!-- Feature 1: Harga Transparan -->
+        <div class="col-lg-4 col-md-6">
+          <div class="sk-pillar-strip-card">
+            <div class="sk-pillar-strip-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <h3 class="sk-pillar-strip-title">{keunggulan4[0]?.judul || 'Harga Transparan Sejak Awal'}</h3>
+            <p class="sk-pillar-strip-text">
+              {keunggulan4[0]?.keterangan || 'Penawaran mencantumkan harga per pcs, biaya desain, dan estimasi ongkos kirim. Tidak ada angka yang berubah di akhir.'}
+            </p>
+          </div>
+        </div>
+
+        <!-- Feature 2: Minimum Order Fleksibel -->
+        <div class="col-lg-4 col-md-6">
+          <div class="sk-pillar-strip-card">
+            <div class="sk-pillar-strip-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <h3 class="sk-pillar-strip-title">{keunggulan4[1]?.judul || 'Minimum Order yang Masuk Akal'}</h3>
+            <p class="sk-pillar-strip-text">
+              {keunggulan4[1]?.keterangan || 'Sebagian produk dapat dipesan mulai dari 50 pcs, cocok untuk seminar skala kecil maupun pengadaan besar.'}
+            </p>
+          </div>
+        </div>
+
+        <!-- Feature 3: Ketepatan Waktu -->
+        <div class="col-lg-4 col-md-6">
+          <div class="sk-pillar-strip-card">
+            <div class="sk-pillar-strip-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3 class="sk-pillar-strip-title">{keunggulan4[3]?.judul || 'Ketepatan Waktu dengan Bukti'}</h3>
+            <p class="sk-pillar-strip-text">
+              {keunggulan4[3]?.keterangan || 'Jadwal produksi ditetapkan di awal dan dikonfirmasi sebelum pembayaran. Rekam jejak pengiriman tersedia untuk ditinjau.'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       5. PRODUCT SHOWCASE GRID (Découvrez les espèces...)
+       ======================================================== -->
+  <section class="sk-catalog-showcase-section" aria-labelledby="catalog-heading">
+    <div class="container">
+      <div class="text-center max-w-720 mx-auto mb-4">
+        <p class="sk-eyebrow-khaki mb-2">KATALOG PILIHAN</p>
+        <h2 id="catalog-heading" class="sk-serif-title">
+          Souvenir dan Seminar Kit Terpopuler
+        </h2>
+      </div>
+
+      <!-- 3 Products Grid (Matching /produk page) -->
+      {products.length > 0 ? (
+        <>
+          <div class="row g-4 justify-content-center mt-3">
+            {products.slice(0, 3).map(p => {
+              const catName = p.category_id ? categoryMap.get(p.category_id) : undefined;
+              return (
+                <div class="col-lg-4 col-md-6 col-12">
+                  <ProductCard product={p} categoryName={catName} waNumber={settings?.wa_number} />
+                </div>
+              );
+            })}
+          </div>
+
+          <div class="text-center mt-4 pt-3">
+            <a href="/produk" class="sk-pill-btn sk-pill-btn--khaki">
+              Lihat Semua Katalog Produk
+            </a>
+          </div>
+        </>
+      ) : (
+        <p class="text-center mt-4" style="color:var(--sk-muted);">
+          Katalog produk sedang diperbarui. Silakan hubungi kami untuk katalog PDF lengkap.
+        </p>
+      )}
+    </div>
+  </section>
+
+  <!-- ========================================================
+       5.5 EDITORIAL PHOTO SHOWCASE (Reference Style: Dark Photography Showcase)
+       ======================================================== -->
+  <section class="sk-home-gallery-section" aria-labelledby="home-gallery-heading">
+    <div class="container position-relative">
+      <!-- Section Header: Centered Eyebrow & Title, Top-Right Circular Carousel Buttons -->
+      <div class="sk-home-gallery-header">
+        <div class="sk-home-gallery-header-text">
+          <p class="sk-dark-eyebrow">DOKUMENTASI & PORTOFOLIO</p>
+          <h2 id="home-gallery-heading" class="sk-dark-serif-title">
+            Dokumentasi Pengerjaan Nyata
+          </h2>
+        </div>
+
+        <!-- Carousel Navigation Controls (Reference: Top Right Round Arrow Button) -->
+        <div class="sk-gallery-controls" aria-label="Kontrol Navigasi Galeri">
+          <button
+            type="button"
+            class="sk-gallery-circle-btn"
+            id="sk-gal-prev-btn"
+            aria-label="Foto Sebelumnya"
+            title="Lihat foto sebelumnya"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="sk-gallery-circle-btn"
+            id="sk-gal-next-btn"
+            aria-label="Foto Selanjutnya"
+            title="Lihat foto selanjutnya"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Cards Track (4 Cards visible on desktop matching reference) -->
+      <div class="sk-gallery-track" id="sk-home-gallery-track" role="region" aria-label="Koleksi Galeri Foto Hasil Produksi">
+        {displayGallery.map((item) => (
+          <a
+            href="/galeri"
+            class="sk-dark-photo-card"
+            aria-label={item.judul || item.alt_text}
+            title={`Lihat detail ${item.judul || 'Dokumentasi SeminarKit'}`}
+          >
+            <div class="sk-photo-frame">
+              <img
+                src={item.gambar_url}
+                alt={item.alt_text || item.judul || 'Dokumentasi Seminar Kit'}
+                class="sk-photo-img"
+                loading="lazy"
+                decoding="async"
+                onerror="this.src='/images/seminakit-set.webp';"
+              />
+              <div class="sk-photo-overlay"></div>
+
+              <!-- Card Caption (Centered Serif Title + Dashed Subtitle like reference) -->
+              <div class="sk-photo-caption">
+                <h3 class="sk-photo-title">
+                  {item.judul || 'Paket Seminar Kit'}
+                </h3>
+                <p class="sk-photo-subtitle">
+                  - {item.kategori || 'SOUVENIR KANTOR'} -
+                </p>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- Action Buttons below cards -->
+      <div class="sk-gallery-bottom-actions">
+        <a href="/galeri" class="sk-pill-btn sk-pill-btn--khaki">
+          Lihat Semua Portofolio
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       6. PRODUCTION STORY & TESTIMONIAL HIGHLIGHT (L'Histoire...)
+       ======================================================== -->
+  <section class="sk-story-section" aria-labelledby="story-heading">
+    <div class="container">
+      <div class="sk-story-card">
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-6">
+            <p class="sk-eyebrow-khaki mb-2">KEPERCAYAAN & KUALITAS</p>
+            <h2 id="story-heading" class="sk-story-title">
+              Dedikasi Kualitas di Setiap Acara Anda
+            </h2>
+            <p class="sk-story-desc">
+              Sejak awal berdiri, seminarkit telah dipercaya oleh berbagai kementerian, BUMN, perguruan tinggi, dan instansi swasta nasional untuk menyediakan ribuan paket seminar kit tepat waktu tanpa kompromi pada detail kualitas bahan.
+            </p>
+            <div class="d-flex flex-wrap gap-3 mt-4 sk-story-actions">
+              <a href="/galeri" class="sk-pill-btn sk-pill-btn--dark">
+                Lihat Dokumentasi Produksi
+              </a>
+              <a href="/kontak" class="sk-pill-btn sk-pill-btn--outline-dark">
+                Hubungi Kami
+              </a>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <!-- Featured Testimonial Rotator Box -->
+            <div class="sk-featured-testimonial-box" id="sk-testimonial-rotator" role="region" aria-roledescription="carousel" aria-label="Testimoni Klien">
+              <!-- Grid Track: all slides overlap in one grid cell for zero height shifts -->
+              <div class="sk-testimonials-slider-track">
+                {displayTestimonials.map((t, index) => {
+                  const initial = t.nama ? t.nama.trim().charAt(0).toUpperCase() : 'S';
+                  const subtitle = [t.jabatan, t.perusahaan].filter(Boolean).join(', ') || 'Mitra Pengadaan Acara';
+                  const stars = '★'.repeat(t.rating || 5);
+                  return (
+                    <div
+                      class={`sk-testimonial-slide ${index === 0 ? 'is-active' : ''}`}
+                      data-index={index}
+                      role="group"
+                      aria-roledescription="slide"
+                      aria-label={`${index + 1} dari ${displayTestimonials.length}`}
+                    >
+                      <div class="sk-stars mb-2" aria-label={`Rating ${t.rating || 5} bintang`}>{stars}</div>
+                      <p class="sk-quote-text">
+                        "{t.isi}"
+                      </p>
+                      <div class="sk-quote-author-wrap">
+                        <div class="sk-author-avatar">
+                          {initial}
+                        </div>
+                        <div>
+                          <div class="sk-author-name">
+                            {t.nama}
+                          </div>
+                          <div class="sk-author-sub">
+                            {subtitle}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <!-- Controls: Smooth Dots & Arrows -->
+              <div class="sk-testimonial-controls d-flex align-items-center justify-content-between mt-3 pt-3 border-top" style="border-color: rgba(27, 49, 49, 0.08) !important;">
+                <div class="sk-testimonial-dots d-flex align-items-center gap-2" role="tablist" aria-label="Pilih testimoni">
+                  {displayTestimonials.map((_, index) => (
+                    <button
+                      type="button"
+                      class={`sk-t-dot ${index === 0 ? 'is-active' : ''}`}
+                      data-slide-index={index}
+                      aria-label={`Lihat testimoni ${index + 1}`}
+                      aria-selected={index === 0 ? 'true' : 'false'}
+                      role="tab"
+                    ></button>
+                  ))}
+                </div>
+                <div class="sk-testimonial-nav-btns d-flex align-items-center gap-2">
+                  <button type="button" class="sk-t-nav-btn sk-t-prev" aria-label="Testimoni sebelumnya">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <button type="button" class="sk-t-nav-btn sk-t-next" aria-label="Testimoni berikutnya">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       7. FREQUENTLY ASKED QUESTIONS (Optiv Modern Reference Style)
+       ======================================================== -->
+  <section class="sk-faq-section" aria-labelledby="faq-home-heading">
+    <div class="container">
+      <div class="row g-4 g-lg-5 align-items-start">
+        
+        <!-- Left Column: Large Title & Desc -->
+        <div class="col-lg-5">
+          <div class="sk-faq-left-block">
+            <!-- Main Heading with highlighted accent words matching reference -->
+            <h2 id="faq-home-heading" class="sk-faq-main-title">
+              Pertanyaan yang <span class="sk-faq-title-accent">Sering Diajukan</span>
+            </h2>
+
+            <p class="sk-faq-main-desc">
+              Temukan jawaban transparan seputar ketentuan minimal pemesanan (MOQ), sampel mockup gratis, estimasi pengerjaan kilat, hingga legalitas faktur pajak resmi pengadaan instansi.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Column: Accordion Cards List -->
+        <div class="col-lg-7">
+          <div class="sk-modern-faq-list" id="faq-accordion-list">
+            {displayFaqs.map((faq, i) => (
+              <div class={`sk-faq-card${i === 0 ? ' is-open' : ''}`}>
+                <button
+                  type="button"
+                  class="sk-faq-card-header"
+                  aria-expanded={i === 0 ? 'true' : 'false'}
+                  aria-controls={`faq-answer-${i}`}
+                >
+                  <span class="sk-faq-card-question">{faq.pertanyaan}</span>
+                  <span class="sk-faq-card-btn" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
+                  </span>
+                </button>
+                <div
+                  id={`faq-answer-${i}`}
+                  class="sk-faq-card-body"
+                  style={i === 0 ? 'display: block;' : 'display: none;'}
+                >
+                  <p class="sk-faq-card-answer">{faq.jawaban}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Callout CTA Section -->
+  <CTA waUrl={waUrl} />
+</BaseLayout>
+
+<style>
+  /* ========================================================
+     SPOROFORIA THEME DESIGN SYSTEM (Slate Dark Green, Khaki & Cream)
+     ======================================================== */
+
+  /* ---------- 1. HERO SECTION ---------- */
+  .sk-sporoforia-hero {
+    position: relative;
+    background: linear-gradient(180deg, rgba(27, 49, 49, 0.78) 0%, rgba(20, 36, 36, 0.92) 100%),
+      url('/images/hero-seminar-kit.webp') center 30% / cover no-repeat;
+    padding: 136px 0 108px;
+    text-align: center;
+    color: #FFFFFF;
+    overflow-x: clip;
+  }
+
+  .sk-hero-brand-tag {
+    margin-bottom: 18px;
+  }
+
+  .sk-hero-monogram {
+    font-family: var(--sk-font-serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    color: #E6E1D3;
+    display: inline-block;
+    text-transform: uppercase;
+  }
+
+  .sk-hero-headline {
+    font-family: var(--sk-font-serif);
+    font-size: clamp(2rem, 4.4vw, 3.25rem);
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.15;
+    max-width: 820px;
+    margin: 0 auto 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .sk-hero-subtext {
+    font-size: clamp(0.95rem, 1.8vw, 1.08rem);
+    color: #D6E1DD;
+    max-width: 640px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+
+  .sk-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .sk-hero-wave {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .sk-hero-wave svg {
+    display: block;
+    width: 100%;
+    height: 48px;
+    transform: translateY(2px);
+  }
+
+  /* ---------- 2. PILL BUTTONS (Reference Style) ---------- */
+  .sk-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.22s ease-in-out;
+    cursor: pointer;
+    line-height: 1.3;
+  }
+
+  .sk-pill-btn--khaki {
+    background-color: #BDB76B;
+    color: #1B3131;
+    border: 1px solid #BDB76B;
+  }
+  .sk-pill-btn--khaki:hover {
+    background-color: #AFA85C;
+    color: #1B3131;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(189, 183, 107, 0.35);
+  }
+
+  .sk-pill-btn--khaki-bright {
+    background-color: #E2DEAB;
+    color: #1B3131;
+    border: 1px solid #E2DEAB;
+    font-weight: 700;
+  }
+  .sk-pill-btn--khaki-bright:hover {
+    background-color: #FFFFFF;
+    color: #1B3131;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .sk-pill-btn--glass {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #FFFFFF;
+    backdrop-filter: blur(6px);
+  }
+  .sk-pill-btn--glass:hover {
+    background-color: #FFFFFF;
+    color: #1B3131;
+    transform: translateY(-2px);
+  }
+
+  .sk-pill-btn--dark {
+    background-color: #1B3131;
+    color: #FFFFFF;
+    border: 1px solid #1B3131;
+  }
+  .sk-pill-btn--dark:hover {
+    background-color: #2F4F4F;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(27, 49, 49, 0.25);
+  }
+
+  .sk-pill-btn--outline-dark {
+    background-color: transparent;
+    color: #1B3131;
+    border: 1px solid #1B3131;
+  }
+  .sk-pill-btn--outline-dark:hover {
+    background-color: #1B3131;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+  }
+
+  .sk-pill-btn--khaki-outline {
+    background-color: transparent;
+    color: #2F4F4F;
+    border: 1px solid #BDB76B;
+    font-size: 0.8125rem;
+    padding: 7px 20px;
+  }
+  .sk-pill-btn--khaki-outline:hover {
+    background-color: #BDB76B;
+    color: #1B3131;
+  }
+
+  /* ---------- 2.5 KEY PILLARS STRIP (Reference Style) ---------- */
+  .sk-key-pillars-strip {
+    background-color: #FBFAF5;
+    padding: 38px 0 24px;
+    position: relative;
+    z-index: 2;
+    margin-top: -3px;
+  }
+
+  .sk-pillars-tag {
+    font-family: var(--sk-font-serif);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #637771;
+    text-transform: uppercase;
+    margin-bottom: 0;
+  }
+
+  .sk-pillar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    transition: transform 0.25s ease;
+  }
+
+  .sk-pillar-item:hover {
+    transform: translateY(-3px);
+  }
+
+  .sk-pillar-icon-box {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #24423D;
+    margin-bottom: 12px;
+    transition: color 0.25s ease, transform 0.25s ease;
+  }
+
+  .sk-pillar-item:hover .sk-pillar-icon-box {
+    color: #BDB76B;
+    transform: scale(1.08);
+  }
+
+  .sk-pillar-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1B3131;
+    margin: 0;
+    line-height: 1.35;
+    max-width: 140px;
+  }
+
+  /* ---------- 3. INTRO / ADVENTURE SHOWCASE SECTION (Reference Style) ---------- */
+  .sk-intro-section {
+    position: relative;
+    z-index: 2;
+    padding: 60px 0 90px;
+    background-color: #FBFAF5;
+  }
+
+  .sk-adventure-heading {
+    margin-bottom: 0;
+  }
+
+  .sk-adventure-title-bottom {
+    display: block;
+    font-family: var(--sk-font-serif);
+    font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+    font-weight: 800;
+    color: #2F5A3E; /* Rich forest green accent from reference */
+    letter-spacing: -0.01em;
+    line-height: 1.18;
+    text-transform: uppercase;
+  }
+
+  .sk-adventure-body p {
+    font-size: 0.9375rem;
+    color: #4A5B57;
+    line-height: 1.68;
+    margin-bottom: 14px;
+  }
+
+  /* Craft Ticket / Luggage Tag Badge Button (Reference Style) */
+  .sk-craft-ticket-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 11px 34px;
+    background: linear-gradient(180deg, #CBBF8D 0%, #B8AC78 100%);
+    color: #1B3131;
+    font-family: var(--sk-font-serif);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 1px solid rgba(27, 49, 49, 0.24);
+    box-shadow: 0 4px 14px rgba(27, 49, 49, 0.12);
+    transition: all 0.25s ease;
+  }
+
+  .sk-craft-ticket-btn::before,
+  .sk-craft-ticket-btn::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: #1B3131;
+    opacity: 0.55;
+    border-radius: 1px;
+  }
+
+  .sk-craft-ticket-btn::before {
+    left: 10px;
+  }
+
+  .sk-craft-ticket-btn::after {
+    right: 10px;
+  }
+
+  .sk-craft-ticket-btn:hover {
+    background: linear-gradient(180deg, #D4C997 0%, #C1B581 100%);
+    color: #1B3131;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(27, 49, 49, 0.2);
+  }
+
+  /* Torn Deckle Paper Frame */
+  .sk-torn-media-box {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .sk-torn-frame-outer {
+    position: relative;
+    background-color: #182826; /* Dark torn jagged backing rim */
+    clip-path: url(#sk-torn-outer-clip);
+    -webkit-clip-path: url(#sk-torn-outer-clip);
+    filter: drop-shadow(0 14px 28px rgba(27, 49, 49, 0.22));
+    padding: 7px; /* Rim thickness */
+    transition: transform 0.35s ease;
+  }
+
+  .sk-torn-media-box:hover .sk-torn-frame-outer {
+    transform: translateY(-4px);
+  }
+
+  .sk-torn-frame-inner {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    clip-path: url(#sk-torn-inner-clip);
+    -webkit-clip-path: url(#sk-torn-inner-clip);
+    overflow: hidden;
+    background-color: #2F4F4F;
+  }
+
+  .sk-torn-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .sk-torn-media-box:hover .sk-torn-img {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 991.98px) {
+    .sk-intro-row {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .sk-torn-media-box {
+      margin-top: 0;
+      margin-bottom: 28px;
+    }
+    .sk-adventure-content {
+      text-align: center;
+      margin-bottom: 0;
+    }
+  }
+
+  /* ---------- 4. FULL-WIDTH CTA STRIP & 3 PILLARS ---------- */
+  .sk-cta-strip-section {
+    background: linear-gradient(135deg, #1B3131 0%, #254444 50%, #1A3030 100%);
+    padding: 72px 20px 80px;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sk-cta-strip-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(189, 183, 107, 0.18), transparent 70%);
+    pointer-events: none;
+  }
+
+  .sk-strip-title {
+    font-family: var(--sk-font-serif);
+    font-size: clamp(1.8rem, 3.4vw, 2.45rem);
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 14px;
+    letter-spacing: -0.02em;
+  }
+
+  .sk-strip-desc {
+    font-size: 0.95rem;
+    color: #D6E1DD;
+    line-height: 1.65;
+    margin-bottom: 36px;
+  }
+
+  .sk-pillar-strip-card {
+    padding: 10px 14px;
+    transition: transform 0.25s ease;
+  }
+
+  .sk-pillar-strip-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .sk-pillar-strip-icon {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #F4EFE6;
+    border: 1px solid #DCD5C5;
+    color: #8C8436;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .sk-pillar-strip-card:hover .sk-pillar-strip-icon {
+    transform: scale(1.06);
+    background: #BDB76B;
+    color: #1B3131;
+    border-color: #BDB76B;
+  }
+
+  .sk-pillar-strip-title {
+    font-family: var(--sk-font-serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .sk-pillar-strip-text {
+    font-size: 0.8875rem;
+    color: #D6E1DD;
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 320px;
+  }
+
+  /* ---------- 6. PRODUCT CATALOG SHOWCASE ---------- */
+  .sk-catalog-showcase-section {
+    padding: 70px 0 85px;
+    background-color: #F5EFE6;
+  }
+
+  .sk-eyebrow-khaki {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #8C8436;
+    text-transform: uppercase;
+  }
+
+  /* ---------- 6.5 EDITORIAL PHOTO SHOWCASE (Reference Style: Dark Photography Showcase) ---------- */
+  .sk-home-gallery-section {
+    position: relative;
+    background: radial-gradient(circle at 50% 0%, rgba(197, 168, 128, 0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #122121 0%, #182C2C 50%, #122121 100%);
+    padding: 85px 0 95px;
+    color: #FFFFFF;
+    overflow: hidden;
+  }
+
+  .sk-home-gallery-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    gap: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .sk-home-gallery-header-text {
+    flex: 1;
+    text-align: center;
+  }
+
+  .sk-dark-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: #C5A880;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .sk-dark-serif-title {
+    font-family: var(--sk-font-serif, 'Playfair Display', Georgia, serif);
+    font-size: clamp(1.85rem, 3.6vw, 2.6rem);
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+  }
+
+  /* Carousel Navigation Buttons at Top Right (Reference Style: Round Arrow Button) */
+  .sk-gallery-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .sk-gallery-circle-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0;
+  }
+
+  .sk-gallery-circle-btn:hover {
+    background: #C5A880;
+    border-color: #C5A880;
+    color: #122121;
+    transform: scale(1.08);
+    box-shadow: 0 6px 18px rgba(197, 168, 128, 0.35);
+  }
+
+  .sk-gallery-circle-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* Horizontal Cards Track (4 Cards visible on desktop) */
+  .sk-gallery-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 4px 24px;
+    scrollbar-width: none;
+  }
+
+  .sk-gallery-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Card Item */
+  .sk-dark-photo-card {
+    flex: 0 0 calc((100% - 60px) / 4);
+    scroll-snap-align: start;
+    display: block;
+    text-decoration: none;
+    outline: none;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sk-dark-photo-card:hover {
+    transform: translateY(-6px);
+  }
+
+  .sk-photo-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4.1;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #1A2F2F;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+
+  .sk-dark-photo-card:hover .sk-photo-frame {
+    border-color: rgba(197, 168, 128, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(197, 168, 128, 0.15);
+  }
+
+  .sk-photo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  }
+
+  .sk-dark-photo-card:hover .sk-photo-img {
+    transform: scale(1.08);
+  }
+
+  /* Smooth gradient overlay */
+  .sk-photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+      rgba(15, 27, 27, 0) 35%,
+      rgba(15, 27, 27, 0.45) 60%,
+      rgba(15, 27, 27, 0.95) 96%
+    );
+    transition: opacity 0.3s ease;
+  }
+
+  .sk-dark-photo-card:hover .sk-photo-overlay {
+    background: linear-gradient(180deg,
+      rgba(15, 27, 27, 0) 25%,
+      rgba(15, 27, 27, 0.5) 55%,
+      rgba(15, 27, 27, 0.98) 96%
+    );
+  }
+
+  /* Caption at the bottom */
+  .sk-photo-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 22px 18px 20px;
+    text-align: center;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sk-photo-title {
+    font-family: var(--sk-font-serif, 'Playfair Display', Georgia, serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 6px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sk-photo-subtitle {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: #C5A880;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Bottom Actions */
+  .sk-gallery-bottom-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 1199.98px) {
+    .sk-dark-photo-card {
+      flex: 0 0 calc((100% - 40px) / 3);
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .sk-home-gallery-section {
+      padding: 65px 0 75px;
+    }
+    .sk-home-gallery-section .container {
+      display: flex;
+      flex-direction: column;
+    }
+    .sk-home-gallery-header {
+      display: contents;
+    }
+    .sk-home-gallery-header-text {
+      order: 1;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .sk-gallery-track {
+      order: 2;
+      margin-bottom: 12px;
+    }
+    /* Posisi tombol panah navigasi di bawah foto pada tampilan mobile */
+    .sk-gallery-controls {
+      order: 3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin: 8px 0 24px;
+    }
+    .sk-gallery-bottom-actions {
+      order: 4;
+      margin-top: 0;
+    }
+    .sk-dark-photo-card {
+      flex: 0 0 calc((100% - 20px) / 2);
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .sk-home-gallery-section {
+      padding: 50px 0 65px;
+    }
+    .sk-home-gallery-header-text {
+      margin-bottom: 20px;
+    }
+    .sk-dark-photo-card {
+      flex: 0 0 78%;
+    }
+    .sk-photo-frame {
+      border-radius: 16px;
+      aspect-ratio: 3 / 4;
+    }
+    .sk-photo-title {
+      font-size: 1.125rem;
+    }
+    .sk-gallery-circle-btn {
+      width: 44px;
+      height: 44px;
+    }
+    .sk-gallery-controls {
+      gap: 14px;
+      margin: 6px 0 20px;
+    }
+  }
+
+  /* ---------- 7. STORY & TESTIMONIAL BOX ---------- */
+  .sk-story-section {
+    padding: 70px 0 85px;
+    background-color: #FBFAF5;
+  }
+
+  .sk-story-card {
+    background: #FFFFFF;
+    border-radius: 28px;
+    padding: 44px 38px;
+    border: 1px solid #E4DDCF;
+    box-shadow: 0 10px 32px rgba(27, 49, 49, 0.05);
+  }
+
+  .sk-story-title {
+    font-family: var(--sk-font-serif);
+    font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.25;
+    margin-bottom: 14px;
+    letter-spacing: -0.02em;
+  }
+
+  .sk-story-desc {
+    font-size: 0.9375rem;
+    color: #4A5B57;
+    line-height: 1.65;
+  }
+
+  .sk-featured-testimonial-box {
+    background: #F8F5EE;
+    border-radius: 20px;
+    padding: 28px 28px 22px;
+    border: 1px solid #E6E0D2;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(27, 49, 49, 0.04);
+  }
+
+  .sk-testimonials-slider-track {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .sk-testimonial-slide {
+    grid-area: 1 / 1 / 2 / 2;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px) scale(0.985);
+    transition: opacity 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+                visibility 0.55s;
+    pointer-events: none;
+  }
+
+  .sk-testimonial-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  /* Dot styles */
+  .sk-t-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background-color: #D3CCC0;
+    cursor: pointer;
+    transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                background-color 0.35s ease,
+                border-radius 0.35s ease;
+  }
+
+  .sk-t-dot:hover {
+    background-color: #2F4F4F;
+  }
+
+  .sk-t-dot.is-active {
+    width: 26px;
+    background-color: #2F4F4F;
+  }
+
+  /* Nav buttons */
+  .sk-t-nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #DCD5C5;
+    background: #FFFFFF;
+    color: #2F4F4F;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.25s ease;
+  }
+
+  .sk-t-nav-btn:hover {
+    background: #2F4F4F;
+    color: #FFFFFF;
+    border-color: #2F4F4F;
+    transform: scale(1.05);
+  }
+
+  .sk-t-nav-btn:active {
+    transform: scale(0.95);
+  }
+
+  .sk-stars {
+    color: #D4AF37;
+    font-size: 1.15rem;
+    letter-spacing: 2px;
+  }
+
+  .sk-quote-text {
+    font-family: var(--sk-font-serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: #1B3131;
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+
+  .sk-quote-author-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sk-author-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #2F4F4F;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  .sk-author-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1B3131;
+  }
+
+  .sk-author-sub {
+    font-size: 0.8rem;
+    color: #71827E;
+  }
+
+  /* ---------- 8. FREQUENTLY ASKED QUESTIONS (White Clean Theme) ---------- */
+  .sk-faq-section {
+    padding: 85px 0 95px;
+    background-color: #FFFFFF;
+    color: #1B3131;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sk-faq-main-title {
+    font-family: var(--sk-font-serif, 'Playfair Display', Georgia, serif);
+    font-size: clamp(2.1rem, 3.8vw, 2.9rem);
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.18;
+    margin-bottom: 18px;
+    letter-spacing: -0.02em;
+  }
+
+  .sk-faq-title-accent {
+    color: #8C8436;
+  }
+
+  .sk-faq-main-desc {
+    color: #556963;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    margin-bottom: 34px;
+    max-width: 440px;
+  }
+
+  .sk-faq-left-block {
+    position: static;
+  }
+
+  @media (min-width: 992px) {
+    .sk-faq-left-block {
+      position: sticky;
+      top: 110px;
+    }
+  }
+
+  /* Right Column: Modern FAQ Cards List */
+  .sk-modern-faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sk-faq-card {
+    background: #FBFAF5;
+    border: 1px solid #E8E2D6;
+    border-radius: 18px;
+    padding: 22px 24px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(27, 49, 49, 0.02);
+  }
+
+  .sk-faq-card:hover {
+    background: #FFFFFF;
+    border-color: #BDB76B;
+    box-shadow: 0 8px 24px rgba(27, 49, 49, 0.06);
+  }
+
+  .sk-faq-card.is-open {
+    background: #FFFFFF;
+    border-color: #1B3131;
+    box-shadow: 0 10px 28px rgba(27, 49, 49, 0.08);
+  }
+
+  .sk-faq-card-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #1B3131;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .sk-faq-card-question {
+    font-family: inherit;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.45;
+    margin: 0;
+    transition: color 0.2s ease;
+  }
+
+  .sk-faq-card.is-open .sk-faq-card-question,
+  .sk-faq-card:hover .sk-faq-card-question {
+    color: #142424;
+  }
+
+  /* Square chevron button matching reference image */
+  .sk-faq-card-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #F0EAE0;
+    border: 1px solid #DFD8CB;
+    color: #1B3131;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+
+  .sk-faq-card:not(.is-open) .sk-faq-card-btn {
+    transform: rotate(180deg);
+  }
+
+  .sk-faq-card.is-open .sk-faq-card-btn {
+    background: #1B3131;
+    border-color: #1B3131;
+    color: #FFFFFF;
+    transform: rotate(0deg);
+  }
+
+  .sk-faq-card-body {
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sk-faq-card-answer {
+    color: #4A5D57;
+    font-size: 0.90625rem;
+    line-height: 1.65;
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid #E8E2D6;
+  }
+
+  @media (max-width: 991.98px) {
+    .sk-faq-section {
+      padding: 60px 0 75px;
+    }
+    .sk-faq-card {
+      padding: 18px 20px;
+      border-radius: 16px;
+    }
+  }
+
+  /* ---------- UTILITIES ---------- */
+  .max-w-720 { max-width: 720px; }
+  .max-w-760 { max-width: 760px; }
+  .max-w-1040 { max-width: 1040px; }
+
+  @media (max-width: 768px) {
+    .sk-sporoforia-hero {
+      padding: 104px 16px 84px;
+      overflow-x: clip;
+    }
+    .sk-hero-wave svg {
+      height: 38px;
+      transform: translateY(2px);
+    }
+    .sk-key-pillars-strip {
+      margin-top: -3px;
+      padding: 30px 0 20px;
+    }
+    .sk-intro-section {
+      margin-top: 0;
+      padding: 32px 0 60px;
+    }
+    .sk-story-card {
+      padding: 28px 20px;
+    }
+    .sk-story-actions {
+      flex-direction: column;
+      width: 100%;
+      gap: 12px !important;
+    }
+    .sk-story-actions .sk-pill-btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  function initTestimonialSlider() {
+    const rotator = document.getElementById('sk-testimonial-rotator');
+    if (!rotator) return;
+
+    // Prevent duplicate initializations
+    if ((rotator as any)._initialized) return;
+    (rotator as any)._initialized = true;
+
+    const slides = rotator.querySelectorAll<HTMLElement>('.sk-testimonial-slide');
+    const dots = rotator.querySelectorAll<HTMLElement>('.sk-t-dot');
+    const prevBtn = rotator.querySelector<HTMLButtonElement>('.sk-t-prev');
+    const nextBtn = rotator.querySelector<HTMLButtonElement>('.sk-t-next');
+
+    if (slides.length <= 1) return;
+
+    let currentIndex = 0;
+    let timer: number | undefined;
+    const intervalTime = 5500; // 5.5s for comfortable reading
+
+    function goToSlide(index: number) {
+      if (index === currentIndex) return;
+
+      slides[currentIndex]?.classList.remove('is-active');
+      dots[currentIndex]?.classList.remove('is-active');
+      dots[currentIndex]?.setAttribute('aria-selected', 'false');
+
+      currentIndex = (index + slides.length) % slides.length;
+
+      slides[currentIndex]?.classList.add('is-active');
+      dots[currentIndex]?.classList.add('is-active');
+      dots[currentIndex]?.setAttribute('aria-selected', 'true');
+    }
+
+    function nextSlide() {
+      goToSlide(currentIndex + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentIndex - 1);
+    }
+
+    function startTimer() {
+      stopTimer();
+      timer = window.setInterval(nextSlide, intervalTime);
+    }
+
+    function stopTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = undefined;
+      }
+    }
+
+    dots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        const targetIdx = parseInt(dot.dataset.slideIndex || '0', 10);
+        goToSlide(targetIdx);
+        startTimer();
+      });
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      prevSlide();
+      startTimer();
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      nextSlide();
+      startTimer();
+    });
+
+    // Pause rotation while hovered or focused
+    rotator.addEventListener('mouseenter', stopTimer);
+    rotator.addEventListener('mouseleave', startTimer);
+    rotator.addEventListener('touchstart', stopTimer, { passive: true });
+    rotator.addEventListener('touchend', startTimer, { passive: true });
+
+    startTimer();
+  }
+
+  function initHomeGalleryCarousel() {
+    const track = document.getElementById('sk-home-gallery-track');
+    const prevBtn = document.getElementById('sk-gal-prev-btn');
+    const nextBtn = document.getElementById('sk-gal-next-btn');
+
+    if (!track || !prevBtn || !nextBtn) return;
+    if ((track as any)._carouselInitialized) return;
+    (track as any)._carouselInitialized = true;
+
+    function getScrollStep() {
+      const card = track.querySelector('.sk-dark-photo-card') as HTMLElement | null;
+      if (!card) return 320;
+      return card.offsetWidth + 20;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      track.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', () => {
+      track.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
+    });
+  }
+
+  function initFaqAccordion() {
+    const list = document.getElementById('faq-accordion-list');
+    if (!list) return;
+    if ((list as any)._initialized) return;
+    (list as any)._initialized = true;
+
+    const cards = list.querySelectorAll<HTMLElement>('.sk-faq-card');
+    cards.forEach((card) => {
+      const header = card.querySelector<HTMLButtonElement>('.sk-faq-card-header');
+      const body = card.querySelector<HTMLElement>('.sk-faq-card-body');
+      if (!header || !body) return;
+
+      header.addEventListener('click', () => {
+        const isOpen = card.classList.contains('is-open');
+
+        cards.forEach((other) => {
+          if (other !== card && other.classList.contains('is-open')) {
+            other.classList.remove('is-open');
+            other.querySelector('.sk-faq-card-header')?.setAttribute('aria-expanded', 'false');
+            const otherBody = other.querySelector<HTMLElement>('.sk-faq-card-body');
+            if (otherBody) otherBody.style.display = 'none';
+          }
+        });
+
+        if (isOpen) {
+          card.classList.remove('is-open');
+          header.setAttribute('aria-expanded', 'false');
+          body.style.display = 'none';
+        } else {
+          card.classList.add('is-open');
+          header.setAttribute('aria-expanded', 'true');
+          body.style.display = 'block';
+        }
+      });
+    });
+  }
+
+  function initAllHomeScripts() {
+    initTestimonialSlider();
+    initHomeGalleryCarousel();
+    initFaqAccordion();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAllHomeScripts);
+  } else {
+    initAllHomeScripts();
+  }
+  document.addEventListener('astro:page-load', initAllHomeScripts);
+</script>

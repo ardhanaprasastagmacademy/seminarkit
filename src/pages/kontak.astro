@@ -1,0 +1,1234 @@
+---
+// src/pages/kontak.astro
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { getSiteSettings, getProductsForSelect } from '../lib/queries';
+import { buildWaFromPage } from '../lib/wa';
+import { organizationSchema, breadcrumbSchema } from '../lib/seo';
+
+const settings = await getSiteSettings();
+const waUrl = buildWaFromPage(settings?.wa_number, 'Kontak');
+const products = await getProductsForSelect();
+
+function formatPhoneDisplay(num?: string | null): string {
+  if (!num) return '(+62) 811-2345-678';
+  const clean = String(num).replace(/\D/g, '');
+  if (clean.startsWith('62') && clean.length >= 10) {
+    return `+62 ${clean.slice(2, 5)}-${clean.slice(5, 9)}-${clean.slice(9)}`;
+  }
+  if (clean.startsWith('0') && clean.length >= 10) {
+    return `${clean.slice(0, 4)}-${clean.slice(4, 8)}-${clean.slice(8)}`;
+  }
+  return num;
+}
+
+const formattedWa = formatPhoneDisplay(settings?.wa_number);
+const rawJam = settings?.jam_kerja || 'Senin – Jumat: 08.00 – 17.00 WIB';
+const jamParts = rawJam.split('|').map(s => s.trim()).filter(Boolean);
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'; // test key
+
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Kontak', url: siteUrl + '/kontak' },
+  ]),
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Kontak seminarkit',
+    url: siteUrl + '/kontak',
+  },
+];
+---
+<BaseLayout
+  title="Kontak & Pemesanan"
+  description="Hubungi seminarkit untuk pemesanan souvenir kantor dan seminar kit. Isi form pemesanan atau chat langsung via WhatsApp."
+  settings={settings}
+  currentPage="Kontak"
+  jsonLd={schemas}
+>
+  <!-- Page Banner (Compact & Consistent) -->
+  <PageBanner
+    judul="Hubungi Kami"
+    badgeText="Layanan Konsultasi & Pemesanan"
+    badgeIcon="chat"
+    deskripsi="Konsultasikan kebutuhan paket seminar kit dan souvenir kustom instansi Anda bersama tim kami."
+    breadcrumbs={[{ label: 'Kontak' }]}
+  />
+
+  <!-- Main Content Flow -->
+  <section class="sk-contact-main-flow">
+    <div class="container">
+
+      <!-- Main Columns: Jam & Peta (Left) + Formulir (Right) -->
+      <div class="row g-4 g-lg-5 align-items-stretch">
+        
+        <!-- Left Column: Jam Kerja & Peta Lokasi -->
+        <div class="col-lg-5 order-2 order-lg-1">
+          <div class="sk-info-card h-100">
+            <div class="sk-form-pill-tag">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Informasi Operasional</span>
+            </div>
+
+            <h2 class="sk-hours-title">Jam Operasional &amp; Workshop</h2>
+            <p class="sk-hours-desc">
+              Customer relation dan workshop produksi kami siap melayani pesanan Anda dengan jadwal operasional resmi:
+            </p>
+
+            <div class="sk-hours-list mb-3">
+              {jamParts.map(part => {
+                const colonIdx = part.indexOf(':');
+                const day = colonIdx > -1 ? part.substring(0, colonIdx).trim() : 'Hari Kerja';
+                const time = colonIdx > -1 ? part.substring(colonIdx + 1).trim() : part;
+                return (
+                  <div class="sk-hour-row">
+                    <div class="sk-hour-row-left">
+                      <div class="sk-hour-row-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                      </div>
+                      <span class="sk-hour-row-day">{day}</span>
+                    </div>
+                    <div class="sk-hour-row-badge">
+                      {time}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div class="sk-hour-row sk-hour-row--closed">
+                <div class="sk-hour-row-left">
+                  <div class="sk-hour-row-icon sk-hour-row-icon--closed">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                  </div>
+                  <div>
+                    <span class="sk-hour-row-day">Minggu &amp; Libur Nasional</span>
+                    <div class="sk-hour-subnote">Chat WhatsApp tetap direspons berkala</div>
+                  </div>
+                </div>
+                <div class="sk-hour-row-badge sk-hour-row-badge--closed">
+                  Tutup
+                </div>
+              </div>
+            </div>
+
+            <div class="sk-card-divider"></div>
+
+            <!-- Location Map Inside Card -->
+            <div class="sk-location-block" id="lokasi-peta">
+              <div class="sk-loc-card-header mb-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="sk-loc-pin-box">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    </div>
+                    <h3 class="sk-loc-heading">Lokasi Workshop &amp; Kantor</h3>
+                  </div>
+                  <a
+                    href={settings?.alamat ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.alamat)}` : 'https://maps.google.com'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="sk-loc-maps-btn"
+                    title="Buka rute di Google Maps"
+                  >
+                    <span>Google Maps</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  </a>
+                </div>
+
+                {settings?.alamat && (
+                  <p class="sk-loc-full-address mb-0">
+                    {settings.alamat}
+                  </p>
+                )}
+              </div>
+
+              <div class="sk-map-wrapper">
+                {settings?.maps_embed_url ? (
+                  <iframe
+                    src={settings.maps_embed_url}
+                    width="100%"
+                    height="100%"
+                    style="border:0;display:block;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Peta Lokasi Workshop Seminarkit"
+                  ></iframe>
+                ) : (
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126497.10091873215!2d110.33982531640623!3d-7.79557979999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a5787bd5b6bc5%3A0x21723fd4d3684f71!2sYogyakarta%2C%20Kota%20Yogyakarta%2C%20Daerah%20Istimewa%20Yogyakarta!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+                    width="100%"
+                    height="100%"
+                    style="border:0;display:block;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Peta Lokasi Workshop Seminarkit"
+                  ></iframe>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Inquiry Form Card -->
+        <div class="col-lg-7 order-1 order-lg-2">
+          <div class="sk-form-card h-100">
+            <div class="sk-form-pill-tag">Formulir Konsultasi</div>
+            <h2 class="sk-form-heading">Konsultasi &amp; Penawaran</h2>
+            <p class="sk-form-subtitle">
+              Isi formulir kebutuhan Anda. Tim kami akan menyiapkan simulasi harga transparan dan preview mockup logo gratis via WhatsApp.
+            </p>
+
+            <div id="form-notice" class="sk-notice mb-4" style="display:none;" role="alert" aria-live="polite"></div>
+
+            <form id="inquiry-form" novalidate>
+              <!-- Honeypot -->
+              <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+                <label for="website">Jangan isi</label>
+                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+              </div>
+              <!-- Time trap -->
+              <input type="hidden" id="form-t" name="t" />
+
+              <div class="row g-3">
+                <!-- Nama -->
+                <div class="col-12">
+                  <label for="nama" class="sk-ref-label">Nama Lengkap <span style="color:var(--sk-error);">*</span></label>
+                  <input
+                    type="text"
+                    id="nama"
+                    name="nama"
+                    class="form-control sk-ref-input"
+                    placeholder="Contoh: Budi Santoso"
+                    required
+                    minlength="2"
+                    maxlength="100"
+                    autocomplete="name"
+                  />
+                  <p class="sk-error" id="err-nama" style="display:none;"></p>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                  <label for="email" class="sk-ref-label">Alamat Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control sk-ref-input"
+                    placeholder="email@instansi.com (opsional)"
+                    autocomplete="email"
+                  />
+                  <p class="sk-error" id="err-email" style="display:none;"></p>
+                </div>
+
+                <!-- No. WhatsApp -->
+                <div class="col-md-6">
+                  <label for="noWa" class="sk-ref-label">Nomor WhatsApp <span style="color:var(--sk-error);">*</span></label>
+                  <input
+                    type="tel"
+                    id="noWa"
+                    name="noWa"
+                    class="form-control sk-ref-input"
+                    placeholder="Contoh: 081234567890"
+                    required
+                    autocomplete="tel"
+                  />
+                  <p class="sk-error" id="err-noWa" style="display:none;"></p>
+                </div>
+
+                <!-- Perusahaan / Instansi -->
+                <div class="col-12">
+                  <label for="perusahaan" class="sk-ref-label">Instansi / Perusahaan</label>
+                  <input
+                    type="text"
+                    id="perusahaan"
+                    name="perusahaan"
+                    class="form-control sk-ref-input"
+                    placeholder="Nama kementerian, BUMN, universitas, atau perusahaan"
+                    maxlength="150"
+                    autocomplete="organization"
+                  />
+                </div>
+
+                <!-- Produk diminati (Lebar penuh agar judul paket tidak terpotong) -->
+                <div class="col-12">
+                  <label for="custom-produk-trigger" class="sk-ref-label">Paket / Produk Diminati</label>
+                  <div class="sk-custom-select-wrap" id="custom-produk-dropdown">
+                    <select id="produk" name="produk" tabindex="-1" aria-hidden="true" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+                      <option value="">Pilih paket / produk (opsional)</option>
+                      {products.map(p => (
+                        <option value={p.nama}>{p.nama}</option>
+                      ))}
+                      <option value="Paket Kustom">Paket Kustom Lainnya</option>
+                    </select>
+
+                    <button
+                      type="button"
+                      id="custom-produk-trigger"
+                      class="form-control sk-ref-input sk-custom-select-trigger"
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                    >
+                      <span id="custom-produk-label" class="sk-custom-select-label">Pilih paket / produk (opsional)</span>
+                      <svg class="sk-custom-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+
+                    <div id="custom-produk-menu" class="sk-custom-select-menu" role="listbox" style="display:none;">
+                      <div class="sk-custom-select-item is-selected" data-val="" role="option" aria-selected="true">
+                        Pilih paket / produk (opsional)
+                      </div>
+                      {products.map(p => (
+                        <div class="sk-custom-select-item" data-val={p.nama} role="option" aria-selected="false">
+                          {p.nama}
+                        </div>
+                      ))}
+                      <div class="sk-custom-select-item" data-val="Paket Kustom" role="option" aria-selected="false">
+                        Paket Kustom Lainnya
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Jumlah & Tanggal Dibutuhkan (Proporsional 50/50 dan 100% responsif) -->
+                <div class="col-md-6 col-12">
+                  <label for="jumlah" class="sk-ref-label">Jumlah (pcs)</label>
+                  <input
+                    type="number"
+                    id="jumlah"
+                    name="jumlah"
+                    class="form-control sk-ref-input"
+                    placeholder="Contoh: 100"
+                    min="1"
+                  />
+                  <p class="sk-error" id="err-jumlah" style="display:none;"></p>
+                </div>
+
+                <div class="col-md-6 col-12">
+                  <label for="tanggal" class="sk-ref-label">Dibutuhkan Tanggal</label>
+                  <input
+                    type="date"
+                    id="tanggal"
+                    name="tanggal"
+                    class="form-control sk-ref-input"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <p class="sk-error" id="err-tanggal" style="display:none;"></p>
+                </div>
+
+                <!-- Pesan -->
+                <div class="col-12">
+                  <label for="pesan" class="sk-ref-label">Rincian Kebutuhan Acara</label>
+                  <textarea
+                    id="pesan"
+                    name="pesan"
+                    class="form-control sk-ref-textarea"
+                    rows="3"
+                    placeholder="Tuliskan rincian kebutuhan paket seminar kit, item merchandise, sablon/laser logo, atau estimasi anggaran..."
+                    maxlength="2000"
+                  ></textarea>
+                </div>
+
+                <!-- Persetujuan privasi -->
+                <div class="col-12">
+                  <div class="form-check d-flex align-items-start gap-2 pt-1">
+                    <input
+                      class="form-check-input mt-1"
+                      type="checkbox"
+                      id="consent"
+                      required
+                    />
+                    <label class="form-check-label" for="consent" style="font-size:0.84rem;color:var(--sk-muted);line-height:1.5;">
+                      Saya menyetujui data di atas digunakan untuk penawaran ini sesuai <a href="/kebijakan-privasi" class="link-sk" style="color:var(--sk-slate-700);text-decoration:underline;">Kebijakan Privasi</a>.
+                    </label>
+                  </div>
+                  <p class="sk-error" id="err-consent" style="display:none;"></p>
+                </div>
+
+                <!-- Turnstile widget -->
+                <div class="col-12">
+                  <div
+                    class="cf-turnstile"
+                    data-sitekey={turnstileSiteKey}
+                    data-theme="light"
+                    id="turnstile-widget"
+                  ></div>
+                  <p class="sk-error" id="err-captcha" style="display:none;">Verifikasi keamanan diperlukan. Muat ulang jika widget tidak tampil.</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="col-12 pt-2">
+                  <button
+                    type="submit"
+                    id="submit-btn"
+                    class="sk-ref-submit"
+                  >Kirim Formulir via WhatsApp</button>
+                </div>
+
+                <!-- Tombol cadangan WA (muncul setelah sukses) -->
+                <div class="col-12" id="wa-fallback" style="display:none;">
+                  <a id="wa-fallback-link" href="#" class="btn-sk btn-sk--accent w-100" target="_blank" rel="noopener noreferrer" style="border-radius:50px;padding:14px;text-align:center;font-weight:700;">
+                    Buka WhatsApp Sekarang
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3 Spacious Contact Cards (Below Form & Operational Info) -->
+      <div class="sk-block-cards mt-5 pt-lg-2">
+        <div class="row g-4 justify-content-center">
+          <!-- Card 1: Phone / WhatsApp -->
+          <div class="col-lg-4 col-md-6">
+            <div class="sk-contact-card">
+              <div class="sk-contact-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              </div>
+              <div class="sk-contact-card-title">{formattedWa}</div>
+              <p class="sk-contact-card-desc">
+                Konsultasi instan via WhatsApp untuk simulasi penawaran kilat, katalog paket PDF, dan preview mockup logo acara Anda.
+              </p>
+              <a href={waUrl} target="_blank" rel="noopener noreferrer" class="sk-contact-card-action">
+                <span>Chat WhatsApp</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 2 (Center - Active Featured Card in Dark Slate): Email -->
+          <div class="col-lg-4 col-md-6">
+            <div class="sk-contact-card sk-contact-card--featured">
+              <div class="sk-contact-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </div>
+              <div class="sk-contact-card-title">{settings?.email || 'halo@seminarkit.co.id'}</div>
+              <p class="sk-contact-card-desc">
+                Kirimkan dokumen TOR, undangan pengadaan resmi, SPK, atau rincian spesifikasi lelang perusahaan via email kantor kami.
+              </p>
+              <a href={`mailto:${settings?.email || 'halo@seminarkit.co.id'}`} class="sk-contact-card-action">
+                <span>Kirim Email</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 3: Location / Workshop -->
+          <div class="col-lg-4 col-md-6">
+            <div class="sk-contact-card">
+              <div class="sk-contact-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <div class="sk-contact-card-title">Workshop &amp; Kantor</div>
+              <p class="sk-contact-card-desc">
+                {settings?.alamat || 'Yogyakarta, Indonesia. Kunjungi showroom kami untuk melihat langsung sampel bahan & hasil sablon/laser.'}
+              </p>
+              <a href="#lokasi-peta" class="sk-contact-card-action">
+                <span>Lihat Petunjuk Peta</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------- Contact Main Layout & Responsive Flow ---------- */
+  .sk-contact-main-flow {
+    position: relative;
+    z-index: 2;
+    margin-top: -3px; /* Overlap PageBanner bottom edge to eliminate any 1px subpixel dark seam */
+    padding: 36px 0 95px;
+    background-color: var(--sk-bg);
+  }
+
+  /* 3 Spacious Contact Cards */
+  .sk-contact-card {
+    background: #FFFFFF;
+    border: 1px solid #E5DFD4;
+    border-radius: 22px;
+    padding: 34px 24px 28px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(31, 45, 45, 0.04);
+  }
+
+  .sk-contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(31, 45, 45, 0.08);
+  }
+
+  .sk-contact-card--featured {
+    background: linear-gradient(145deg, #1B3131 0%, #254444 100%);
+    color: #FFFFFF;
+    border: 1px solid #1B3131;
+    box-shadow: 0 14px 36px rgba(27, 49, 49, 0.22);
+  }
+
+  .sk-contact-card--featured:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 44px rgba(27, 49, 49, 0.3);
+  }
+
+  .sk-contact-card-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #F7F5EE;
+    border: 1px solid #E2DCD0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    color: var(--sk-slate-700);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    flex-shrink: 0;
+  }
+
+  .sk-contact-card--featured .sk-contact-card-icon {
+    background: #BDB76B;
+    border-color: #BDB76B;
+    color: #1B3131;
+  }
+
+  .sk-contact-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--sk-ink);
+    margin-bottom: 10px;
+    word-break: break-word;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-contact-card--featured .sk-contact-card-title {
+    color: #FFFFFF;
+  }
+
+  .sk-contact-card-desc {
+    font-size: 0.875rem;
+    color: var(--sk-muted);
+    margin-bottom: 22px;
+    line-height: 1.6;
+    flex-grow: 1;
+  }
+
+  .sk-contact-card--featured .sk-contact-card-desc {
+    color: #D2DCD8;
+  }
+
+  .sk-contact-card-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1B3131;
+    text-decoration: none;
+    padding: 10px 26px;
+    border-radius: 50px;
+    background: #B6AD67; /* Khaki tone matching reference button */
+    border: 1px solid #B6AD67;
+    box-shadow: 0 4px 14px rgba(182, 173, 103, 0.28);
+    transition: all 0.22s ease;
+  }
+
+  .sk-contact-card-action:hover {
+    background: #A69D57;
+    color: #1B3131;
+    border-color: #A69D57;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(182, 173, 103, 0.38);
+  }
+
+  .sk-contact-card--featured .sk-contact-card-action {
+    background: #B6AD67;
+    border-color: #B6AD67;
+    color: #1B3131;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  }
+
+  .sk-contact-card--featured .sk-contact-card-action:hover {
+    background: #C2B970;
+    color: #1B3131;
+    border-color: #C2B970;
+    transform: translateY(-2px);
+  }
+
+  /* Left Column Card (.sk-info-card) */
+  .sk-info-card {
+    background: #FFFFFF;
+    border-radius: 24px;
+    border: 1px solid #E5DFD4;
+    padding: 36px 32px;
+    box-shadow: 0 10px 30px rgba(27, 49, 49, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  @media (max-width: 576px) {
+    .sk-info-card {
+      padding: 24px 18px;
+      border-radius: 20px;
+    }
+  }
+
+  .sk-hours-title {
+    font-family: var(--sk-font-serif);
+    font-size: clamp(1.45rem, 2.2vw, 1.75rem);
+    font-weight: 700;
+    color: var(--sk-ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-hours-desc {
+    font-size: 0.875rem;
+    color: var(--sk-muted);
+    margin-bottom: 20px;
+    line-height: 1.55;
+  }
+
+  .sk-hours-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  /* Sleek modern row with left day & right badge */
+  .sk-hour-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #FBF9F4;
+    border: 1px solid #EAE4D6;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .sk-hour-row:hover {
+    background: #F6F2E8;
+    border-color: #DFD7C4;
+  }
+
+  .sk-hour-row-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .sk-hour-row-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid #E2DCD0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #2F5A3E;
+    flex-shrink: 0;
+  }
+
+  .sk-hour-row-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .sk-hour-row-icon--closed {
+    color: #8C2F2F;
+    background: #FFF5F5;
+    border-color: #F8D7D7;
+  }
+
+  .sk-hour-row-day {
+    font-weight: 700;
+    font-size: 0.84rem;
+    color: var(--sk-ink);
+    white-space: nowrap;
+  }
+
+  .sk-hour-subnote {
+    font-size: 0.725rem;
+    color: var(--sk-muted);
+    line-height: 1.25;
+    margin-top: 1px;
+  }
+
+  .sk-hour-row-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+    border: 1px solid #DDD6C6;
+    border-radius: 50px;
+    padding: 4px 11px;
+    font-size: 0.785rem;
+    font-weight: 700;
+    color: #1C352D;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .sk-hour-row-badge--closed {
+    background: #FFF5F5;
+    border-color: #F5C6CB;
+    color: #8C2F2F;
+  }
+
+  .sk-card-divider {
+    height: 1px;
+    background: #EBE5D8;
+    margin: 22px 0 18px;
+  }
+
+  /* Location & Map Block */
+  .sk-location-block {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+  }
+
+  .sk-loc-card-header {
+    flex-shrink: 0;
+  }
+
+  .sk-loc-pin-box {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(47, 79, 79, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sk-slate-700);
+    flex-shrink: 0;
+  }
+
+  .sk-loc-heading {
+    font-family: var(--sk-font-serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--sk-ink);
+  }
+
+  .sk-loc-maps-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sk-slate-700);
+    background: #F4EEDC;
+    border: 1px solid #E2D6BC;
+    padding: 3px 10px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .sk-loc-maps-btn:hover {
+    background: #E8DECA;
+    color: #162C25;
+    text-decoration: none;
+  }
+
+  .sk-loc-full-address {
+    font-size: 0.8125rem;
+    color: var(--sk-muted);
+    line-height: 1.45;
+  }
+
+  .sk-map-wrapper {
+    flex-grow: 1;
+    min-height: 240px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #E5DFD4;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    position: relative;
+  }
+
+  .sk-map-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    border: 0;
+    display: block;
+  }
+
+  /* Form Card (.sk-form-card) */
+  .sk-form-card {
+    background: #FFFFFF;
+    border-radius: 24px;
+    border: 1px solid #E5DFD4;
+    padding: 38px 34px;
+    box-shadow: 0 10px 30px rgba(27, 49, 49, 0.05);
+  }
+
+  @media (max-width: 576px) {
+    .sk-form-card {
+      padding: 24px 18px;
+      border-radius: 20px;
+    }
+  }
+
+  .sk-form-pill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    align-self: flex-start;
+    font-size: 0.725rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 5px 14px;
+    border-radius: 50px;
+    background: #F7F4EB;
+    border: 1px solid #E2DCCF;
+    color: #2F4F4F;
+    margin-bottom: 14px;
+  }
+
+  .sk-form-heading {
+    font-family: var(--sk-font-serif);
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    font-weight: 700;
+    color: var(--sk-ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-form-subtitle {
+    font-size: 0.875rem;
+    color: var(--sk-muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .sk-ref-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #1B3131;
+    margin-bottom: 6px;
+    display: block;
+    letter-spacing: 0.01em;
+  }
+
+  .sk-ref-input {
+    background: #FFFFFF !important;
+    border: 1px solid #D6D0C2 !important;
+    border-radius: 12px !important;
+    padding: 11px 16px !important;
+    font-size: 0.9rem !important;
+    color: #1B3131 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .sk-ref-input:focus {
+    background: #FFFFFF !important;
+    border-color: #1B3131 !important;
+    box-shadow: 0 0 0 3px rgba(27, 49, 49, 0.12) !important;
+  }
+
+  .sk-ref-textarea {
+    background: #FFFFFF !important;
+    border: 1px solid #D6D0C2 !important;
+    border-radius: 14px !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    color: #1B3131 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 100px;
+  }
+
+  .sk-ref-textarea:focus {
+    background: #FFFFFF !important;
+    border-color: #1B3131 !important;
+    box-shadow: 0 0 0 3px rgba(27, 49, 49, 0.12) !important;
+  }
+
+  .sk-ref-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #BDB76B;
+    color: #1B3131;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    border-radius: 50px;
+    padding: 13px 28px;
+    width: 100%;
+    border: 1px solid #BDB76B;
+    box-shadow: 0 6px 18px rgba(189, 183, 107, 0.28);
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+
+  .sk-ref-submit:hover:not(:disabled) {
+    background-color: #AFA85C;
+    color: #1B3131;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(189, 183, 107, 0.38);
+  }
+
+  .sk-ref-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .sk-error {
+    font-size: 0.8125rem;
+    color: var(--sk-error);
+    margin-top: 5px;
+    margin-bottom: 0;
+  }
+
+  /* Custom Styled Dropdown for Responsive Fit */
+  .sk-custom-select-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .sk-custom-select-trigger {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    cursor: pointer !important;
+    text-align: left !important;
+  }
+
+  .sk-custom-select-trigger:focus,
+  .sk-custom-select-wrap.is-open .sk-custom-select-trigger {
+    border-color: #1B3131 !important;
+    box-shadow: 0 0 0 3px rgba(27, 49, 49, 0.12) !important;
+  }
+
+  .sk-custom-select-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+    font-size: 0.875rem;
+    color: #1B3131;
+    flex: 1;
+  }
+
+  .sk-custom-select-wrap:not(.has-selection) .sk-custom-select-label {
+    color: #8C9C96;
+  }
+
+  .sk-custom-select-chevron {
+    color: #7A8B84;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .sk-custom-select-wrap.is-open .sk-custom-select-chevron {
+    transform: rotate(180deg);
+  }
+
+  .sk-custom-select-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    background: #FFFFFF;
+    border: 1px solid #D6D0C2;
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(27, 49, 49, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  .sk-custom-select-item {
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: #1B3131;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  .sk-custom-select-item:hover {
+    background-color: #F4EFE6;
+    color: #1B3131;
+  }
+
+  .sk-custom-select-item.is-selected {
+    background-color: #1B3131;
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+
+  /* Native Date Input Styling */
+  input[type="date"].sk-ref-input {
+    font-family: inherit;
+    font-size: 0.84375rem;
+    color: #1B3131;
+    background-color: #FBFAF5;
+    border: 1px solid rgba(27, 49, 49, 0.15);
+    border-radius: 12px;
+    padding: 10px 14px;
+    width: 100%;
+    cursor: pointer;
+    min-height: 44px;
+    transition: all 0.2s ease;
+  }
+
+  input[type="date"].sk-ref-input:focus {
+    border-color: #1B3131;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(27, 49, 49, 0.08);
+    outline: none;
+  }
+
+  input[type="date"].sk-ref-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.65;
+    padding: 2px;
+    transition: opacity 0.2s ease;
+  }
+
+  input[type="date"].sk-ref-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  @media (max-width: 767.98px) {
+    input[type="date"].sk-ref-input {
+      padding: 9px 13px;
+      font-size: 0.8125rem;
+      border-radius: 10px;
+      min-height: 42px;
+    }
+    .sk-custom-select-trigger {
+      padding: 9px 13px !important;
+      font-size: 0.8125rem !important;
+      border-radius: 10px !important;
+    }
+    .sk-custom-select-label {
+      font-size: 0.8125rem;
+    }
+    .sk-custom-select-item {
+      padding: 7px 10px;
+      font-size: 0.75rem;
+    }
+    .sk-custom-select-menu {
+      max-height: 200px;
+    }
+  }
+</style>
+
+<!-- Turnstile script -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<script>
+  (() => {
+    const form = document.getElementById('inquiry-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const notice = document.getElementById('form-notice') as HTMLElement;
+    const waFallback = document.getElementById('wa-fallback') as HTMLElement;
+    const waFallbackLink = document.getElementById('wa-fallback-link') as HTMLAnchorElement;
+    const tInput = document.getElementById('form-t') as HTMLInputElement;
+
+    // Set time trap
+    if (tInput) tInput.value = String(Date.now());
+
+    function showError(id: string, msg: string) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.style.display = 'block';
+      const input = document.getElementById(id.replace('err-', ''));
+      input?.classList.add('is-invalid');
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.sk-error').forEach(el => {
+        (el as HTMLElement).style.display = 'none';
+      });
+      document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    }
+
+    function validate(data: Record<string, string>): boolean {
+      let ok = true;
+      if (!data.nama || data.nama.trim().length < 2) {
+        showError('err-nama', 'Nama minimal 2 karakter.'); ok = false;
+      }
+      if (!data.noWa || data.noWa.trim().length < 8) {
+        showError('err-noWa', 'Nomor WhatsApp tidak valid.'); ok = false;
+      }
+      if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        showError('err-email', 'Format email tidak valid.'); ok = false;
+      }
+      const jumlah = parseInt(data.jumlah ?? '', 10);
+      if (data.jumlah && (isNaN(jumlah) || jumlah < 1)) {
+        showError('err-jumlah', 'Jumlah tidak valid.'); ok = false;
+      }
+      const consent = (document.getElementById('consent') as HTMLInputElement)?.checked;
+      if (!consent) {
+        showError('err-consent', 'Anda perlu menyetujui penggunaan data sebelum melanjutkan.'); ok = false;
+      }
+      return ok;
+    }
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const fd = new FormData(form);
+      const data: Record<string, string> = {};
+      fd.forEach((val, key) => { data[key] = String(val); });
+
+      // Ambil Turnstile token
+      const token = (window as any).turnstile?.getResponse('#turnstile-widget') ?? '';
+      data.turnstileToken = token;
+      data.sourcePage = window.location.pathname;
+
+      if (!validate(data)) return;
+
+      submitBtn.textContent = 'Mengirim…';
+      submitBtn.setAttribute('aria-disabled', 'true');
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/inquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const json = await res.json();
+
+        if (!res.ok && res.status !== 200) {
+          if (json.errors) {
+            Object.entries(json.errors).forEach(([field, msg]) => {
+              showError('err-' + field, String(msg));
+            });
+          } else if (json.error === 'captcha') {
+            showError('err-captcha', 'Verifikasi gagal. Muat ulang dan coba lagi.');
+          } else {
+            notice.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+            notice.style.display = 'block';
+          }
+          return;
+        }
+
+        // Sukses
+        notice.innerHTML = json.saved
+          ? 'Pesan Anda berhasil diterima. Anda akan diarahkan ke WhatsApp.'
+          : 'Terjadi kendala teknis, tetapi kami tetap siapkan link WhatsApp untuk Anda.';
+        notice.style.display = 'block';
+
+        if (json.waUrl) {
+          waFallback.style.display = 'block';
+          waFallbackLink.href = json.waUrl;
+          setTimeout(() => { location.assign(json.waUrl); }, 1000);
+        }
+      } catch {
+        notice.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
+        notice.style.display = 'block';
+      } finally {
+        submitBtn.textContent = 'Kirim';
+        submitBtn.removeAttribute('aria-disabled');
+        submitBtn.disabled = false;
+        (window as any).turnstile?.reset('#turnstile-widget');
+      }
+    });
+
+    // Custom Dropdown Controller (Mobile responsive & no overflow)
+    const wrap = document.getElementById('custom-produk-dropdown');
+    const trigger = document.getElementById('custom-produk-trigger');
+    const label = document.getElementById('custom-produk-label');
+    const menu = document.getElementById('custom-produk-menu');
+    const nativeSelect = document.getElementById('produk') as HTMLSelectElement;
+
+    if (wrap && trigger && label && menu && nativeSelect) {
+      function openDropdown() {
+        wrap.classList.add('is-open');
+        menu.style.display = 'block';
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeDropdown() {
+        wrap.classList.remove('is-open');
+        menu.style.display = 'none';
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (menu.style.display === 'block') {
+          closeDropdown();
+        } else {
+          openDropdown();
+        }
+      });
+
+      menu.querySelectorAll<HTMLElement>('.sk-custom-select-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const val = item.getAttribute('data-val') || '';
+          nativeSelect.value = val;
+
+          // Update trigger label
+          label.textContent = item.textContent?.trim() || 'Pilih paket / produk (opsional)';
+          if (val) {
+            wrap.classList.add('has-selection');
+          } else {
+            wrap.classList.remove('has-selection');
+          }
+
+          // Update active item states
+          menu.querySelectorAll('.sk-custom-select-item').forEach(i => {
+            i.classList.remove('is-selected');
+            i.setAttribute('aria-selected', 'false');
+          });
+          item.classList.add('is-selected');
+          item.setAttribute('aria-selected', 'true');
+
+          closeDropdown();
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!wrap.contains(e.target as Node)) {
+          closeDropdown();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDropdown();
+      });
+    }
+  })();
+</script>

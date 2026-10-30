@@ -1,0 +1,185 @@
+---
+// src/components/Navbar.astro
+import { nav } from '../data/site';
+import { buildWaFromPage } from '../lib/wa';
+
+export interface Props {
+  waNumber?: string | null;
+  currentPage?: string;
+}
+
+const { waNumber, currentPage = 'Beranda' } = Astro.props;
+const waUrl = buildWaFromPage(waNumber, currentPage);
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
+---
+<a href="#main-content" class="skip-link">Lompat ke konten utama</a>
+
+<nav class="navbar navbar-expand-lg sk-navbar sticky-top" data-bs-theme="dark" aria-label="Navigasi utama">
+  <div class="container">
+    
+    <!-- Brand Logo: seminarkit Logo Image -->
+    <a class="navbar-brand" href="/" aria-label="Beranda seminarkit">
+      <img
+        src="/images/logo.png"
+        alt="seminarkit"
+        class="sk-navbar-logo"
+        width="155"
+        height="52"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </a>
+
+    <!-- Hamburger Toggler for Mobile (triggers offcanvas sidebar from left) -->
+    <button
+      class="navbar-toggler border-0 shadow-none"
+      type="button"
+      id="sk-nav-toggler"
+      aria-controls="nav-offcanvas"
+      aria-label="Buka menu navigasi"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navigation Drawer: Offcanvas on mobile (slides from left to right), inline on desktop -->
+    <div
+      class="offcanvas offcanvas-start sk-nav-offcanvas"
+      tabindex="-1"
+      id="nav-offcanvas"
+      aria-labelledby="nav-offcanvas-label"
+      data-bs-theme="dark"
+    >
+      <!-- Offcanvas Header with Brand Logo & Close Button (Mobile only) -->
+      <div class="offcanvas-header d-lg-none">
+        <a class="navbar-brand m-0" href="/" aria-label="Beranda seminarkit">
+          <img
+            src="/images/logo.png"
+            alt="seminarkit"
+            class="sk-navbar-logo"
+            width="135"
+            height="45"
+            style="height: 38px; width: auto;"
+          />
+        </a>
+        <button
+          type="button"
+          class="btn-close btn-close-white shadow-none"
+          id="sk-nav-close"
+          aria-label="Tutup navigasi"
+        ></button>
+      </div>
+
+      <!-- Offcanvas Body -->
+      <div class="offcanvas-body">
+        <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1 my-2 my-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/" aria-current={isActive('/') ? 'page' : undefined}>Beranda</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/tentang" aria-current={isActive('/tentang') ? 'page' : undefined}>Tentang</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/produk" aria-current={isActive('/produk') ? 'page' : undefined}>Produk</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/galeri" aria-current={isActive('/galeri') ? 'page' : undefined}>Galeri</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/blog" aria-current={isActive('/blog') ? 'page' : undefined}>Blog</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/kontak" aria-current={isActive('/kontak') ? 'page' : undefined}>Kontak</a>
+          </li>
+        </ul>
+
+        <!-- Mobile Drawer CTA Button -->
+        <div class="sk-offcanvas-cta-wrap ms-lg-3">
+          <a
+            class="sk-nav-cta-btn"
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >Pesan Sekarang</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<script is:inline>
+  (function() {
+    // 1. Transparent Navbar with Solid Dark Green on Scroll
+    const navbar = document.querySelector('.sk-navbar');
+    if (navbar) {
+      function checkScroll() {
+        const top = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+        if (top > 12) {
+          navbar.classList.add('is-scrolled');
+        } else {
+          navbar.classList.remove('is-scrolled');
+        }
+      }
+      window.addEventListener('scroll', checkScroll, { passive: true });
+      window.addEventListener('touchmove', checkScroll, { passive: true });
+      window.addEventListener('resize', checkScroll, { passive: true });
+      checkScroll();
+    }
+
+    // 2. Mobile Drawer Navigation Toggle (Pure, Direct, 100% Reliable)
+    const toggler = document.getElementById('sk-nav-toggler') || document.querySelector('.navbar-toggler');
+    const offcanvasEl = document.getElementById('nav-offcanvas');
+    const closeBtn = document.getElementById('sk-nav-close') || (offcanvasEl ? offcanvasEl.querySelector('.btn-close') : null);
+
+    if (toggler && offcanvasEl) {
+      function openDrawer(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        offcanvasEl.classList.add('show', 'is-open');
+        offcanvasEl.style.visibility = 'visible';
+        offcanvasEl.style.transform = 'none';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        offcanvasEl.classList.remove('show', 'is-open');
+        offcanvasEl.style.visibility = '';
+        offcanvasEl.style.transform = '';
+        document.body.style.overflow = '';
+      }
+
+      toggler.addEventListener('click', openDrawer);
+      toggler.addEventListener('touchstart', function(e) {
+        openDrawer(e);
+      }, { passive: false });
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeDrawer);
+        closeBtn.addEventListener('touchstart', function(e) {
+          closeDrawer(e);
+        }, { passive: false });
+      }
+
+      // Close when clicking any nav link
+      offcanvasEl.querySelectorAll('.nav-link, .sk-nav-cta-btn').forEach(function(link) {
+        link.addEventListener('click', function() {
+          closeDrawer();
+        });
+      });
+
+      // Close on Escape key
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeDrawer();
+      });
+    }
+  })();
+</script>

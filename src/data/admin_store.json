@@ -1,0 +1,620 @@
+{
+  "products": [
+    {
+      "id": "d0000000-0000-0000-0000-000000000001",
+      "category_id": "c0000000-0000-0000-0000-000000000001",
+      "nama": "Paket Seminar Kit Eksekutif Kulit",
+      "slug": "paket-seminar-kit-eksekutif-kulit",
+      "deskripsi_singkat": "Kombinasi elegan buku agenda kulit A5, pulpen metal laser engrave, tumbler vacuum insulated, dan hardbox custom logo.",
+      "deskripsi_lengkap": "Paket seminar kit eksekutif dirancang khusus untuk konferensi bergengsi, pelatihan eksekutif, dan rapat umum pemegang saham. Setiap item dikerjakan dengan presisi tinggi dan logo instansi dicetak rapi melalui teknik hot print emas/perak atau grafir laser tahan lama.",
+      "harga_mulai": 85000,
+      "satuan": "paket",
+      "min_order": 30,
+      "spesifikasi": {
+        "Pulpen": "Metal Rollerball Tinta Hitam",
+        "Kemasan": "Hardbox Magnetik dengan Hot Print Gold",
+        "Tumbler": "Stainless Steel SUS 304 500ml",
+        "Bahan Agenda": "Kulit Sintetis PU Premium",
+        "Ukuran Agenda": "A5 (100 lembar bergaris)"
+      },
+      "gambar_url": "/images/seminakit-set.webp",
+      "gambar_alt": "Paket seminar kit eksekutif lengkap dengan buku agenda kulit dan tumbler",
+      "is_featured": true,
+      "is_published": true,
+      "urutan": 1,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-30T11:01:18.572Z"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000002",
+      "category_id": "c0000000-0000-0000-0000-000000000003",
+      "nama": "Tumbler Stainless Vacuum Insulated 500ml",
+      "slug": "tumbler-stainless-vacuum-500ml",
+      "deskripsi_singkat": "Tumbler termos stainless steel SUS 304 food-grade yang mampu menjaga suhu panas dan dingin hingga 12 jam.",
+      "deskripsi_lengkap": "Pilihan tepat untuk souvenir ramah lingkungan dan merchandise kantor. Permukaan tumbler doff matte nyaman digenggam dan sangat cocok untuk aplikasi logo dengan grafir laser presisi atau sablon UV full color.",
+      "harga_mulai": 45000,
+      "satuan": "pcs",
+      "min_order": 50,
+      "spesifikasi": {
+        "Material": "Stainless Steel SUS 304 Food Grade",
+        "Kapasitas": "500 ml",
+        "Daya Tahan Suhu": "Panas & Dingin 8-12 Jam",
+        "Metode Branding": "Laser Grafir / UV Print",
+        "Pilihan Finishing": "Matte Black, Slate Grey, Forest Green, Sand Khaki"
+      },
+      "gambar_url": "/images/tumble.webp",
+      "gambar_alt": "Tumbler stainless vacuum insulated 500ml doff matte",
+      "is_featured": true,
+      "is_published": true,
+      "urutan": 2,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000003",
+      "category_id": "c0000000-0000-0000-0000-000000000004",
+      "nama": "Totebag Kanvas Twill Premium Resleting",
+      "slug": "totebag-kanvas-twill-premium-resleting",
+      "deskripsi_singkat": "Tas totebag bahan kanvas katun tebal dengan jahitan bar-tack ganda, resleting utama YKK, dan saku dalam fungsional.",
+      "deskripsi_lengkap": "Totebag serbaguna untuk membawa berkas seminar, laptop, atau perlengkapan kerja harian. Menggunakan material ramah lingkungan dan pewarna reaktif yang tidak luntur saat dicuci.",
+      "harga_mulai": 32000,
+      "satuan": "pcs",
+      "min_order": 50,
+      "spesifikasi": {
+        "Bahan": "Katun Kanvas Twill 12oz",
+        "Ukuran": "36 x 40 x 8 cm",
+        "Penutup": "Resleting YKK Kuat",
+        "Fitur Tambahan": "Saku dalam organizer berkas",
+        "Metode Branding": "Sablon Manual Rubber / Bordir Komputer / DTF Presisi"
+      },
+      "gambar_url": "/images/totebag.webp",
+      "gambar_alt": "Totebag kanvas twill premium warna natural dengan resleting",
+      "is_featured": true,
+      "is_published": true,
+      "urutan": 3,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000004",
+      "category_id": "c0000000-0000-0000-0000-000000000002",
+      "nama": "Buku Agenda Softcover Doff A5",
+      "slug": "buku-agenda-softcover-doff-a5",
+      "deskripsi_singkat": "Buku catatan praktis dengan jilid lem panas tahan lepas, kertas bookpaper kekuningan 80gsm yang nyaman di mata.",
+      "deskripsi_lengkap": "Buku agenda softcover menjadi pilihan ekonomis namun tetap profesional untuk pelatihan massal, orientasi karyawan baru, atau workshop kampus. Sampul laminasi doff memberikan sentuhan lembut anti sidik jari.",
+      "harga_mulai": 18000,
+      "satuan": "pcs",
+      "min_order": 100,
+      "spesifikasi": {
+        "Isi": "160 Halaman Bookpaper 80gsm Polos/Garis",
+        "Sampul": "Art Carton 310gsm Laminasi Doff",
+        "Ukuran": "A5 (14.8 x 21 cm)",
+        "Finishing Jilid": "Perfect Binding Lem Panas Kuat"
+      },
+      "gambar_url": "/images/notebook.webp",
+      "gambar_alt": "Buku agenda notebook softcover doff minimalis",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 4,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "fb9cb5f1-a742-4472-98b6-7c40fa1f1751",
+      "category_id": "c0000000-0000-0000-0000-000000000003",
+      "nama": "Tumbler Stainless",
+      "slug": "tumbler-staninless",
+      "deskripsi_singkat": "tumbler terbaik pilihan anda",
+      "deskripsi_lengkap": "tumber yang bagus dengan kebutuhan anda untuk mendinginkan dan menahan suhu air agar tidak nerubah",
+      "harga_mulai": 20000,
+      "satuan": "pcs",
+      "min_order": 10,
+      "spesifikasi": {},
+      "gambar_url": "https://ouzxqyecszcmswahsynd.supabase.co/storage/v1/object/public/media/uploads/tumble-1792949318116-n0u8o5.webp",
+      "gambar_alt": "totebag",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 5,
+      "created_at": "2026-10-25T17:28:45.141977+00:00",
+      "updated_at": "2026-10-30T10:00:44.177Z"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000005",
+      "category_id": "c0000000-0000-0000-0000-000000000001",
+      "nama": "Hardbox Gift Set Eksklusif Perusahaan",
+      "slug": "hardbox-gift-set-eksklusif",
+      "deskripsi_singkat": "Kemasan box mewah magnetik custom board tebal berlapis kertas fancy texture dengan busa cetak presisi (EVA foam).",
+      "deskripsi_lengkap": "Hardbox presentasi dirancang untuk menampung paket souvenir VIP, hadiah penghargaan karyawan masa kerja, atau bingkisan tahun baru mitra strategis perusahaan.",
+      "harga_mulai": 65000,
+      "satuan": "box",
+      "min_order": 30,
+      "spesifikasi": {
+        "Insert": "Busa Cetak EVA Foam Die Cut Sesuai Produk",
+        "Pelapis": "Fancy Paper Linen / Doff",
+        "Material": "Greyboard No. 30 (Tebal 2.5 mm)",
+        "Pengunci": "Magnet Neodymium Tersembunyi"
+      },
+      "gambar_url": "/images/giftbox.webp",
+      "gambar_alt": "Hardbox kemasan hadiah eksklusif dengan magnet",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 5,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000006",
+      "category_id": "c0000000-0000-0000-0000-000000000001",
+      "nama": "Paket Onboarding Karyawan Baru Gift Set",
+      "slug": "paket-onboarding-karyawan-baru",
+      "deskripsi_singkat": "Paket selamat datang komprehensif berisi tumbler, notebook, pulpen, lanyard, dan kartu ucapan sambutan resmi.",
+      "deskripsi_lengkap": "Tingkatkan loyalitas dan kebanggaan tim baru sejak hari pertama bekerja dengan paket onboarding berstandar korporasi modern.",
+      "harga_mulai": 95000,
+      "satuan": "paket",
+      "min_order": 25,
+      "spesifikasi": {
+        "Kemasan": "Hardbox Custom Full Brand Logo",
+        "Isi Paket": "Tumbler SUS 304, Notebook A5, Pulpen Metal, Lanyard ID",
+        "Kartu Ucapan": "Art Carton 260gsm Laminasi Doff"
+      },
+      "gambar_url": "/images/gift-set.webp",
+      "gambar_alt": "Paket gift set onboarding karyawan baru",
+      "is_featured": true,
+      "is_published": true,
+      "urutan": 6,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000007",
+      "category_id": "c0000000-0000-0000-0000-000000000005",
+      "nama": "Lanyard & ID Card Holder Kulit Sintetis",
+      "slug": "lanyard-id-card-holder-kulit",
+      "deskripsi_singkat": "Tali lanyard bahan tisu lembut anti gatal dilengkapi card holder berbahan kulit sintetis 2 slot kartu.",
+      "deskripsi_lengkap": "Aksesori identitas kerja formal yang tahan lama dan nyaman dikenakan sepanjang hari kerja maupun selama perhelatan konferensi berlangsung.",
+      "harga_mulai": 22000,
+      "satuan": "set",
+      "min_order": 50,
+      "spesifikasi": {
+        "Aksesoris": "Kait Logam Putar & Stopper Plastik Solid",
+        "Bahan Tali": "Polyester Tisu Printing 2 cm",
+        "Bahan Holder": "Kulit Sintetis PU Jahit Tepi Rapi"
+      },
+      "gambar_url": "/images/lanyard.webp",
+      "gambar_alt": "Tali lanyard dan kartu tanda pengenal kulit sintetis",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 7,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000008",
+      "category_id": "c0000000-0000-0000-0000-000000000005",
+      "nama": "Mug Keramik Matte Custom Logo",
+      "slug": "mug-keramik-matte-custom-logo",
+      "deskripsi_singkat": "Cangkir kopi keramik berkualitas tinggi dengan lapisan luar doff matte dan pilihan sablon decal bakar anti gores.",
+      "deskripsi_lengkap": "Souvenir meja kerja abadi yang cocok untuk menemani produktivitas tim kantor Anda. Tahan panas microwave dan pencucian berulang.",
+      "harga_mulai": 25000,
+      "satuan": "pcs",
+      "min_order": 50,
+      "spesifikasi": {
+        "Material": "Keramik Stoneware Food Grade",
+        "Finishing": "Matte Doff / Glossy",
+        "Kapasitas": "330 ml (11 oz)",
+        "Metode Cetak": "Decal Bakar High Temperature / Sablon Sublim"
+      },
+      "gambar_url": "/images/mug.webp",
+      "gambar_alt": "Mug keramik matte custom logo instansi",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 8,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000009",
+      "category_id": "c0000000-0000-0000-0000-000000000005",
+      "nama": "Payung Lipat Otomatis Anti UV Custom",
+      "slug": "payung-lipat-otomatis-anti-uv",
+      "deskripsi_singkat": "Payung lipat 3 tombol otomatis buka-tutup dengan rangka fiber tahan angin dan lapisan silver vinyl proteksi UV 50+.",
+      "deskripsi_lengkap": "Pilihan hadiah korporasi yang sangat fungsional di segala musim. Area cetak logo luas di panel payung memberikan visibilitas tinggi.",
+      "harga_mulai": 48000,
+      "satuan": "pcs",
+      "min_order": 50,
+      "spesifikasi": {
+        "Kain": "Pongee Berlapis Silver Anti UV",
+        "Rangka": "Alumunium + Fiber Fleksibel",
+        "Mekanisme": "Tombol Otomatis Buka & Tutup",
+        "Diameter Buka": "98 cm"
+      },
+      "gambar_url": "/images/payunglipat.webp",
+      "gambar_alt": "Payung lipat otomatis dengan lapisan pelindung anti UV",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 9,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "d0000000-0000-0000-0000-000000000010",
+      "category_id": "c0000000-0000-0000-0000-000000000001",
+      "nama": "Paket Seminar Welcome Kit Minimalis",
+      "slug": "paket-seminar-welcome-kit-minimalis",
+      "deskripsi_singkat": "Paket hemat fungsional untuk seminar akbar, orientasi mahasiswa, atau rapat kerja daerah: pulpen, notes, dan totebag.",
+      "deskripsi_lengkap": "Solusi terbaik untuk kepanitiaan dengan alokasi anggaran efisien tanpa mengorbankan kualitas dan kerapian pengemasan souvenir.",
+      "harga_mulai": 28000,
+      "satuan": "paket",
+      "min_order": 100,
+      "spesifikasi": {
+        "Finishing": "Sablon 1 Warna Tiap Item",
+        "Isi Paket": "Totebag Spunbond/Blacu, Buku Notes A5, Pulpen Gel Stylus"
+      },
+      "gambar_url": "/images/seminar-welcome.webp",
+      "gambar_alt": "Paket seminar welcome kit minimalis dan fungsional",
+      "is_featured": false,
+      "is_published": true,
+      "urutan": 10,
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    }
+  ],
+  "categories": [
+    {
+      "id": "c0000000-0000-0000-0000-000000000001",
+      "nama": "Paket Seminar Kit",
+      "slug": "paket-seminar-kit",
+      "urutan": 1,
+      "is_active": true
+    },
+    {
+      "id": "c0000000-0000-0000-0000-000000000002",
+      "nama": "Buku Agenda & Pulpen",
+      "slug": "buku-agenda-pulpen",
+      "urutan": 2,
+      "is_active": true
+    },
+    {
+      "id": "c0000000-0000-0000-0000-000000000003",
+      "nama": "Tumbler & Botol Minum",
+      "slug": "tumbler-botol-minum",
+      "urutan": 3,
+      "is_active": true
+    },
+    {
+      "id": "c0000000-0000-0000-0000-000000000004",
+      "nama": "Tas & Totebag",
+      "slug": "tas-totebag",
+      "urutan": 4,
+      "is_active": true
+    },
+    {
+      "id": "c0000000-0000-0000-0000-000000000005",
+      "nama": "Souvenir & Aksesori Kantor",
+      "slug": "souvenir-aksesori-kantor",
+      "urutan": 5,
+      "is_active": true
+    }
+  ],
+  "gallery": [
+    {
+      "id": "e0000000-0000-0000-0000-000000000001",
+      "judul": "Paket Seminar Kit Premium BUMN",
+      "alt_text": "Paket seminar kit lengkap buku agenda dan tumbler stainless untuk forum BUMN",
+      "gambar_url": "/images/seminakit-set.webp",
+      "kategori": "Seminar Kit",
+      "is_published": true,
+      "urutan": 1,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000002",
+      "judul": "Tumbler Termos Matte Instansi Pemerintah",
+      "alt_text": "Deretan tumbler termos hitam doff dengan laser grafir logo institusi",
+      "gambar_url": "/images/tumble.webp",
+      "kategori": "Tumbler",
+      "is_published": true,
+      "urutan": 2,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000003",
+      "judul": "Totebag Kanvas Twill Pelatihan Nasional",
+      "alt_text": "Totebag kanvas twill ramah lingkungan untuk pelatihan aparatur negara",
+      "gambar_url": "/images/totebag.webp",
+      "kategori": "Totebag",
+      "is_published": true,
+      "urutan": 3,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000004",
+      "judul": "Buku Agenda Kerja Kulit Sintetis",
+      "alt_text": "Buku agenda notebook softcover doff minimalis dengan jilid lem kuat",
+      "gambar_url": "/images/notebook.webp",
+      "kategori": "Buku Agenda",
+      "is_published": true,
+      "urutan": 4,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000005",
+      "judul": "Hardbox Kemasan Hadiah VIP",
+      "alt_text": "Hardbox magnetik eksklusif untuk bingkisan dewan direksi perusahaan",
+      "gambar_url": "/images/giftbox.webp",
+      "kategori": "Gift Set",
+      "is_published": true,
+      "urutan": 5,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000006",
+      "judul": "Paket Onboarding Karyawan Startup",
+      "alt_text": "Box souvenir kantor onboarding berisi tumbler agenda dan aksesoris kerja",
+      "gambar_url": "/images/gift-set.webp",
+      "kategori": "Gift Set",
+      "is_published": true,
+      "urutan": 6,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000007",
+      "judul": "Tali Lanyard & ID Card Holder",
+      "alt_text": "Tali gantungan ID card bahan lembut dengan tempat kartu kulit rapi",
+      "gambar_url": "/images/lanyard.webp",
+      "kategori": "Souvenir Kantor",
+      "is_published": true,
+      "urutan": 7,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000008",
+      "judul": "Mug Keramik Meja Kerja Custom",
+      "alt_text": "Cangkir kopi mug keramik matte sablon logo korporasi elegan",
+      "gambar_url": "/images/mug.webp",
+      "kategori": "Souvenir Kantor",
+      "is_published": true,
+      "urutan": 8,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000009",
+      "judul": "Payung Lipat Otomatis Anti UV",
+      "alt_text": "Payung lipat custom tahan angin dengan lapisan pelindung sinar UV",
+      "gambar_url": "/images/payunglipat.webp",
+      "kategori": "Souvenir Kantor",
+      "is_published": true,
+      "urutan": 9,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000010",
+      "judul": "Paket Welcome Kit Peserta Konferensi",
+      "alt_text": "Paket sambutan peserta seminar tas totebag notes dan pulpen",
+      "gambar_url": "/images/seminar-welcome.webp",
+      "kategori": "Seminar Kit",
+      "is_published": true,
+      "urutan": 10,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    }
+  ],
+  "articles": [
+    {
+      "id": "a0000000-0000-0000-0000-000000000001",
+      "judul": "Panduan Memilih Paket Seminar Kit yang Fungsional dan Berkesan",
+      "slug": "panduan-memilih-paket-seminar-kit-fungsional",
+      "kategori": "Tips & Panduan",
+      "meta_description": "Tips praktis memilih seminar kit dan souvenir kantor yang benar-benar bermanfaat bagi peserta konferensi dan sesuai anggaran perusahaan.",
+      "isi": "Menyelenggarakan seminar atau pelatihan nasional membutuhkan persiapan matang di berbagai lini, salah satunya pemilihan **seminar kit**.\n\nSering kali merchandise yang dibagikan hanya berakhir disimpan di laci meja kerja karena kurang fungsional. Padahal, souvenir kantor berkualitas adalah media branding berdaya jangkau panjang yang efektif.\n\n## 1. Pahami Profil dan Kebutuhan Peserta\n\nLangkah pertama adalah membedah siapa audiens utama acara Anda:\n- **Tingkat Eksekutif:** Lebih menghargai item bernilai tinggi seperti agenda kulit, pulpen metal laser grafir, atau flashdisk multifungsi.\n- **Pelatihan Teknis / Mahasiswa:** Membutuhkan buku catatan softcover praktis, totebag kanvas tahan lama, dan botol minum portabel.\n\n## 2. Utamakan Manfaat Penggunaan Jangka Panjang\n\nBarang seperti **tumbler stainless steel vacuum** memiliki tingkat retensi penggunaan harian yang sangat tinggi. Setiap kali peserta meminum air di meja kantornya, logo institusi Anda akan terlihat secara organik.\n\n## 3. Perhatikan Detail Kerapian Branding\n\nLogo yang terlalu besar dan mencolok sering kali membuat penerima enggan memakainya di tempat umum. Gunakan teknik *subtle branding*, misalnya:\n- Emboss buta (blind deboss) pada kulit sintetis.\n- Laser grafir monokrom yang elegan pada material logam.\n- Warna netral seperti slate grey, navy, atau khaki.\n\n## FAQ Seputar Pengadaan Seminar Kit\n\n<details class=\"sk-faq-detail-item\" open>\n<summary class=\"sk-faq-summary\">Apakah isi paket seminar kit bisa disesuaikan dengan anggaran instansi kami?</summary>\n<div class=\"sk-faq-answer\"><p>Tentu saja. Anda memiliki fleksibilitas penuh untuk memilih, menambah, atau mengombinasikan isi paket (buku agenda, tumbler stainless, pulpen metal, pouch, hingga flashdisk kartu) agar sesuai dengan pagu anggaran kegiatan Anda.</p></div>\n</details>\n\n<details class=\"sk-faq-detail-item\">\n<summary class=\"sk-faq-summary\">Berapa lama estimasi pengerjaan dan pencetakan logo instansi?</summary>\n<div class=\"sk-faq-answer\"><p>Waktu pengerjaan standar berkisar 5–10 hari kerja setelah approval digital mockup 2D/3D resmi disetujui. Untuk kebutuhan acara mendesak (deadline mepet), kami menyediakan layanan produksi kilat prioritas.</p></div>\n</details>\n\n<details class=\"sk-faq-detail-item\">\n<summary class=\"sk-faq-summary\">Apakah transaksi dilengkapi faktur pajak resmi (PPN) & sistem termin?</summary>\n<div class=\"sk-faq-answer\"><p>Ya, kami berbadan hukum resmi dengan kelengkapan administrasi instansi: Faktur Pajak PPN elektronik, Surat Perintah Kerja (SPK), kuitansi bermeterai, serta mendukung mekanisme termin pembayaran resmi untuk instansi pemerintah dan BUMN.</p></div>\n</details>\n\n## Kesimpulan\n\nMemilih paket seminar kit dan merchandise kantor yang fungsional bukan hanya sekadar membagikan cinderamata seremonial, melainkan langkah strategis dalam menanamkan impresi profesional dan menjaga retensi citra institusi Anda dalam jangka panjang.\n\n<div class=\"sk-key-takeaway-card\">\n<p class=\"sk-takeaway-quote\"><strong>Prinsip Utama:</strong> Seminar kit berkualitas bukan sekadar merchandise sekali pakai, melainkan instrumen branding bernilai tinggi yang memperkuat reputasi dan kredibilitas instansi Anda.</p>\n</div>\n\nKonsultasikan kebutuhan seminar kit instansi Anda bersama tim kurator kami di [seminarkit](/produk).",
+      "cover_url": "/images/seminakit-set.webp",
+      "cover_alt": "Seminar kit eksklusif dengan buku agenda kulit dan pulpen mewah",
+      "cover_caption": "Dokumentasi pengadaan paket seminar kit eksklusif dan souvenir kantor instansi resmi.",
+      "penulis": "Tim Redaksi seminarkit",
+      "penulis_bio": "Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional yang berdedikasi membantu institusi kementerian, BUMN, dan korporasi swasta di seluruh Indonesia.",
+      "is_published": true,
+      "published_at": "2026-10-22T16:42:26.730049+00:00",
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "a0000000-0000-0000-0000-000000000002",
+      "judul": "Tren Souvenir Ramah Lingkungan untuk Perusahaan Berkelanjutan",
+      "slug": "tren-souvenir-ramah-lingkungan-perusahaan",
+      "kategori": "Tren Souvenir",
+      "meta_description": "Mengapa perusahaan modern beralih ke eco-friendly corporate gifts seperti totebag kanvas katun dan tumbler reusable.",
+      "isi": "Komitmen terhadap prinsip keberlanjutan (*Environment, Social, and Governance* / ESG) kini bukan sekadar slogan, melainkan budaya kerja nyata di korporasi modern.\n\nSalah satu wujud nyata yang mudah dirasakan oleh mitra bisnis dan karyawan adalah pemilihan souvenir kantor ramah lingkungan.\n\n## Mengurangi Sampah Plastik Sekali Pakai\n\nDalam satu sesi seminar berskala 500 orang, penggunaan botol air mineral kemasan plastik sekali pakai menghasilkan limbah signifikan. Dengan membagikan **tumbler stainless steel**, perusahaan Anda secara aktif mempromosikan kebiasaan baik isi ulang air minum.\n\n## Material Alami yang Dapat Didaur Ulang\n\nBeberapa material pilihan ramah lingkungan yang diminati saat ini:\n1. **Katun Kanvas Twill:** Kuat, dapat dicuci berulang kali, dan menggantikan kantong plastik belanja.\n2. **Stainless Steel SUS 304:** Tahan karat seumur hidup dan 100% dapat didaur ulang.\n3. **Kertas Daur Ulang Bookpaper:** Memerlukan energi produksi lebih rendah dan memberi kenyamanan membaca optimal.\n\n## Kesimpulan\n\nMelalui pilihan cermat ini, perusahaan Anda tidak hanya memberi cenderamata, tetapi juga menyuarakan nilai kepedulian lingkungan.\n\n<div class=\"sk-key-takeaway-card\">\n<p class=\"sk-takeaway-quote\"><strong>Prinsip Utama:</strong> Souvenir ramah lingkungan merefleksikan tanggung jawab sosial dan kepedulian masa depan institusi Anda.</p>\n</div>",
+      "cover_url": "/images/totebag.webp",
+      "cover_alt": "Totebag ramah lingkungan berbahan kanvas twill alami",
+      "cover_caption": "Totebag kanvas twill ramah lingkungan dengan sablon logo presisi tahan lama.",
+      "penulis": "Tim Redaksi seminarkit",
+      "penulis_bio": "Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional yang berdedikasi membantu institusi kementerian, BUMN, dan korporasi swasta di seluruh Indonesia.",
+      "is_published": true,
+      "published_at": "2026-10-18T16:42:26.730049+00:00",
+      "created_at": "2026-10-25T16:42:26.730049+00:00",
+      "updated_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "judul": "Artikel percobaan Awal dan yang lain",
+      "slug": "artikel-percobaan-awal-dan-yang-lain",
+      "kategori": "Wawasan & Tips",
+      "meta_description": "ini adalah artikel testing",
+      "isi": "## Pengenalan Uji Coba\n\nIni adalah contoh konten artikel testing untuk memverifikasi sistem publikasi blog dinamis.\n\n### Poin Penting\n- Terkoneksi database dan admin store secara langsung.\n- Tampil di card blog utama dan halaman detail.\n- Dapat diubah kapan saja oleh admin.",
+      "cover_url": "https://ouzxqyecszcmswahsynd.supabase.co/storage/v1/object/public/media/uploads/corporate-seminar-kit-set-on-a-1793383891065-midhxc.webp",
+      "cover_alt": "gambar cover artikel testing",
+      "cover_caption": "Dokumentasi paket seminar kit dari hasil unggahan admin.",
+      "penulis": "Tim seminarkit",
+      "penulis_bio": "Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional.",
+      "published_at": "2026-10-30T18:11:00.000Z",
+      "is_published": true,
+      "id": "70921b5b-9fe6-426a-b4ba-e4e67d78b64a",
+      "created_at": "2026-10-30T18:11:54.919Z",
+      "updated_at": "2026-10-30T18:12:19.625Z"
+    },
+    {
+      "judul": "5 Keunggulan Seminar Kit Eksklusif Berbahan Kulit PU untuk Instansi",
+      "slug": "5-keunggulan-seminar-kit-eksklusif-kulit-pu",
+      "kategori": "Tren Souvenir",
+      "meta_description": "Ketahui alasan mengapa seminar kit berbahan kulit sintetis PU premium menjadi pilihan utama instansi BUMN dan korporasi untuk cinderamata resmi.",
+      "isi": "<h2>Mengapa Memilih Souvenir Berbahan Kulit PU?</h2><p>Dalam menyelenggarakan agenda bergengsi seperti rapat kerja, simposium nasional, atau konferensi tahunan, cinderamata yang diserahkan kepada para delegasi mencerminkan reputasi penyelenggara.</p><h2>1. Kesan Mewah dan Profesional</h2><p>Material kulit sintetis premium jenis PU (Polyurethane) menghadirkan tekstur halus dan tampilan elegan yang menyerupai kulit asli, namun dengan ketahanan yang lebih baik terhadap kelembapan dan goresan.</p><h2>2. Daya Tahan Penggunaan Jangka Panjang</h2><p>Buku agenda atau pouch berkas berbahan kulit PU tidak mudah robek atau terkelupas. Peserta kegiatan dapat menggunakannya sebagai buku kerja harian di kantor selama berbulan-bulan.</p><h2>3. Fleksibilitas Branding dengan Hot Print Emas</h2><p>Logo instansi dapat diaplikasikan dengan teknik <em>blind deboss</em> atau <em>hot print gold</em> yang elegan dan tidak mudah pudar.</p><blockquote><strong>Catatan Praktis:</strong> Kombinasikan agenda kulit A5 dengan pulpen metal grafir laser dan tumbler stainless vacuum untuk menciptakan paket eksekutif bernilai tinggi.</blockquote>",
+      "cover_url": "/images/seminakit-set.webp",
+      "cover_alt": "Buku agenda kulit seminar kit premium di meja kerja",
+      "cover_caption": "Koleksi paket seminar kit eksekutif kulit dari seminarkit.",
+      "penulis": "Tim seminarkit",
+      "penulis_bio": "Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional.",
+      "published_at": "2026-10-30T19:11:12.118Z",
+      "is_published": true,
+      "id": "65889aba-4f02-4493-a85e-4e6bec597ab5",
+      "created_at": "2026-10-30T19:11:12.191Z",
+      "updated_at": "2026-10-30T19:11:12.191Z"
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "b0000000-0000-0000-0000-000000000001",
+      "nama": "Rian Hidayat",
+      "perusahaan": "PT Telekomunikasi Nusantara",
+      "jabatan": "Head of People Operations",
+      "isi": "Pemesanan 350 paket seminar kit selesai 3 hari sebelum tenggat waktu acara. Kualitas finishing bahan kulitnya sangat memuaskan dan disukai para peserta dewan direksi.",
+      "rating": 5,
+      "foto_url": null,
+      "is_published": true,
+      "urutan": 1,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "b0000000-0000-0000-0000-000000000002",
+      "nama": "dr. Fitriani Prasetyo",
+      "perusahaan": "Ikatan Ahli Kesehatan Masyarakat",
+      "jabatan": "Ketua Panitia Simposium Nasional",
+      "isi": "Komunikasi sangat responsif via WhatsApp. Sampel produk dikirimkan cepat sehingga panitia yakin sebelum produksi massal 800 pcs. Sangat profesional.",
+      "rating": 5,
+      "foto_url": null,
+      "is_published": true,
+      "urutan": 2,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "b0000000-0000-0000-0000-000000000003",
+      "nama": "Darmawan Santosa",
+      "perusahaan": "Astra Internasional Partner",
+      "jabatan": "Procurement Specialist",
+      "isi": "Transparansi rincian harga per komponen dan ketepatan jumlah barang tanpa ada yang cacat. Rekomendasi vendor seminar kit terbaik di Jakarta.",
+      "rating": 5,
+      "foto_url": null,
+      "is_published": true,
+      "urutan": 3,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "id": "b0000000-0000-0000-0000-000000000004",
+      "nama": "Nabila Syakira",
+      "perusahaan": "Yayasan Pendidikan Global",
+      "jabatan": "Event Coordinator",
+      "isi": "Totebag dan tumblernya ramah lingkungan sesuai tema acara kami. Kemasan rapi dan sudah dikelompokkan per sesi sehingga pembagian ke peserta berjalan mulus.",
+      "rating": 5,
+      "foto_url": null,
+      "is_published": true,
+      "urutan": 4,
+      "created_at": "2026-10-25T16:42:26.730049+00:00"
+    },
+    {
+      "nama": "Ardhana Prasasta",
+      "isi": "Seminarkit produknya sangat bagus sekali, saya sangat puas dengan semua produk dan layanannya",
+      "perusahaan": "PT Jaya Makmur",
+      "jabatan": "HRD",
+      "rating": 5,
+      "foto_url": null,
+      "urutan": 3,
+      "is_published": true,
+      "id": "9323954e-71a6-4a94-bfed-57c69e986eba",
+      "created_at": "2026-10-29T18:08:56.356Z"
+    }
+  ],
+  "faqs": [
+    {
+      "id": "f0000000-0000-0000-0000-000000000001",
+      "pertanyaan": "Berapa jumlah minimal pemesanan (MOQ) di seminarkit?",
+      "jawaban": "Minimal order mulai dari 30 pcs untuk paket custom hardbox eksklusif dan mulai dari 50 pcs untuk souvenir satuan seperti tumbler atau totebag. Untuk pemesanan di bawah MOQ standar, silakan konsultasikan dengan tim sales kami lewat WhatsApp.",
+      "urutan": 1,
+      "is_published": true
+    },
+    {
+      "id": "f0000000-0000-0000-0000-000000000002",
+      "pertanyaan": "Berapa lama estimasi waktu produksi?",
+      "jawaban": "Waktu produksi standar berkisar antara 7 hingga 14 hari kerja setelah approval sampel fisik / mockup digital final. Untuk kebutuhan mendesak (urgent order), kami menyediakan layanan pengerjaan kilat tergantung ketersediaan stok.",
+      "urutan": 2,
+      "is_published": true
+    },
+    {
+      "id": "f0000000-0000-0000-0000-000000000003",
+      "pertanyaan": "Apakah bisa mengirim sampel fisik sebelum produksi massal?",
+      "jawaban": "Ya, kami dapat mengirimkan sampel material fisik (dummy produk) atau proofing digital dengan logo perusahaan Anda agar Anda dapat memastikan warna, tekstur, dan proporsinya sesuai standar sebelum produksi penuh.",
+      "urutan": 3,
+      "is_published": true
+    },
+    {
+      "id": "f0000000-0000-0000-0000-000000000004",
+      "pertanyaan": "Apakah isi paket seminar kit bisa dikustomisasi sendiri?",
+      "jawaban": "Tentu. Anda bebas mengombinasikan item apa pun, misalnya agenda + flashdisk saja, atau totebag + tumbler + pulpen + kartu tanda pengenal (lanyard), sesuai anggaran dan tema kegiatan Anda.",
+      "urutan": 4,
+      "is_published": true
+    },
+    {
+      "id": "f0000000-0000-0000-0000-000000000005",
+      "pertanyaan": "Apakah seminarkit melayani pengiriman ke luar Jabodetabek?",
+      "jawaban": "Kami melayani pengiriman ke seluruh kota di Indonesia melalui ekspedisi kargo darat, laut, maupun udara dengan packing kayu pelindung ekstra untuk menjaga keamanan barang sampai di tempat tujuan.",
+      "urutan": 5,
+      "is_published": true
+    },
+    {
+      "id": "f0000000-0000-0000-0000-000000000006",
+      "pertanyaan": "Bagaimana prosedur pembayaran dan perpajakan resmi?",
+      "jawaban": "Kami melayani pembayaran transfer bank resmi atas nama perusahaan (rekening giro) dan siap menerbitkan Faktur Pajak resmi (PPN) serta invoice resmi untuk keperluan pertanggungjawaban anggaran instansi Anda.",
+      "urutan": 6,
+      "is_published": true
+    }
+  ],
+  "site_settings": {
+    "id": 1,
+    "nama_brand": "seminarkit",
+    "tagline": "Vendor Souvenir Kantor & Paket Seminar Kit Terpercaya di Indonesia",
+    "wa_number": "0822232730246",
+    "wa_default_text": "Halo seminarkit, saya ingin berkonsultasi mengenai paket seminar kit dan souvenir kantor.",
+    "email": "halo@seminarkit.id",
+    "alamat": "Jl. Tebet Barat Dalam Raya No. 18, Jakarta Selatan, DKI Jakarta 12810",
+    "jam_kerja": "Senin – Jumat: 08.30 – 17.30 WIB | Sabtu: 09.00 – 14.00 WIB",
+    "instagram_url": "https://instagram.com/seminarkit.id",
+    "facebook_url": "https://facebook.com/seminarkit.id",
+    "tiktok_url": "https://tiktok.com/@seminarkit.id",
+    "maps_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.292543886477!2d106.8488253!3d-6.2251026!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f3900989c9df%3A0x6e2c317f2269e96!2sJakarta!5e0!3m2!1sid!2sid!4v1700000000000",
+    "updated_at": "2026-10-30T13:29:35.162Z"
+  },
+  "inquiries": [
+    {
+      "id": "inq-sample-1",
+      "nama": "Ahmad Fadillah",
+      "perusahaan": "PT Nusantara Jaya Mandiri",
+      "no_wa": "6281234567890",
+      "email": "ahmad@nusantarajaya.co.id",
+      "produk_diminati": "Paket Seminar Kit Eksekutif Kulit",
+      "jumlah": 150,
+      "tanggal_dibutuhkan": "2026-11-20",
+      "pesan": "Mohon info penawaran harga untuk 150 paket lengkap dengan custom logo hot print gold pada agenda kulit dan tumbler.",
+      "status": "selesai",
+      "created_at": "2026-10-29T15:50:49.558Z"
+    },
+    {
+      "id": "inq-sample-2",
+      "nama": "Siti Rahmawati",
+      "perusahaan": "Kementerian Keuangan RI",
+      "no_wa": "6282198765432",
+      "email": "siti.rahma@kemenkeu.go.id",
+      "produk_diminati": "Tumbler Stainless Vacuum 500ml",
+      "jumlah": 300,
+      "tanggal_dibutuhkan": "2026-12-05",
+      "pesan": "Apakah tumbler bisa grafir laser nama peserta satu per satu selain logo instansi?",
+      "status": "selesai",
+      "created_at": "2026-10-28T15:50:49.559Z"
+    }
+  ]
+}

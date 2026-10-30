@@ -1,0 +1,665 @@
+---
+// src/pages/tentang.astro
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import CTA from '../components/CTA.astro';
+import { getSiteSettings } from '../lib/queries';
+import { buildWaFromPage } from '../lib/wa';
+import { organizationSchema, breadcrumbSchema } from '../lib/seo';
+
+const settings = await getSiteSettings();
+const waUrl = buildWaFromPage(settings?.wa_number, 'Tentang');
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Tentang', url: siteUrl + '/tentang' },
+  ]),
+];
+---
+
+<BaseLayout
+  title="Tentang seminarkit — Profil & Standar Mutu Pengadaan"
+  description="seminarkit adalah spesialis pengadaan souvenir kantor dan seminar kit berkualitas dengan kurasi bahan teruji, pendampingan desain terpadu, dan jaminan ketepatan waktu."
+  settings={settings}
+  currentPage="Tentang"
+  jsonLd={schemas}
+>
+  <!-- ========================================================
+       PAGE BANNER
+       waveFill diarahkan ke warna latar section narasi (#F6F1E7)
+       ======================================================== -->
+  <PageBanner
+    judul="Tentang seminarkit"
+    badgeText="Profil & Standar Kualitas"
+    badgeIcon="info"
+    deskripsi="Dedikasi kami menghadirkan souvenir kantor dan paket seminar kit berkualitas dengan garansi pengerjaan tepat waktu."
+    breadcrumbs={[{ label: 'Tentang' }]}
+    waveFill="#F6F1E7"
+  />
+
+  <!-- ========================================================
+       1. NARRATIVE SECTION (SECTION TENTANG - WARM CREAM BACKGROUND)
+       Problem & Solution: Left story & bullets, Right deckle torn paper frame
+       ======================================================== -->
+  <section class="sk-narrative-section" aria-labelledby="story-heading">
+    <!-- Hidden SVG Defs for Torn Deckle Paper Clip Paths -->
+    <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+      <defs>
+        <clipPath id="sk-about-torn-outer" clipPathUnits="objectBoundingBox">
+          <path d="M 0.0200 0.0268 L 0.0474 0.0270 L 0.0749 0.0365 L 0.1023 0.0341 L 0.1297 0.0245 L 0.1571 0.0287 L 0.1846 0.0213 L 0.2120 0.0246 L 0.2394 0.0266 L 0.2669 0.0185 L 0.2943 0.0150 L 0.3217 0.0284 L 0.3491 0.0288 L 0.3766 0.0239 L 0.4040 0.0243 L 0.4314 0.0310 L 0.4589 0.0339 L 0.4863 0.0308 L 0.5137 0.0171 L 0.5411 0.0224 L 0.5686 0.0265 L 0.5960 0.0110 L 0.6234 0.0210 L 0.6509 0.0125 L 0.6783 0.0195 L 0.7057 0.0188 L 0.7331 0.0237 L 0.7606 0.0359 L 0.7880 0.0313 L 0.8154 0.0208 L 0.8429 0.0208 L 0.8703 0.0298 L 0.8977 0.0207 L 0.9251 0.0248 L 0.9526 0.0159 L 0.9800 0.0196 L 0.9726 0.0300 L 0.9721 0.0636 L 0.9783 0.0971 L 0.9764 0.1307 L 0.9682 0.1643 L 0.9729 0.1979 L 0.9654 0.2314 L 0.9678 0.2650 L 0.9767 0.2986 L 0.9813 0.3321 L 0.9781 0.3657 L 0.9749 0.3993 L 0.9765 0.4329 L 0.9756 0.4664 L 0.9699 0.5000 L 0.9767 0.5336 L 0.9746 0.5671 L 0.9733 0.6007 L 0.9770 0.6343 L 0.9648 0.6679 L 0.9807 0.7014 L 0.9752 0.7350 L 0.9856 0.7686 L 0.9740 0.8021 L 0.9736 0.8357 L 0.9706 0.8693 L 0.9738 0.9029 L 0.9731 0.9364 L 0.9730 0.9700 L 0.9800 0.9822 L 0.9526 0.9706 L 0.9251 0.9844 L 0.8977 0.9888 L 0.8703 0.9755 L 0.8429 0.9804 L 0.8154 0.9675 L 0.7880 0.9708 L 0.7606 0.9749 L 0.7331 0.9627 L 0.7057 0.9807 L 0.6783 0.9761 L 0.6509 0.9857 L 0.6234 0.9793 L 0.5960 0.9823 L 0.5686 0.9766 L 0.5411 0.9784 L 0.5137 0.9701 L 0.4863 0.9746 L 0.4589 0.9654 L 0.4314 0.9686 L 0.4040 0.9780 L 0.3766 0.9785 L 0.3491 0.9872 L 0.3217 0.9875 L 0.2943 0.9797 L 0.2669 0.9803 L 0.2394 0.9730 L 0.2120 0.9661 L 0.1846 0.9740 L 0.1571 0.9657 L 0.1297 0.9747 L 0.1023 0.9791 L 0.0749 0.9677 L 0.0474 0.9778 L 0.0200 0.9863 L 0.0191 0.9700 L 0.0353 0.9364 L 0.0244 0.9029 L 0.0333 0.8693 L 0.0320 0.8357 L 0.0220 0.8021 L 0.0222 0.7686 L 0.0158 0.7350 L 0.0225 0.7014 L 0.0178 0.6679 L 0.0176 0.6343 L 0.0271 0.6007 L 0.0339 0.5671 L 0.0268 0.5336 L 0.0346 0.5000 L 0.0271 0.4664 L 0.0205 0.4329 L 0.0294 0.3993 L 0.0191 0.3657 L 0.0122 0.3321 L 0.0243 0.2986 L 0.0245 0.2650 L 0.0310 0.2314 L 0.0343 0.1979 L 0.0249 0.1643 L 0.0316 0.1307 L 0.0286 0.0971 L 0.0213 0.0636 L 0.0163 0.0300 Z" />
+        </clipPath>
+        <clipPath id="sk-about-torn-inner" clipPathUnits="objectBoundingBox">
+          <path d="M 0.0320 0.0388 L 0.0587 0.0390 L 0.0855 0.0485 L 0.1122 0.0461 L 0.1390 0.0365 L 0.1657 0.0407 L 0.1925 0.0333 L 0.2192 0.0366 L 0.2459 0.0386 L 0.2727 0.0305 L 0.2994 0.0270 L 0.3262 0.0404 L 0.3529 0.0408 L 0.3797 0.0359 L 0.4064 0.0363 L 0.4331 0.0430 L 0.4599 0.0459 L 0.4866 0.0428 L 0.5134 0.0291 L 0.5401 0.0344 L 0.5669 0.0385 L 0.5936 0.0230 L 0.6203 0.0330 L 0.6471 0.0245 L 0.6738 0.0315 L 0.7006 0.0308 L 0.7273 0.0357 L 0.7541 0.0479 L 0.7808 0.0433 L 0.8075 0.0328 L 0.8343 0.0328 L 0.8610 0.0418 L 0.8878 0.0327 L 0.9145 0.0368 L 0.9413 0.0279 L 0.9680 0.0316 L 0.9606 0.0420 L 0.9601 0.0747 L 0.9663 0.1074 L 0.9644 0.1401 L 0.9562 0.1729 L 0.9609 0.2056 L 0.9534 0.2383 L 0.9558 0.2710 L 0.9647 0.3037 L 0.9693 0.3364 L 0.9661 0.3691 L 0.9629 0.4019 L 0.9645 0.4346 L 0.9636 0.4673 L 0.9579 0.5000 L 0.9647 0.5327 L 0.9626 0.5654 L 0.9613 0.5981 L 0.9650 0.6309 L 0.9528 0.6636 L 0.9687 0.6963 L 0.9632 0.7290 L 0.9736 0.7617 L 0.9620 0.7944 L 0.9616 0.8271 L 0.9586 0.8599 L 0.9618 0.8926 L 0.9611 0.9253 L 0.9610 0.9580 L 0.9680 0.9702 L 0.9413 0.9586 L 0.9145 0.9724 L 0.8878 0.9768 L 0.8610 0.9635 L 0.8343 0.9684 L 0.8075 0.9555 L 0.7808 0.9588 L 0.7541 0.9629 L 0.7273 0.9507 L 0.7006 0.9687 L 0.6738 0.9641 L 0.6471 0.9737 L 0.6203 0.9673 L 0.5936 0.9703 L 0.5669 0.9646 L 0.5401 0.9664 L 0.5134 0.9581 L 0.4866 0.9626 L 0.4599 0.9534 L 0.4331 0.9566 L 0.4064 0.9660 L 0.3797 0.9665 L 0.3529 0.9752 L 0.3262 0.9755 L 0.2994 0.9677 L 0.2727 0.9683 L 0.2459 0.9610 L 0.2192 0.9541 L 0.1925 0.9620 L 0.1657 0.9537 L 0.1390 0.9627 L 0.1122 0.9671 L 0.0855 0.9557 L 0.0587 0.9658 L 0.0320 0.9743 L 0.0311 0.9580 L 0.0473 0.9253 L 0.0364 0.8926 L 0.0453 0.8599 L 0.0440 0.8271 L 0.0340 0.7944 L 0.0342 0.7617 L 0.0278 0.7290 L 0.0345 0.6963 L 0.0298 0.6636 L 0.0296 0.6309 L 0.0391 0.5981 L 0.0459 0.5654 L 0.0388 0.5327 L 0.0466 0.5000 L 0.0391 0.4673 L 0.0325 0.4346 L 0.0414 0.4019 L 0.0311 0.3691 L 0.0242 0.3364 L 0.0363 0.3037 L 0.0365 0.2710 L 0.0430 0.2383 L 0.0463 0.2056 L 0.0369 0.1729 L 0.0436 0.1401 L 0.0406 0.1074 L 0.0333 0.0747 L 0.0283 0.0420 Z" />
+        </clipPath>
+      </defs>
+    </svg>
+
+    <div class="container">
+      <div class="row align-items-center g-4 g-lg-5 sk-about-row">
+        <!-- Story & Description Column: Tampil di bawah foto pada mobile (order-2), di kiri pada desktop (order-lg-1) -->
+        <div class="col-lg-6 order-2 order-lg-1">
+          <div class="sk-narrative-content pe-lg-3">
+            <h2 id="story-heading" class="sk-narrative-title">
+              Pengadaan Seminar Kit Seharusnya Tidak Rumit
+            </h2>
+
+            <div class="sk-narrative-body">
+              <p>
+                Banyak panitia acara dan instansi menghadapi kekhawatiran klasik saat mencari vendor souvenir: biaya yang mendadak melonjak setelah pesanan berjalan, hasil cetak yang berbeda jauh dari sampel, hingga ketakutan barang terlambat tiba menjelang hari pelaksanaan.
+              </p>
+              <p class="sk-narrative-closing">
+                Di <strong>seminarkit</strong>, Anda tidak perlu berspekulasi dengan reputasi instansi Anda. Kami hadir dengan komitmen transparansi mutlak, pembuatan sampel nyata, dan jadwal kerja yang terikat garansi resmi.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Deckle Torn Paper Framed Image (Tampil di atas pada mobile (order-1), di kanan pada desktop (order-lg-2)) -->
+        <div class="col-lg-6 order-1 order-lg-2">
+          <div class="sk-torn-media-box">
+            <div class="sk-torn-frame-outer">
+              <div class="sk-torn-frame-inner">
+                <img
+                  src="/images/about-seminarkit.webp"
+                  alt="Proses kurasi bahan dan kontrol kualitas di seminarkit"
+                  class="sk-torn-img"
+                  loading="lazy"
+                  decoding="async"
+                  width="600"
+                  height="440"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Organic Wave Divider: Transitioning into Green Stats Strip (#234138) -->
+    <div class="sk-narrative-wave-bottom" aria-hidden="true">
+      <svg viewBox="0 0 1440 64" fill="none" preserveAspectRatio="none">
+        <path d="M0,0 C360,46 720,64 1080,38 C1240,26 1360,12 1440,0 L1440,64 L0,64 Z" fill="#234138"></path>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       2. STATS HIGHLIGHT STRIP (DILETAKKAN DI BAWAH SECTION TENTANG)
+       3 metrik kunci dengan ikon line art & latar hijau pekat
+       ======================================================== -->
+  <section class="sk-strip-section" aria-label="Statistik dan Pengalaman">
+    <div class="container">
+      <div class="row g-4 align-items-center justify-content-center text-center">
+        <!-- Stat 1 -->
+        <div class="col-md-4 col-sm-12">
+          <div class="sk-strip-item">
+            <div class="sk-strip-icon-wrap" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="6"></circle>
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+              </svg>
+            </div>
+            <div class="sk-strip-value">8+ Tahun Dedikasi</div>
+            <p class="sk-strip-label">Pengalaman Produksi Souvenir &amp; Seminar Kit</p>
+          </div>
+        </div>
+
+        <!-- Stat 2 -->
+        <div class="col-md-4 col-sm-12">
+          <div class="sk-strip-item">
+            <div class="sk-strip-icon-wrap" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M3 12h3M18 12h3M12 3v3M12 18v3"></path>
+                <circle cx="12" cy="3" r="1.5"></circle>
+                <circle cx="12" cy="21" r="1.5"></circle>
+                <circle cx="3" cy="12" r="1.5"></circle>
+                <circle cx="21" cy="12" r="1.5"></circle>
+              </svg>
+            </div>
+            <div class="sk-strip-value">150+ Mitra Instansi</div>
+            <p class="sk-strip-label">Kementerian, BUMN, Universitas &amp; Swasta</p>
+          </div>
+        </div>
+
+        <!-- Stat 3 -->
+        <div class="col-md-4 col-sm-12">
+          <div class="sk-strip-item">
+            <div class="sk-strip-icon-wrap" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <polyline points="9 12 11 14 15 10"></polyline>
+              </svg>
+            </div>
+            <div class="sk-strip-value">100% Bebas Cemas</div>
+            <p class="sk-strip-label">Zero Biaya Tersembunyi &amp; Garansi Tepat Waktu</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Organic Wave Divider: Transitioning into White Cards Section (#FFFFFF) -->
+    <div class="sk-strip-wave-bottom" aria-hidden="true">
+      <svg viewBox="0 0 1440 64" fill="none" preserveAspectRatio="none">
+        <path d="M0,0 C380,46 760,64 1120,38 C1260,26 1360,12 1440,0 L1440,64 L0,64 Z" fill="#FFFFFF"></path>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       3. THREE FEATURE CARDS GRID (WHITE BACKGROUND)
+       3 Kartu 3-Warna: Khaki Olive, Warm Sand, Deep Slate
+       Foto di atas + Kotak warna solid di bawah + Pill Action Button
+       ======================================================== -->
+  <section class="sk-cards-section" aria-labelledby="pillars-heading">
+    <div class="container">
+      <!-- Section Header Centered -->
+      <div class="sk-cards-header text-center">
+        <h2 id="pillars-heading" class="sk-cards-title">
+          Standar Layanan seminarkit untuk Keberhasilan Acara Anda
+        </h2>
+        <p class="sk-cards-subtitle">
+          Kami menghubungkan kebutuhan representasi instansi Anda dengan seleksi material terverifikasi, pendampingan desain terpadu, dan jaminan purna jual menyeluruh.
+        </p>
+      </div>
+
+      <!-- 3 Pillar Cards Row -->
+      <div class="row g-4 justify-content-center">
+        <!-- CARD 1: Olive / Khaki Tone (#8B9364) -->
+        <div class="col-lg-4 col-md-6 col-12">
+          <div class="sk-feature-card sk-feature-card--olive">
+            <div class="sk-card-media">
+              <img
+                src="/images/giftbox.webp"
+                alt="Kurasi Material Teruji seminarkit"
+                width="400"
+                height="240"
+                loading="lazy"
+                decoding="async"
+                class="sk-card-img"
+              />
+            </div>
+            <div class="sk-card-box">
+              <div class="sk-card-content">
+                <h3 class="sk-card-heading">Kurasi Bahan Teruji</h3>
+                <p class="sk-card-desc">
+                  Setiap material tas kanvas, tumbler stainless food-grade, hingga buku catatan hard cover diseleksi ketat agar awet, fungsional, dan membanggakan citra instansi Anda.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: Warm Sand / Pale Khaki Tone (#E9DFCB) -->
+        <div class="col-lg-4 col-md-6 col-12">
+          <div class="sk-feature-card sk-feature-card--sand">
+            <div class="sk-card-media">
+              <img
+                src="/images/notebook.webp"
+                alt="Pendampingan Desain Terpadu seminarkit"
+                width="400"
+                height="240"
+                loading="lazy"
+                decoding="async"
+                class="sk-card-img"
+              />
+            </div>
+            <div class="sk-card-box">
+              <div class="sk-card-content">
+                <h3 class="sk-card-heading">Dukungan Desain Terpadu</h3>
+                <p class="sk-card-desc">
+                  Kami tidak sekadar mencetak logo. Tim desainer in-house kami membantu penyesuaian tata letak, proporsi grafir, hingga pembuatan sampel fisik sebelum produksi dimulai.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: Deep Slate Green Tone (#28453B) -->
+        <div class="col-lg-4 col-md-6 col-12">
+          <div class="sk-feature-card sk-feature-card--slate">
+            <div class="sk-card-media">
+              <img
+                src="/images/seminar-welcome.webp"
+                alt="Jaminan & Ketepatan Mitra seminarkit"
+                width="400"
+                height="240"
+                loading="lazy"
+                decoding="async"
+                class="sk-card-img"
+              />
+            </div>
+            <div class="sk-card-box">
+              <div class="sk-card-content">
+                <h3 class="sk-card-heading">Jaminan &amp; Ketepatan Mitra</h3>
+                <p class="sk-card-desc">
+                  Jadwal produksi terikat komitmen dengan pelacakan progres berkala serta jaminan penggantian penuh 100% apabila ditemukan cacat produksi pada saat diterima.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Callout CTA Section -->
+  <CTA waUrl={waUrl} />
+</BaseLayout>
+
+<style>
+  /* ========================================================
+     1. NARRATIVE SECTION (SECTION TENTANG - WARM CREAM)
+     ======================================================== */
+  .sk-narrative-section {
+    position: relative;
+    background-color: #F6F1E7;
+    padding: 56px 0 92px;
+    margin-top: -1px; /* seamless connection with PageBanner */
+  }
+
+  .sk-narrative-title {
+    font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+    font-size: clamp(2rem, 3.2vw, 2.75rem);
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    margin-bottom: 22px;
+  }
+
+  .sk-narrative-body p {
+    font-size: 0.95rem;
+    color: #374A43;
+    line-height: 1.7;
+    margin-bottom: 18px;
+  }
+
+  .sk-narrative-closing {
+    font-size: 0.95rem;
+    color: #1B3131 !important;
+    font-weight: 500;
+    margin-bottom: 0 !important;
+  }
+
+  /* Deckle Torn Paper Frame (Reference Artisan Style) */
+  .sk-torn-media-box {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .sk-torn-frame-outer {
+    position: relative;
+    background-color: #182826; /* Dark torn jagged backing rim */
+    clip-path: url(#sk-about-torn-outer);
+    -webkit-clip-path: url(#sk-about-torn-outer);
+    filter: drop-shadow(0 14px 28px rgba(27, 49, 49, 0.22));
+    padding: 7px;
+    transition: transform 0.35s ease;
+  }
+
+  .sk-torn-media-box:hover .sk-torn-frame-outer {
+    transform: translateY(-4px);
+  }
+
+  .sk-torn-frame-inner {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    clip-path: url(#sk-about-torn-inner);
+    -webkit-clip-path: url(#sk-about-torn-inner);
+    overflow: hidden;
+    background-color: #2F4F4F;
+  }
+
+  .sk-torn-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .sk-torn-media-box:hover .sk-torn-img {
+    transform: scale(1.05);
+  }
+
+  .sk-narrative-wave-bottom {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .sk-narrative-wave-bottom svg {
+    display: block;
+    width: 100%;
+    height: 54px;
+  }
+
+  /* ========================================================
+     2. STATS STRIP SECTION (GREEN ORGANIC BAND)
+     ======================================================== */
+  .sk-strip-section {
+    position: relative;
+    background-color: #234138;
+    color: #FFFFFF;
+    padding: 32px 0 76px;
+    margin-top: -1px;
+  }
+
+  .sk-strip-item {
+    padding: 18px 20px;
+    transition: transform 0.25s ease;
+  }
+
+  .sk-strip-item:hover {
+    transform: translateY(-3px);
+  }
+
+  .sk-strip-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #BDB76B; /* Khaki Gold */
+    margin-bottom: 12px;
+  }
+
+  .sk-strip-value {
+    font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+    line-height: 1.25;
+  }
+
+  .sk-strip-label {
+    font-size: 0.875rem;
+    color: #CAD7D1;
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .sk-strip-wave-bottom {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .sk-strip-wave-bottom svg {
+    display: block;
+    width: 100%;
+    height: 52px;
+  }
+
+  /* ========================================================
+     3. THREE FEATURE CARDS SECTION (WHITE BACKGROUND)
+     ======================================================== */
+  .sk-cards-section {
+    background-color: #FFFFFF;
+    padding: 40px 0 96px;
+  }
+
+  .sk-cards-header {
+    max-width: 720px;
+    margin: 0 auto 52px;
+  }
+
+  .sk-cards-title {
+    font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+    font-size: clamp(1.85rem, 3vw, 2.45rem);
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .sk-cards-subtitle {
+    font-size: 0.95rem;
+    color: #556B63;
+    line-height: 1.6;
+    margin: 0 auto;
+  }
+
+  /* Feature Card Container */
+  .sk-feature-card {
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 12px 32px rgba(27, 49, 49, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .sk-feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 44px rgba(27, 49, 49, 0.14);
+  }
+
+  .sk-card-media {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+  }
+
+  .sk-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .sk-feature-card:hover .sk-card-img {
+    transform: scale(1.05);
+  }
+
+  .sk-card-box {
+    padding: 30px 26px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-grow: 1;
+    min-height: auto;
+  }
+
+  .sk-card-heading {
+    font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-card-desc {
+    font-size: 0.925rem;
+    line-height: 1.65;
+    margin-bottom: 0;
+  }
+
+  /* Specific Color Themes per Card */
+  /* Card 1: Khaki Olive */
+  .sk-feature-card--olive .sk-card-box {
+    background-color: #8B9364;
+    color: #FFFFFF;
+  }
+  .sk-feature-card--olive .sk-card-heading {
+    color: #FFFFFF;
+  }
+  .sk-feature-card--olive .sk-card-desc {
+    color: #F1F4E8;
+  }
+
+  /* Card 2: Warm Sand / Pale Khaki */
+  .sk-feature-card--sand .sk-card-box {
+    background-color: #E9DFCB;
+    color: #1B3131;
+  }
+  .sk-feature-card--sand .sk-card-heading {
+    color: #1B3131;
+  }
+  .sk-feature-card--sand .sk-card-desc {
+    color: #3B4D45;
+  }
+
+  /* Card 3: Deep Slate Green */
+  .sk-feature-card--slate .sk-card-box {
+    background-color: #28453B;
+    color: #FFFFFF;
+  }
+  .sk-feature-card--slate .sk-card-heading {
+    color: #FFFFFF;
+  }
+  .sk-feature-card--slate .sk-card-desc {
+    color: #D2DFD9;
+  }
+
+  /* ========================================================
+     PILL BUTTONS (CAPSULES)
+     ======================================================== */
+  .sk-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 11px 22px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.22s ease;
+    letter-spacing: 0.01em;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Cream Pill Button on Olive */
+  .sk-pill-btn--cream {
+    background-color: #FBF8F1;
+    color: #3F4725;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .sk-pill-btn--cream:hover {
+    background-color: #FFFFFF;
+    color: #272C15;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Olive Pill Button on Sand */
+  .sk-pill-btn--olive {
+    background-color: #8B9364;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(139, 147, 100, 0.25);
+  }
+  .sk-pill-btn--olive:hover {
+    background-color: #798055;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 147, 100, 0.35);
+  }
+
+  /* Cream Pill Button on Deep Slate */
+  .sk-pill-btn--cream-dark {
+    background-color: #FBF8F1;
+    color: #1B3131;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .sk-pill-btn--cream-dark:hover {
+    background-color: #FFFFFF;
+    color: #0E1A1A;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  /* ========================================================
+     RESPONSIVE BREAKPOINTS
+     ======================================================== */
+  @media (max-width: 991px) {
+    .sk-about-row {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .sk-torn-media-box {
+      margin-top: 0;
+      margin-bottom: 28px;
+    }
+    .sk-narrative-section {
+      padding: 40px 0 72px;
+    }
+    .sk-narrative-content {
+      text-align: center;
+    }
+    .sk-strip-section {
+      padding: 24px 0 62px;
+    }
+    .sk-card-box {
+      min-height: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sk-narrative-title {
+      font-size: 1.75rem;
+    }
+    .sk-strip-item {
+      padding: 12px 14px;
+    }
+    .sk-strip-value {
+      font-size: 1.15rem;
+    }
+    .sk-cards-section {
+      padding: 30px 0 64px;
+    }
+    .sk-cards-header {
+      margin-bottom: 36px;
+    }
+    .sk-cards-title {
+      font-size: 1.65rem;
+    }
+  }
+</style>

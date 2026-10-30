@@ -1,0 +1,448 @@
+---
+// src/pages/blog/[slug].astro
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSiteSettings, getArticleBySlug, getRelatedArticles, getCategories, getArticles } from '../../lib/queries';
+import { renderMarkdown } from '../../lib/markdown';
+import { formatTanggal } from '../../lib/format';
+import { buildWaFromPage } from '../../lib/wa';
+import { articleSchema, breadcrumbSchema, organizationSchema } from '../../lib/seo';
+
+const { slug } = Astro.params;
+
+if (!slug) return Astro.redirect('/blog');
+
+const settings = await getSiteSettings();
+const article = await getArticleBySlug(slug);
+
+if (!article) {
+  return new Response(null, { status: 404 });
+}
+
+const waUrl = buildWaFromPage(settings?.wa_number, article.judul);
+
+// Reading time calculation (~180 words per min)
+const wordCount = (article.isi || '').trim().split(/\s+/).filter(Boolean).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 180));
+
+// Fetch related articles from database
+let relatedArticles = await getRelatedArticles(article.slug, 3);
+if (relatedArticles.length === 0) {
+  const { articles: fallbackArticles } = await getArticles(1);
+  relatedArticles = fallbackArticles.filter(a => a.slug !== article.slug).slice(0, 3);
+}
+
+// Fetch categories for sidebar
+const categories = await getCategories();
+
+// Markdown processing & Table of Contents extraction
+const rawHtml = renderMarkdown(article.isi || '');
+
+interface TocItem {
+  id: string;
+  text: string;
+}
+
+const toc: TocItem[] = [];
+let h2Count = 0;
+
+const processedContent = rawHtml.replace(/<h2>([\s\S]*?)<\/h2>/gi, (_match, innerText) => {
+  h2Count++;
+  const id = `heading-${h2Count}`;
+  const cleanTitle = innerText.replace(/<[^>]+>/g, '').trim();
+  toc.push({ id, text: cleanTitle });
+  return `<h2 id="${id}" class="sk-article-h2">${innerText}</h2>`;
+});
+
+// "Baca Juga" target article
+const bacaJugaArticle = relatedArticles.length > 0 ? relatedArticles[0] : null;
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const currentUrl = `${siteUrl}/blog/${article.slug}`;
+
+// Social share URLs
+const shareWa = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${article.judul} - ${currentUrl}`)}`;
+const shareLinkedin = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
+const shareTwitter = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(article.judul)}`;
+
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Blog', url: siteUrl + '/blog' },
+    { name: article.judul, url: currentUrl },
+  ]),
+  articleSchema(article),
+];
+---
+<BaseLayout
+  title={article.judul}
+  description={article.meta_description}
+  ogImage={article.cover_url ?? undefined}
+  settings={settings}
+  currentPage={article.judul}
+  jsonLd={schemas}
+>
+  <!-- Main Editorial Article Page Container -->
+  <article class="sk-blog-detail-page" aria-labelledby="article-main-title">
+    <div class="container">
+      
+      <!-- Top Breadcrumbs -->
+      <nav class="sk-detail-breadcrumb" aria-label="Breadcrumb">
+        <a href="/" class="sk-bc-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Beranda</span>
+        </a>
+        <span class="sk-bc-sep">/</span>
+        <a href="/blog" class="sk-bc-link">Blog</a>
+        <span class="sk-bc-sep">/</span>
+        <span class="sk-bc-current">{article.judul}</span>
+      </nav>
+
+      <!-- Main 2-Column Grid: Left Content (8 Cols), Right Sticky Sidebar (4 Cols) -->
+      <div class="row g-4 g-lg-5 mt-1">
+        
+        <!-- Left Column: Article Body & Interactive Sections -->
+        <div class="col-lg-8">
+          
+          <!-- Editorial Header -->
+          <header class="sk-article-header">
+            <!-- Eyebrow Category Badge -->
+            <div class="sk-article-eyebrow">
+              <span class="sk-eyebrow-pill">{article.kategori ? article.kategori.toUpperCase() : 'KOLOM & ARTIKEL PENGADAAN'}</span>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 id="article-main-title" class="sk-article-title">
+              {article.judul}
+            </h1>
+
+            <!-- Lead Excerpt -->
+            {article.meta_description && (
+              <p class="sk-article-lead">
+                {article.meta_description}
+              </p>
+            )}
+
+            <!-- Meta Row: Author, Date, Reading Time -->
+            <div class="sk-article-meta-row">
+              <div class="sk-meta-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>{article.penulis || 'Tim Redaksi seminarkit'}</span>
+              </div>
+              <span class="sk-meta-dot">•</span>
+              <div class="sk-meta-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                {article.published_at ? (
+                  <time datetime={article.published_at}>
+                    {formatTanggal(article.published_at)}
+                  </time>
+                ) : (
+                  <span>Terbaru</span>
+                )}
+              </div>
+              <span class="sk-meta-dot">•</span>
+              <div class="sk-meta-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{readingTime} menit baca</span>
+              </div>
+            </div>
+
+            <!-- Featured Cover Image -->
+            {article.cover_url && (
+              <figure class="sk-article-featured-fig">
+                <div class="sk-article-img-box">
+                  <img
+                    src={article.cover_url}
+                    alt={article.cover_alt ?? article.judul}
+                    width="900"
+                    height="500"
+                    fetchpriority="high"
+                    decoding="async"
+                    class="sk-article-featured-img"
+                    onerror="this.src='/images/hero-seminar-kit.webp';"
+                  />
+                </div>
+                <figcaption class="sk-article-img-caption">
+                  {article.cover_caption || article.cover_alt || 'Dokumentasi pengadaan paket seminar kit eksklusif dan souvenir kantor instansi resmi.'}
+                </figcaption>
+              </figure>
+            )}
+          </header>
+
+          <!-- Table of Contents (Daftar Isi Artikel) -->
+          {toc.length > 0 && (
+            <div class="sk-toc-container" id="toc-container">
+              <button
+                type="button"
+                class="sk-toc-header-btn"
+                id="toc-toggle-btn"
+                aria-expanded="true"
+                aria-controls="toc-content-list"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                  </svg>
+                  <span class="sk-toc-title-text">Daftar Isi Artikel</span>
+                </div>
+                <svg class="sk-toc-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              
+              <div class="sk-toc-body" id="toc-content-list">
+                <ol class="sk-toc-list">
+                  {toc.map((item) => (
+                    <li>
+                      <a href={`#${item.id}`} class="sk-toc-link">
+                        {item.text}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+
+          <!-- Article Prose Body Content -->
+          <div class="sk-editorial-body" set:html={processedContent} />
+
+          <!-- In-Content "Baca Juga" Callout Box -->
+          {bacaJugaArticle && (
+            <div class="sk-baca-juga-card">
+              <div class="sk-baca-juga-badge">Baca Juga :</div>
+              <a href={`/blog/${bacaJugaArticle.slug}`} class="sk-baca-juga-link">
+                {bacaJugaArticle.judul}
+              </a>
+            </div>
+          )}
+
+          <!-- Author Box (Tentang Penulis) -->
+          <div class="sk-author-profile-card">
+            <div class="sk-author-avatar-col">
+              <div class="sk-author-avatar-wrap">
+                <img
+                  src="/images/favicon.webp"
+                  alt={article.penulis || 'Tim Redaksi seminarkit'}
+                  width="64"
+                  height="64"
+                  class="sk-author-avatar-img"
+                />
+              </div>
+            </div>
+            <div class="sk-author-info-col">
+              <span class="sk-author-badge">Penulis Artikel</span>
+              <h3 class="sk-author-name">{article.penulis || 'Tim Redaksi seminarkit'}</h3>
+              <p class="sk-author-bio">
+                {article.penulis_bio || 'Tim konsultan spesialis pengadaan souvenir kantor dan seminar kit profesional yang berdedikasi membantu institusi kementerian, BUMN, dan korporasi swasta di seluruh Indonesia.'}
+              </p>
+            </div>
+          </div>
+
+          <!-- Social Share Bar -->
+          <div class="sk-social-share-section">
+            <span class="sk-share-title">Bagikan Artikel Ini:</span>
+            <div class="sk-share-btn-group">
+              <a
+                href={shareWa}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sk-share-pill sk-share-pill--wa"
+                aria-label="Bagikan via WhatsApp"
+              >
+                <svg width="15" height="15" viewBox="0 0 448 512" fill="currentColor">
+                  <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path>
+                </svg>
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href={shareLinkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sk-share-pill sk-share-pill--in"
+                aria-label="Bagikan via LinkedIn"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"></path>
+                </svg>
+                <span>LinkedIn</span>
+              </a>
+              <a
+                href={shareTwitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sk-share-pill sk-share-pill--tw"
+                aria-label="Bagikan via Twitter / X"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                </svg>
+                <span>Twitter</span>
+              </a>
+              <button
+                type="button"
+                class="sk-share-pill sk-share-pill--copy"
+                id="btn-copy-link"
+                data-url={currentUrl}
+                aria-label="Salin Tautan"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="copy-text">Salin Tautan</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Sticky Sidebar (4 Cols) -->
+        <div class="col-lg-4 sk-blog-sidebar-col">
+          <aside class="sk-blog-sticky-sidebar">
+            
+            <!-- Widget 1: Artikel Terkait -->
+            <div class="sk-sidebar-widget">
+              <div class="sk-widget-header">
+                <h3 class="sk-widget-title">Artikel Terkait</h3>
+                <div class="sk-widget-title-line"></div>
+              </div>
+              <div class="sk-widget-articles-list">
+                {relatedArticles.length > 0 ? (
+                  relatedArticles.map((rel) => (
+                    <a href={`/blog/${rel.slug}`} class="sk-related-item">
+                      <div class="sk-related-thumb-box">
+                        <img
+                          src={rel.cover_url || '/images/hero-seminar-kit.webp'}
+                          alt={rel.cover_alt ?? rel.judul}
+                          width="68"
+                          height="68"
+                          class="sk-related-thumb-img"
+                          loading="lazy"
+                          onerror="this.src='/images/hero-seminar-kit.webp';"
+                        />
+                      </div>
+                      <div class="sk-related-content">
+                        <h4 class="sk-related-item-title">{rel.judul}</h4>
+                        <span class="sk-related-item-date">
+                          {rel.published_at ? formatTanggal(rel.published_at) : 'Terbaru'}
+                        </span>
+                      </div>
+                    </a>
+                  ))
+                ) : (
+                  <p class="sk-widget-empty">Tidak ada artikel terkait lainnya.</p>
+                )}
+              </div>
+            </div>
+
+            <!-- Widget 2: Kategori Layanan -->
+            <div class="sk-sidebar-widget">
+              <div class="sk-widget-header">
+                <h3 class="sk-widget-title">Kategori Layanan</h3>
+                <div class="sk-widget-title-line"></div>
+              </div>
+              <div class="sk-category-cloud">
+                {categories.length > 0 ? (
+                  categories.map((c) => (
+                    <a href={`/produk?kategori=${c.slug}`} class="sk-cat-pill">
+                      {c.nama}
+                    </a>
+                  ))
+                ) : (
+                  <>
+                    <a href="/produk" class="sk-cat-pill">Paket Seminar Kit</a>
+                    <a href="/produk" class="sk-cat-pill">Souvenir Kantor</a>
+                    <a href="/produk" class="sk-cat-pill">Buku Agenda Kulit</a>
+                    <a href="/produk" class="sk-cat-pill">Tumbler Stainless</a>
+                    <a href="/produk" class="sk-cat-pill">Tas &amp; Totebag</a>
+                    <a href="/produk" class="sk-cat-pill">Flashdisk &amp; Pen</a>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <!-- Widget 3: Sticky Consultation CTA Banner -->
+            <div class="sk-sidebar-cta-banner">
+              <div class="sk-cta-banner-pill">KONSULTASI GRATIS</div>
+              <h3 class="sk-cta-banner-title">Butuh Seminar Kit Cepat?</h3>
+              <p class="sk-cta-banner-text">
+                Diskusikan kebutuhan isi paket seminar kit, simulasi pagu anggaran (RAB), dan preview mockup logo instansi Anda secara gratis bersama tim kami.
+              </p>
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sk-cta-banner-wa-btn"
+                aria-label="Chat via WhatsApp"
+              >
+                <svg width="18" height="18" viewBox="0 0 448 512" fill="currentColor">
+                  <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path>
+                </svg>
+                <span>Chat via WhatsApp</span>
+              </a>
+            </div>
+
+          </aside>
+        </div>
+
+      </div>
+
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  // TOC toggle functionality
+  const tocBtn = document.getElementById('toc-toggle-btn');
+  const tocList = document.getElementById('toc-content-list');
+  if (tocBtn && tocList) {
+    tocBtn.addEventListener('click', () => {
+      const isExpanded = tocBtn.getAttribute('aria-expanded') === 'true';
+      tocBtn.setAttribute('aria-expanded', String(!isExpanded));
+      tocList.classList.toggle('is-collapsed');
+      tocBtn.classList.toggle('is-collapsed');
+    });
+  }
+
+  // Copy link handler
+  const copyBtn = document.getElementById('btn-copy-link');
+  const copyText = document.getElementById('copy-text');
+  if (copyBtn && copyText) {
+    copyBtn.addEventListener('click', async () => {
+      const url = copyBtn.getAttribute('data-url') || window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        copyText.textContent = 'Tersalin!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyText.textContent = 'Salin Tautan';
+          copyBtn.classList.remove('copied');
+        }, 2200);
+      } catch {
+        prompt('Salin tautan ini:', url);
+      }
+    });
+  }
+</script>

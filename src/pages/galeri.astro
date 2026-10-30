@@ -1,0 +1,104 @@
+---
+// src/pages/galeri.astro
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import GalleryGrid from '../components/GalleryGrid.astro';
+import Pagination from '../components/Pagination.astro';
+import CTA from '../components/CTA.astro';
+import { getSiteSettings, getGallery } from '../lib/queries';
+import { buildWaFromPage } from '../lib/wa';
+import { organizationSchema, breadcrumbSchema } from '../lib/seo';
+
+const settings = await getSiteSettings();
+const waUrl = buildWaFromPage(settings?.wa_number, 'Galeri');
+
+const url = Astro.url;
+const pageParam = url.searchParams.get('page');
+const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
+
+const { items, count } = await getGallery(page, 36);
+const totalPages = Math.ceil(count / 36);
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Galeri', url: siteUrl + '/galeri' },
+  ]),
+];
+---
+
+<BaseLayout
+  title="Galeri Hasil Produksi & Dokumentasi Portofolio"
+  description="Lihat dokumentasi foto riil hasil produksi seminar kit, souvenir kantor, tumbler grafir, buku agenda, dan merchandise perusahaan terpercaya dari seminarkit."
+  settings={settings}
+  currentPage="Galeri"
+  jsonLd={schemas}
+>
+  <!-- ========================================================
+       PAGE BANNER WITH SEAMLESS WAVE TRANSITION
+       ======================================================== -->
+  <PageBanner
+    judul="Galeri Hasil Produksi"
+    badgeText="Portofolio & Dokumentasi"
+    badgeIcon="camera"
+    deskripsi="Dokumentasi riil produk souvenir kantor dan paket seminar kit untuk berbagai instansi & perusahaan."
+    breadcrumbs={[{ label: 'Galeri' }]}
+    waveFill="#FBFAF5"
+  />
+
+  <!-- ========================================================
+       MAIN PHOTO COLLAGE SECTION (SAMA PERSIS DENGAN REFERENSI)
+       ======================================================== -->
+  <section class="sk-galeri-section" aria-labelledby="galeri-heading">
+    <div class="container">
+      <h2 id="galeri-heading" class="visually-hidden">Foto Galeri Dokumentasi</h2>
+
+      <!-- Visual Masonry Photo Collage (Tanpa Deskripsi) -->
+      {items.length > 0 ? (
+        <GalleryGrid items={items} waNumber={settings?.wa_number} />
+      ) : (
+        <div class="sk-empty-fallback text-center py-5">
+          <p style="color: var(--sk-muted); font-size: 1rem;">
+            Foto galeri sedang disiapkan oleh tim dokumentasi seminarkit.
+          </p>
+        </div>
+      )}
+
+      <!-- Pagination (If needed) -->
+      {totalPages > 1 && (
+        <div class="sk-pagination-container">
+          <Pagination currentPage={page} totalPages={totalPages} baseUrl="/galeri" />
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- ========================================================
+       BOTTOM CTA SECTION
+       ======================================================== -->
+  <CTA waUrl={waUrl} />
+</BaseLayout>
+
+<style>
+  /* ========================================================
+     GALLERY PAGE STYLES (CLEAN & WARM BACKGROUND)
+     ======================================================== */
+  .sk-galeri-section {
+    background-color: #FBFAF5;
+    padding: 6px 0 60px;
+    margin-top: -3px; /* Overlap PageBanner bottom edge to eliminate any 1px subpixel dark seam */
+    position: relative;
+    z-index: 2;
+    min-height: 50vh;
+  }
+
+  .sk-pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+  }
+</style>

@@ -1,0 +1,756 @@
+---
+// src/layouts/AdminLayout.astro
+import '@fontsource-variable/hanken-grotesk';
+import '@fontsource-variable/newsreader';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/components.css';
+import '../styles/admin.css';
+
+export interface Props {
+  title: string;
+  activePage?: string;
+  description?: string;
+}
+
+const { title, activePage, description } = Astro.props;
+---
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title} — Admin seminarkit</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/webp" href="/images/favicon.webp" />
+</head>
+<body class="admin-body">
+  <!-- Mobile Header Bar -->
+  <header class="d-lg-none p-3 d-flex align-items-center justify-content-between" style="background:#FFFFFF;border-bottom:1px solid var(--sk-admin-card-border);position:sticky;top:0;z-index:1030;">
+    <div class="d-flex align-items-center gap-2">
+      <div class="sk-logo-mark" style="width:32px;height:32px;font-size:1rem;">S</div>
+      <div>
+        <span style="font-family:var(--sk-font-serif);font-weight:700;font-size:1.125rem;color:var(--sk-admin-primary);">seminarkit</span>
+        <span class="sk-logo-badge" style="font-size:.6rem;">admin</span>
+      </div>
+    </div>
+    <button type="button" id="mobile-drawer-toggle" class="sk-pill-btn sk-pill-btn--outline" style="padding:6px 14px;font-size:.8125rem;">
+      Menu
+    </button>
+  </header>
+
+  <!-- Mobile Drawer Backdrop & Menu -->
+  <div id="admin-drawer-backdrop" class="sk-admin-drawer-backdrop" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(31,54,54,0.5);z-index:1040;"></div>
+  <aside id="admin-drawer" class="sk-admin-drawer d-lg-none" aria-label="Menu navigasi mobile" aria-hidden="true" style="position:fixed;top:0;bottom:0;left:0;width:280px;background:#FFFFFF;z-index:1050;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .25s ease;box-shadow:4px 0 24px rgba(0,0,0,0.15);padding:20px;">
+    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3" style="border-color:var(--sk-admin-card-border)!important;">
+      <div class="d-flex align-items-center gap-2">
+        <div class="sk-logo-mark" style="width:32px;height:32px;font-size:1rem;">S</div>
+        <span style="font-family:var(--sk-font-serif);font-weight:700;font-size:1.125rem;color:var(--sk-admin-primary);">seminarkit</span>
+      </div>
+      <button type="button" id="mobile-drawer-close" class="btn-sk-action" style="font-size:.75rem;">Tutup</button>
+    </div>
+
+    <!-- Admin profile summary in drawer -->
+    <div class="d-flex align-items-center gap-2 mb-3 p-2" style="background:var(--sk-admin-surface-subtle);border-radius:12px;">
+      <div id="drawer-avatar" class="sk-logo-mark" style="width:36px;height:36px;font-size:1rem;border-radius:50%;">A</div>
+      <div style="min-width:0;flex:1;">
+        <div id="drawer-name" style="font-weight:700;font-size:.875rem;color:var(--sk-admin-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Admin</div>
+        <div id="drawer-email" style="font-size:.75rem;color:var(--sk-admin-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">admin@seminarkit</div>
+      </div>
+    </div>
+
+    <nav class="sk-nav-menu">
+      <a href="/admin" class={`sk-nav-item ${activePage === 'dashboard' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/admin/pesan" class={`sk-nav-item ${activePage === 'pesan' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Pesan Masuk</span>
+        <span id="drawer-unread-badge" class="sk-nav-badge" style="display:none;">0</span>
+      </a>
+      <a href="/admin/produk" class={`sk-nav-item ${activePage === 'produk' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>Produk & Kategori</span>
+      </a>
+      <a href="/admin/galeri" class={`sk-nav-item ${activePage === 'galeri' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Galeri Foto</span>
+      </a>
+      <a href="/admin/testimoni" class={`sk-nav-item ${activePage === 'testimoni' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Testimoni</span>
+      </a>
+      <a href="/admin/faq" class={`sk-nav-item ${activePage === 'faq' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>FAQ</span>
+      </a>
+      <a href="/admin/blog" class={`sk-nav-item ${activePage === 'blog' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Artikel Blog</span>
+      </a>
+      <a href="/admin/pengaturan" class={`sk-nav-item ${activePage === 'pengaturan' ? 'active' : ''}`}>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="mt-auto pt-3 border-top" style="border-color:var(--sk-admin-card-border)!important;">
+      <a href="/" target="_blank" rel="noopener noreferrer" class="btn-sk-action w-100 mb-2 text-center" style="font-size:.8125rem;">
+        Lihat Situs Publik
+      </a>
+      <button id="logout-btn-mobile" type="button" class="sk-pill-btn w-100 d-flex align-items-center justify-content-center gap-2" style="padding:8px 12px;font-size:.8125rem;background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;font-weight:600;border-radius:var(--sk-admin-radius-pill);cursor:pointer;transition:all .2s ease;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Desktop App Shell Frame -->
+  <div class="sk-app-shell">
+    <!-- Left Navigation Bar -->
+    <aside class="sk-sidebar d-none d-lg-flex" aria-label="Menu navigasi admin">
+      <a href="/admin" class="sk-sidebar-logo">
+        <div class="sk-logo-mark">S</div>
+        <div>
+          <span class="sk-logo-text">seminarkit</span>
+          <span class="sk-logo-badge">Admin Panel</span>
+        </div>
+      </a>
+
+      <nav class="sk-nav-menu">
+        <a href="/admin" class={`sk-nav-item ${activePage === 'dashboard' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/pesan" class={`sk-nav-item ${activePage === 'pesan' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Pesan Masuk</span>
+          <span id="sidebar-unread-badge" class="sk-nav-badge" style="display:none;">0</span>
+        </a>
+        <a href="/admin/produk" class={`sk-nav-item ${activePage === 'produk' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Produk & Kategori</span>
+        </a>
+        <a href="/admin/galeri" class={`sk-nav-item ${activePage === 'galeri' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Galeri Foto</span>
+        </a>
+        <a href="/admin/testimoni" class={`sk-nav-item ${activePage === 'testimoni' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Testimoni</span>
+        </a>
+        <a href="/admin/faq" class={`sk-nav-item ${activePage === 'faq' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>FAQ</span>
+        </a>
+        <a href="/admin/blog" class={`sk-nav-item ${activePage === 'blog' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Artikel Blog</span>
+        </a>
+        <a href="/admin/pengaturan" class={`sk-nav-item ${activePage === 'pengaturan' ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Pengaturan</span>
+        </a>
+      </nav>
+
+      <!-- Bottom Card (Need Help? style) -->
+      <div class="sk-sidebar-help">
+        <div class="sk-help-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="sk-help-title">Buka Website</div>
+        <p class="sk-help-desc">Lihat tampilan situs yang dilihat pengunjung.</p>
+        <div class="d-flex flex-column gap-2">
+          <a href="/" target="_blank" rel="noopener noreferrer" class="sk-pill-btn sk-pill-btn--outline w-100 text-center" style="padding:6px 12px;font-size:.75rem;">
+            Lihat Situs
+          </a>
+          <button id="logout-btn" type="button" class="sk-pill-btn w-100 d-flex align-items-center justify-content-center gap-2" style="padding:7px 12px;font-size:.75rem;background:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5;font-weight:600;border-radius:var(--sk-admin-radius-pill);cursor:pointer;transition:all .2s ease;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <div class="sk-main-container">
+      <!-- Top Search & Date Bar -->
+      <div class="sk-topbar">
+        <!-- Top Search Pill with Global Dropdown -->
+        <div class="sk-search-pill" style="position:relative;flex:1;max-width:520px;min-width:260px;">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="search"
+            id="global-admin-search"
+            placeholder="Cari di admin..."
+            autocomplete="off"
+            style="width:100%;padding-right:64px;"
+          />
+          <kbd class="sk-search-shortcut d-none d-md-inline-block">Ctrl K</kbd>
+
+          <!-- Floating Global Search Results Dropdown -->
+          <div id="global-search-dropdown" class="sk-global-search-dropdown" style="display:none;" role="listbox"></div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="sk-date-tag">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="current-date-string">Kamis, 29 Oktober 2026</span>
+          </div>
+
+          <div class="d-none d-sm-flex align-items-center gap-2 px-3 py-1" style="background:#FFFFFF;border:1px solid var(--sk-admin-card-border);border-radius:var(--sk-admin-radius-pill);box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+            <div id="topbar-avatar" class="sk-logo-mark" style="width:24px;height:24px;font-size:.75rem;border-radius:50%;">A</div>
+            <span id="topbar-email" style="font-size:.8125rem;font-weight:600;color:var(--sk-admin-primary);">Admin</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Guard -->
+      <div id="admin-guard" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;">
+        <div style="width:32px;height:32px;border:3px solid var(--sk-admin-card-border);border-top-color:var(--sk-admin-primary);border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:14px;"></div>
+        <p style="color:var(--sk-admin-text-muted);font-size:.875rem;margin:0;">Memeriksa sesi pengelola…</p>
+        <style>
+          @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+      </div>
+
+      <!-- Main Protected Slot -->
+      <main id="admin-main" style="display:none;" aria-hidden="true">
+        <div id="admin-content">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    import { getSupabaseBrowser } from '../lib/supabase';
+    import { verifyActiveSession, clearAdminSession } from '../lib/admin-client';
+
+    (async () => {
+      const sb = getSupabaseBrowser();
+      const guard = document.getElementById('admin-guard')!;
+      const content = document.getElementById('admin-content')!;
+      const main = document.getElementById('admin-main')!;
+
+      // 1. Cek sesi aktif (Supabase Session atau Admin Session)
+      const session = await verifyActiveSession();
+      if (!session) {
+        window.location.href = '/admin/login';
+        return;
+      }
+
+      // 2. Tampilkan konten utama
+      if (guard) guard.style.display = 'none';
+      if (main) {
+        main.style.display = 'block';
+        main.removeAttribute('aria-hidden');
+      }
+      if (content) {
+        content.style.display = 'block';
+      }
+
+      // 3. Update Profile Pill from Email in Topbar & Drawer
+      const email = session.email || 'adminseminarkit@gmail.com';
+      if (email) {
+        const prefix = email.split('@')[0];
+        const formattedName = prefix
+          .replace(/[._-]+/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        const initial = email.charAt(0).toUpperCase();
+
+        const topAvatar = document.getElementById('topbar-avatar');
+        const topEmail = document.getElementById('topbar-email');
+        const drawerAvatar = document.getElementById('drawer-avatar');
+        const drawerName = document.getElementById('drawer-name');
+        const drawerEmail = document.getElementById('drawer-email');
+
+        if (topAvatar) topAvatar.textContent = initial;
+        if (topEmail) topEmail.textContent = formattedName;
+        if (drawerAvatar) drawerAvatar.textContent = initial;
+        if (drawerName) drawerName.textContent = formattedName;
+        if (drawerEmail) drawerEmail.textContent = email;
+      }
+
+      // 4. Logout Handlers
+      const handleLogout = async () => {
+        clearAdminSession();
+        try { await sb.auth.signOut(); } catch {}
+        window.location.href = '/admin/login';
+      };
+
+      document.querySelectorAll('#logout-btn, #logout-btn-mobile, #logout-btn-dashboard, .btn-logout').forEach(btn => {
+        btn.addEventListener('click', handleLogout);
+      });
+
+      // 6. Drawer Toggle (Mobile)
+      const drawerToggle = document.getElementById('mobile-drawer-toggle');
+      const drawerClose = document.getElementById('mobile-drawer-close');
+      const drawer = document.getElementById('admin-drawer');
+      const backdrop = document.getElementById('admin-drawer-backdrop');
+
+      const openDrawer = () => {
+        if (drawer) {
+          drawer.style.transform = 'translateX(0)';
+          drawer.removeAttribute('aria-hidden');
+        }
+        if (backdrop) backdrop.style.display = 'block';
+      };
+
+      const closeDrawer = () => {
+        if (drawer) {
+          drawer.style.transform = 'translateX(-100%)';
+          drawer.setAttribute('aria-hidden', 'true');
+        }
+        if (backdrop) backdrop.style.display = 'none';
+      };
+
+      drawerToggle?.addEventListener('click', openDrawer);
+      drawerClose?.addEventListener('click', closeDrawer);
+      backdrop?.addEventListener('click', closeDrawer);
+
+      // 7. Set Dynamic Date String
+      try {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('id-ID', {
+          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
+        const dateEl = document.getElementById('current-date-string');
+        if (dateEl) dateEl.textContent = dateStr;
+      } catch (e) {}
+
+      // 8. Inquiries Count Badge & Real-time Updater
+      async function refreshUnreadBadge(explicitCount?: number) {
+        const sBadge = document.getElementById('sidebar-unread-badge');
+        const dBadge = document.getElementById('drawer-unread-badge');
+        let count = explicitCount;
+
+        if (count === undefined) {
+          try {
+            const statsRes = await fetch('/api/admin/manage?table=stats', { cache: 'no-store' }).then(r => r.json());
+            if (statsRes.ok && statsRes.data?.pesan !== undefined) {
+              count = statsRes.data.pesan;
+            }
+          } catch {}
+
+          if (count === undefined) {
+            try {
+              const { count: sbCount } = await sb.from('inquiries').select('*', { count: 'exact', head: true }).eq('status', 'baru');
+              if (sbCount !== null && sbCount !== undefined) count = sbCount;
+            } catch {}
+          }
+        }
+
+        const unread = Math.max(0, count ?? 0);
+
+        if (sBadge) {
+          if (unread > 0) {
+            sBadge.textContent = String(unread);
+            sBadge.style.display = 'inline-block';
+          } else {
+            sBadge.textContent = '0';
+            sBadge.style.display = 'none';
+          }
+        }
+
+        if (dBadge) {
+          if (unread > 0) {
+            dBadge.textContent = String(unread);
+            dBadge.style.display = 'inline-block';
+          } else {
+            dBadge.textContent = '0';
+            dBadge.style.display = 'none';
+          }
+        }
+      }
+
+      (window as any).refreshUnreadBadge = refreshUnreadBadge;
+      try {
+        await refreshUnreadBadge();
+      } catch (e) {}
+
+      // 9. Global Search & Quick Navigation
+      const globalSearchInput = document.getElementById('global-admin-search') as HTMLInputElement | null;
+      const globalSearchDropdown = document.getElementById('global-search-dropdown');
+
+      const NAV_MENUS = [
+        { title: 'Dashboard', desc: 'Ringkasan statistik & pesan terbaru', url: '/admin', tag: 'Menu' },
+        { title: 'Pesan Masuk', desc: 'Daftar penawaran & inquiry klien', url: '/admin/pesan', tag: 'Menu' },
+        { title: 'Produk & Kategori', desc: 'Katalog paket seminar kit & harga', url: '/admin/produk', tag: 'Menu' },
+        { title: 'Galeri Foto', desc: 'Dokumentasi portofolio & klien', url: '/admin/galeri', tag: 'Menu' },
+        { title: 'Testimoni', desc: 'Ulasan & rating kepuasan klien', url: '/admin/testimoni', tag: 'Menu' },
+        { title: 'FAQ', desc: 'Daftar pertanyaan umum & jawaban', url: '/admin/faq', tag: 'Menu' },
+        { title: 'Artikel Blog', desc: 'Publikasi artikel & panduan seminar kit', url: '/admin/blog', tag: 'Menu' },
+        { title: 'Pengaturan', desc: 'Profil admin, kontak & akun', url: '/admin/pengaturan', tag: 'Menu' },
+      ];
+
+      const QUICK_ACTIONS = [
+        { title: 'Tambah Produk Baru', desc: 'Formulir input paket baru', url: '/admin/produk?action=tambah', tag: 'Aksi' },
+        { title: 'Tambah Testimoni Baru', desc: 'Input review klien baru', url: '/admin/testimoni?action=tambah', tag: 'Aksi' },
+        { title: 'Tulis Artikel Blog', desc: 'Buat postingan blog baru', url: '/admin/blog?action=tambah', tag: 'Aksi' },
+        { title: 'Buka Situs Publik', desc: 'Lihat tampilan website utama', url: '/', tag: 'Tautan', target: '_blank' },
+      ];
+
+      let highlightedIndex = -1;
+      let currentItems: { title: string; desc: string; url: string; tag: string; target?: string }[] = [];
+      let searchDebounceTimer: any = null;
+
+      function escHtml(str: any): string {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function getIconSvg(tag: string): string {
+        if (tag === 'Aksi') {
+          return `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        }
+        if (tag === 'Produk') {
+          return `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`;
+        }
+        if (tag === 'Pesan') {
+          return `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
+        }
+        if (tag === 'Tautan') {
+          return `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+        }
+        return `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
+      }
+
+      function syncInPageSearch(q: string) {
+        const inPageInput = document.querySelector('input[type="search"]:not(#global-admin-search)') as HTMLInputElement | null;
+        if (inPageInput) {
+          inPageInput.value = q;
+          inPageInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+
+      function updateHighlight(index: number) {
+        highlightedIndex = index;
+        const allItems = globalSearchDropdown?.querySelectorAll('.sk-search-item');
+        allItems?.forEach((el, idx) => {
+          if (idx === highlightedIndex) {
+            el.classList.add('highlighted');
+            el.scrollIntoView({ block: 'nearest' });
+          } else {
+            el.classList.remove('highlighted');
+          }
+        });
+      }
+
+      function renderDropdownHtml(query: string, dbResults?: { products?: any[]; inquiries?: any[] }) {
+        if (!globalSearchDropdown) return;
+        highlightedIndex = -1;
+        currentItems = [];
+
+        const q = query.trim().toLowerCase();
+        let html = '';
+
+        if (!q) {
+          html += `<div class="sk-search-group-title">Navigasi Halaman</div>`;
+          NAV_MENUS.forEach(item => {
+            currentItems.push(item);
+            const idx = currentItems.length - 1;
+            html += `
+              <a href="${item.url}" class="sk-search-item" data-index="${idx}">
+                <div class="sk-search-item-icon">${getIconSvg(item.tag)}</div>
+                <div class="sk-search-item-content">
+                  <div class="sk-search-item-title">${escHtml(item.title)}</div>
+                  <div class="sk-search-item-desc">${escHtml(item.desc)}</div>
+                </div>
+                <span class="sk-search-item-badge">${item.tag}</span>
+              </a>
+            `;
+          });
+
+          html += `<div class="sk-search-group-title" style="margin-top:8px;">Aksi Cepat</div>`;
+          QUICK_ACTIONS.forEach(item => {
+            currentItems.push(item);
+            const idx = currentItems.length - 1;
+            html += `
+              <a href="${item.url}" class="sk-search-item" data-index="${idx}" ${item.target ? `target="${item.target}" rel="noopener noreferrer"` : ''}>
+                <div class="sk-search-item-icon">${getIconSvg(item.tag)}</div>
+                <div class="sk-search-item-content">
+                  <div class="sk-search-item-title">${escHtml(item.title)}</div>
+                  <div class="sk-search-item-desc">${escHtml(item.desc)}</div>
+                </div>
+                <span class="sk-search-item-badge">${item.tag}</span>
+              </a>
+            `;
+          });
+        } else {
+          const matchedNav = NAV_MENUS.filter(item =>
+            item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+          );
+          const matchedActions = QUICK_ACTIONS.filter(item =>
+            item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+          );
+
+          if (matchedNav.length > 0) {
+            html += `<div class="sk-search-group-title">Menu & Halaman</div>`;
+            matchedNav.forEach(item => {
+              currentItems.push(item);
+              const idx = currentItems.length - 1;
+              html += `
+                <a href="${item.url}" class="sk-search-item" data-index="${idx}">
+                  <div class="sk-search-item-icon">${getIconSvg(item.tag)}</div>
+                  <div class="sk-search-item-content">
+                    <div class="sk-search-item-title">${escHtml(item.title)}</div>
+                    <div class="sk-search-item-desc">${escHtml(item.desc)}</div>
+                  </div>
+                  <span class="sk-search-item-badge">${item.tag}</span>
+                </a>
+              `;
+            });
+          }
+
+          if (matchedActions.length > 0) {
+            html += `<div class="sk-search-group-title" style="margin-top:6px;">Aksi Cepat</div>`;
+            matchedActions.forEach(item => {
+              currentItems.push(item);
+              const idx = currentItems.length - 1;
+              html += `
+                <a href="${item.url}" class="sk-search-item" data-index="${idx}" ${item.target ? `target="${item.target}" rel="noopener noreferrer"` : ''}>
+                  <div class="sk-search-item-icon">${getIconSvg(item.tag)}</div>
+                  <div class="sk-search-item-content">
+                    <div class="sk-search-item-title">${escHtml(item.title)}</div>
+                    <div class="sk-search-item-desc">${escHtml(item.desc)}</div>
+                  </div>
+                  <span class="sk-search-item-badge">${item.tag}</span>
+                </a>
+              `;
+            });
+          }
+
+          if (dbResults?.products && dbResults.products.length > 0) {
+            html += `<div class="sk-search-group-title" style="margin-top:6px;">Produk Seminar Kit</div>`;
+            dbResults.products.forEach(p => {
+              const item = {
+                title: p.nama,
+                desc: `${p.kategori ?? 'Produk'}${p.harga ? ` • Rp ${Number(p.harga).toLocaleString('id-ID')}` : ''}`,
+                url: `/admin/produk?search=${encodeURIComponent(p.nama)}`,
+                tag: 'Produk'
+              };
+              currentItems.push(item);
+              const idx = currentItems.length - 1;
+              html += `
+                <a href="${item.url}" class="sk-search-item" data-index="${idx}">
+                  <div class="sk-search-item-icon">${getIconSvg(item.tag)}</div>
+                  <div class="sk-search-item-content">
+                    <div class="sk-search-item-title">${escHtml(item.title)}</div>
+                    <div class="sk-search-item-desc">${escHtml(item.desc)}</div>
+                  </div>
+                  <span class="sk-search-item-badge">Produk</span>
+                </a>
+              `;
+            });
+          }
+
+          if (dbResults?.inquiries && dbResults.inquiries.length > 0) {
+            html += `<div class="sk-search-group-title" style="margin-top:6px;">Pesan Masuk (Inquiries)</div>`;
+            dbResults.inquiries.forEach(iq => {
+              const item = {
+                title: iq.nama || 'Tanpa Nama',
+                desc: `${iq.perusahaan || 'Pribadi'}${iq.produk_diminati ? ` • ${iq.produk_diminati}` : ''}`,
+                url: `/admin/pesan?search=${encodeURIComponent(iq.nama || '')}`,
+                tag: 'Pesan'
+              };
+              currentItems.push(item);
+              const idx = currentItems.length - 1;
+              html += `
+                <a href="${item.url}" class="sk-search-item" data-index="${idx}">
+                  <div class="sk-search-item-icon">${getIconSvg(item.tag)}</div>
+                  <div class="sk-search-item-content">
+                    <div class="sk-search-item-title">${escHtml(item.title)}</div>
+                    <div class="sk-search-item-desc">${escHtml(item.desc)}</div>
+                  </div>
+                  <span class="sk-search-item-badge">Pesan</span>
+                </a>
+              `;
+            });
+          }
+
+          if (currentItems.length === 0) {
+            html = `
+              <div class="text-center py-4 px-2">
+                <div style="color:var(--sk-admin-text-muted);font-size:.8125rem;margin-bottom:4px;">
+                  Tidak ada menu atau data cocok dengan "<strong>${escHtml(query)}</strong>"
+                </div>
+                <div style="font-size:.75rem;color:var(--sk-admin-text-muted);">
+                  Tekan <kbd style="background:var(--sk-admin-surface-subtle);padding:1px 5px;border-radius:4px;border:1px solid var(--sk-admin-card-border);">Enter</kbd> untuk mencari di halaman aktif.
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        globalSearchDropdown.innerHTML = html;
+        globalSearchDropdown.style.display = 'block';
+
+        globalSearchDropdown.querySelectorAll('.sk-search-item').forEach(el => {
+          el.addEventListener('mouseenter', () => {
+            const idx = Number((el as HTMLElement).dataset.index);
+            updateHighlight(idx);
+          });
+        });
+      }
+
+      async function triggerDbSearch(q: string) {
+        if (!q || q.length < 2) return;
+        try {
+          const [pRes, iRes] = await Promise.all([
+            sb.from('products').select('id, nama, kategori, harga').ilike('nama', `%${q}%`).limit(3),
+            sb.from('inquiries').select('id, nama, perusahaan, produk_diminati').or(`nama.ilike.%${q}%,perusahaan.ilike.%${q}%`).limit(3)
+          ]);
+          renderDropdownHtml(q, {
+            products: pRes.data ?? [],
+            inquiries: iRes.data ?? []
+          });
+        } catch (err) {}
+      }
+
+      globalSearchInput?.addEventListener('focus', () => {
+        renderDropdownHtml(globalSearchInput.value);
+      });
+
+      globalSearchInput?.addEventListener('input', () => {
+        const val = globalSearchInput.value;
+        syncInPageSearch(val);
+        renderDropdownHtml(val);
+
+        clearTimeout(searchDebounceTimer);
+        if (val.trim().length >= 2) {
+          searchDebounceTimer = setTimeout(() => {
+            triggerDbSearch(val.trim());
+          }, 250);
+        }
+      });
+
+      globalSearchInput?.addEventListener('keydown', (e) => {
+        if (!globalSearchDropdown || globalSearchDropdown.style.display === 'none') {
+          if (e.key === 'ArrowDown') {
+            renderDropdownHtml(globalSearchInput.value);
+            return;
+          }
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (currentItems.length > 0) {
+            const nextIdx = (highlightedIndex + 1) % currentItems.length;
+            updateHighlight(nextIdx);
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (currentItems.length > 0) {
+            const prevIdx = highlightedIndex <= 0 ? currentItems.length - 1 : highlightedIndex - 1;
+            updateHighlight(prevIdx);
+          }
+        } else if (e.key === 'Enter') {
+          if (highlightedIndex >= 0 && currentItems[highlightedIndex]) {
+            e.preventDefault();
+            const targetItem = currentItems[highlightedIndex];
+            if (targetItem.target === '_blank') {
+              window.open(targetItem.url, '_blank');
+            } else {
+              window.location.href = targetItem.url;
+            }
+          } else if (currentItems.length > 0) {
+            e.preventDefault();
+            window.location.href = currentItems[0].url;
+          }
+        } else if (e.key === 'Escape') {
+          globalSearchDropdown.style.display = 'none';
+          globalSearchInput.blur();
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          globalSearchInput?.focus();
+          globalSearchInput?.select();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest('.sk-search-pill')) {
+          if (globalSearchDropdown) globalSearchDropdown.style.display = 'none';
+        }
+      });
+    })();
+
+    // Universal Admin Modal Dismissal Handler
+    (() => {
+      function hideModalElement(modalEl: HTMLElement) {
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.removeAttribute('aria-modal');
+
+        // Check if any other modal is still visible
+        const remainingModals = Array.from(document.querySelectorAll<HTMLElement>('.modal.show'))
+          .filter(m => m !== modalEl && m.style.display !== 'none');
+
+        if (remainingModals.length === 0) {
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        }
+      }
+
+      // Delegate click on [data-bs-dismiss="modal"] or .btn-close inside any modal
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+
+        const dismissBtn = target.closest('[data-bs-dismiss="modal"], .btn-close');
+        if (dismissBtn) {
+          const modalEl = dismissBtn.closest('.modal') as HTMLElement | null;
+          if (modalEl) {
+            e.preventDefault();
+            e.stopPropagation();
+            hideModalElement(modalEl);
+            return;
+          }
+        }
+
+        // Click on modal background (outside modal-dialog)
+        if (target.classList.contains('modal') && target.classList.contains('show')) {
+          hideModalElement(target);
+          return;
+        }
+
+        // Click on modal-backdrop
+        if (target.classList.contains('modal-backdrop')) {
+          const openModal = document.querySelector<HTMLElement>('.modal.show');
+          if (openModal) {
+            hideModalElement(openModal);
+          } else {
+            target.remove();
+            document.body.classList.remove('modal-open');
+          }
+        }
+      });
+
+      // Escape key closes the active modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const openModals = document.querySelectorAll<HTMLElement>('.modal.show');
+          openModals.forEach(m => {
+            if (m.style.display !== 'none') {
+              hideModalElement(m);
+            }
+          });
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    import 'bootstrap/js/dist/collapse';
+    import 'bootstrap/js/dist/modal';
+  </script>
+</body>
+</html>

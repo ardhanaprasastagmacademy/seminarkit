@@ -1,0 +1,531 @@
+---
+// src/pages/admin/galeri.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Galeri Foto" activePage="galeri">
+  <!-- Top Action & Search Bar -->
+  <div class="sk-modern-card mb-3 p-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" id="btn-tambah" class="sk-pill-btn" style="padding:8px 20px;font-size:.8125rem;">
+          + Tambah Foto Galeri
+        </button>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="sk-search-pill" style="width:260px;">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="search"
+            id="galeri-search"
+            placeholder="Cari judul / alt text / kategori…"
+            style="padding-top:8px;padding-bottom:8px;font-size:.8125rem;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="galeri-notice" class="sk-notice mb-3" role="alert" aria-live="polite" style="display:none;"></div>
+
+  <!-- Gallery Table Card -->
+  <div class="sk-modern-card">
+    <div class="sk-card-header-row">
+      <h2 class="sk-card-title">Portofolio & Dokumentasi Produksi</h2>
+      <span id="galeri-count" style="font-size:.8125rem;color:var(--sk-admin-text-muted);">Memuat foto…</span>
+    </div>
+
+    <div class="sk-modern-table-wrap">
+      <table class="sk-modern-table">
+        <thead>
+          <tr>
+            <th style="width:70px;">Pratinjau</th>
+            <th>Judul & Dokumentasi</th>
+            <th>Alt Text (Aksesibilitas)</th>
+            <th>Kategori</th>
+            <th style="width:70px;">Urutan</th>
+            <th style="width:100px;">Status</th>
+            <th style="width:140px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="galeri-tbody">
+          <tr>
+            <td colspan="7" class="text-center py-5" style="color:var(--sk-admin-text-muted);">
+              Memuat galeri foto…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit Foto -->
+  <div class="modal fade" id="galeriModal" tabindex="-1" aria-label="Form Galeri" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 font-weight-bold" id="modal-galeri-title" style="color:var(--sk-admin-primary);">Tambah Foto Galeri</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="galeri-form">
+            <input type="hidden" id="galeri-id" />
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="sk-label">Pilih Foto <span>*</span></label>
+                <div class="sk-upload-box">
+                  <div id="g-preview-box" class="sk-upload-preview">
+                    <img id="g-preview" src="" alt="Preview" style="display:none;" />
+                    <span id="g-preview-placeholder" style="color:var(--sk-admin-text-muted);font-size:.6875rem;text-align:center;padding:4px;">Tanpa Gambar</span>
+                  </div>
+                  <div style="flex:1;">
+                    <input type="file" id="g-file" class="form-control sk-input form-control-sm" accept="image/webp,image/png,image/jpeg" />
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                      <small id="g-upload-status" style="color:var(--sk-admin-text-muted);font-size:.75rem;">Format WebP/PNG/JPG. Otomatis dikompres.</small>
+                      <button type="button" id="g-hapus-gambar" class="btn btn-link p-0 text-danger" style="font-size:.75rem;text-decoration:none;display:none;">Hapus Gambar</button>
+                    </div>
+                    <input type="hidden" id="g-url" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <label for="g-alt" class="sk-label">Alt Text (Deskripsi Foto Aksesibilitas) <span>*</span></label>
+                <input type="text" id="g-alt" class="form-control sk-input" required placeholder="Contoh: Paket seminar kit eksklusif bahan kulit sintetis warna hitam" />
+              </div>
+              <div class="col-12">
+                <label for="g-judul" class="sk-label">Judul Foto (Opsional)</label>
+                <input type="text" id="g-judul" class="form-control sk-input" placeholder="Seminar Kit Rapat Kerja PT BUMN" />
+              </div>
+              <div class="col-md-6">
+                <label for="g-kategori" class="sk-label">Label Kategori</label>
+                <input type="text" id="g-kategori" class="form-control sk-input" placeholder="Seminar Kit / Souvenir" />
+              </div>
+              <div class="col-md-6">
+                <label for="g-urutan" class="sk-label">Urutan Tampil</label>
+                <input type="number" id="g-urutan" class="form-control sk-input" value="0" />
+              </div>
+              <div class="col-12 pt-1">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="g-published" checked />
+                  <label class="form-check-label font-weight-bold" for="g-published" style="font-size:.875rem;">Terbitkan di Halaman Galeri</label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="sk-pill-btn sk-pill-btn--outline" data-bs-dismiss="modal" style="padding:6px 18px;font-size:.8125rem;">Batal</button>
+          <button type="button" id="galeri-save" class="sk-pill-btn" style="padding:6px 20px;font-size:.8125rem;">Simpan Foto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+
+    const sb = getSupabaseBrowser();
+    let modal: any;
+    let allGallery: any[] = [];
+    let searchGalleryQuery = '';
+
+    function esc(str: string | null | undefined): string {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    const fileInput = document.getElementById('g-file') as HTMLInputElement | null;
+    const previewImg = document.getElementById('g-preview') as HTMLImageElement | null;
+    const previewPlaceholder = document.getElementById('g-preview-placeholder') as HTMLElement | null;
+    const statusText = document.getElementById('g-upload-status') as HTMLElement | null;
+    const hapusBtn = document.getElementById('g-hapus-gambar') as HTMLButtonElement | null;
+    const hiddenUrlInput = document.getElementById('g-url') as HTMLInputElement | null;
+    const saveBtn = document.getElementById('galeri-save') as HTMLButtonElement | null;
+
+    function setPreview(url: string | null) {
+      if (url) {
+        if (previewImg) {
+          previewImg.src = url;
+          previewImg.style.display = 'block';
+        }
+        if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+        if (hapusBtn) hapusBtn.style.display = 'inline-block';
+        if (hiddenUrlInput) hiddenUrlInput.value = url;
+      } else {
+        if (previewImg) {
+          previewImg.src = '';
+          previewImg.style.display = 'none';
+        }
+        if (previewPlaceholder) previewPlaceholder.style.display = 'block';
+        if (hapusBtn) hapusBtn.style.display = 'none';
+        if (hiddenUrlInput) hiddenUrlInput.value = '';
+        if (fileInput) fileInput.value = '';
+      }
+    }
+
+    async function compressImage(file: File): Promise<File> {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            const maxDimension = 1200;
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return resolve(file);
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const newName = file.name.replace(/\.[^.]+$/, '') + '.webp';
+                resolve(new File([blob], newName, { type: 'image/webp' }));
+              } else {
+                resolve(file);
+              }
+            }, 'image/webp', 0.85);
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadImageFile(file: File): Promise<string> {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('Sesi admin tidak ditemukan. Silakan login kembali.');
+
+      const compressed = await compressImage(file);
+      const fd = new FormData();
+      fd.append('file', compressed);
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal mengunggah gambar');
+      return data.url;
+    }
+
+    hapusBtn?.addEventListener('click', () => {
+      setPreview(null);
+      if (statusText) {
+        statusText.textContent = 'Foto telah dihapus.';
+        statusText.style.color = 'var(--sk-admin-text-muted)';
+      }
+    });
+
+    fileInput?.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+
+      if (previewImg) {
+        previewImg.src = URL.createObjectURL(file);
+        previewImg.style.display = 'block';
+      }
+      if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+      if (hapusBtn) hapusBtn.style.display = 'inline-block';
+
+      if (statusText) {
+        statusText.textContent = 'Mengunggah & mengoptimalkan foto...';
+        statusText.style.color = 'var(--sk-admin-primary)';
+      }
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        const uploadedUrl = await uploadImageFile(file);
+        if (hiddenUrlInput) hiddenUrlInput.value = uploadedUrl;
+        if (previewImg) previewImg.src = uploadedUrl;
+        if (statusText) {
+          statusText.textContent = '✓ Foto berhasil diunggah';
+          statusText.style.color = '#2E8540';
+        }
+      } catch (err: any) {
+        if (statusText) {
+          statusText.textContent = 'Gagal unggah: ' + (err?.message || err);
+          statusText.style.color = 'var(--sk-error)';
+        }
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+      }
+    });
+
+    function createModal(modalId: string) {
+      const el = document.getElementById(modalId);
+      if (!el) return { show() {}, hide() {} };
+
+      function hide() {
+        const BS = (window as any).bootstrap?.Modal;
+        if (BS) {
+          try {
+            const inst = BS.getInstance ? BS.getInstance(el) : null;
+            if (inst) { inst.hide(); return; }
+          } catch {}
+        }
+        el.classList.remove('show');
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+        el.removeAttribute('aria-modal');
+        const remaining = Array.from(document.querySelectorAll<HTMLElement>('.modal.show'))
+          .filter(m => m !== el && m.style.display !== 'none');
+        if (remaining.length === 0) {
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        }
+      }
+
+      el.querySelectorAll('[data-bs-dismiss="modal"], .btn-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          hide();
+        });
+      });
+
+      el.addEventListener('click', (e) => {
+        if (e.target === el) hide();
+      });
+
+      return {
+        show() {
+          const BS = (window as any).bootstrap?.Modal;
+          if (BS) {
+            try {
+              const inst = BS.getOrCreateInstance ? BS.getOrCreateInstance(el) : new BS(el);
+              inst.show();
+              return;
+            } catch {}
+          }
+          el.classList.add('show');
+          el.style.display = 'block';
+          el.setAttribute('aria-modal', 'true');
+          el.removeAttribute('aria-hidden');
+          document.body.classList.add('modal-open');
+          let backdrop = document.querySelector('.modal-backdrop');
+          if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.addEventListener('click', hide);
+            document.body.appendChild(backdrop);
+          }
+        },
+        hide
+      };
+    }
+
+    async function loadGaleri() {
+      try {
+        const res = await fetch('/api/admin/manage?table=gallery').then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          allGallery = res.data;
+        } else {
+          const { data } = await sb.from('gallery').select('*').order('urutan');
+          allGallery = data ?? [];
+        }
+      } catch {
+        const { data } = await sb.from('gallery').select('*').order('urutan');
+        allGallery = data ?? [];
+      }
+      applyGalleryFilterAndRender();
+    }
+
+    function applyGalleryFilterAndRender() {
+      let filtered = allGallery;
+      if (searchGalleryQuery) {
+        const q = searchGalleryQuery.toLowerCase();
+        filtered = filtered.filter(g =>
+          (g.judul && g.judul.toLowerCase().includes(q)) ||
+          (g.alt_text && g.alt_text.toLowerCase().includes(q)) ||
+          (g.kategori && g.kategori.toLowerCase().includes(q))
+        );
+      }
+      renderGalleryTable(filtered);
+    }
+
+    function renderGalleryTable(items: any[]) {
+      const tbody = document.getElementById('galeri-tbody')!;
+      const countEl = document.getElementById('galeri-count');
+      if (countEl) countEl.textContent = `${items.length} foto terdaftar`;
+
+      if (!items.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <p style="font-weight:700;color:var(--sk-admin-primary);margin-bottom:4px;">Belum ada foto galeri</p>
+              <p style="font-size:.875rem;color:var(--sk-admin-text-muted);margin:0;">Klik "+ Tambah Foto Galeri" untuk mengunggah dokumentasi baru.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(g => `
+        <tr>
+          <td>
+            <img src="${esc(g.gambar_url)}" alt="${esc(g.alt_text)}" width="52" height="40" style="object-fit:cover;border-radius:8px;border:1px solid var(--sk-admin-card-border);" onerror="this.src='/favicon.svg';" />
+          </td>
+          <td>
+            <div style="font-weight:700;color:var(--sk-admin-primary);">${esc(g.judul || 'Tanpa Judul')}</div>
+          </td>
+          <td>
+            <small style="color:var(--sk-admin-text-muted);display:inline-block;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${esc(g.alt_text)}
+            </small>
+          </td>
+          <td>${esc(g.kategori || '—')}</td>
+          <td style="font-variant-numeric:tabular-nums;">${g.urutan}</td>
+          <td>
+            <span class="sk-status-pill ${g.is_published ? 'sk-status-pill--success' : 'sk-status-pill--muted'}">
+              <span class="sk-status-dot"></span>
+              ${g.is_published ? 'Terbit' : 'Draf'}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn-sk-action edit-btn" data-id="${esc(g.id)}">Edit</button>
+              <button type="button" class="btn-sk-action btn-sk-action--danger delete-btn" data-id="${esc(g.id)}">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Edit handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          let g = allGallery.find(x => x.id === btn.dataset.id);
+          if (!g) {
+            try {
+              const res = await sb.from('gallery').select('*').eq('id', btn.dataset.id!).single();
+              g = res.data;
+            } catch {}
+          }
+          if (!g) return;
+          (document.getElementById('galeri-id') as HTMLInputElement).value = g.id;
+          setPreview(g.gambar_url);
+          if (statusText) {
+            statusText.textContent = 'Foto saat ini terpasang.';
+            statusText.style.color = 'var(--sk-admin-text-muted)';
+          }
+          (document.getElementById('g-alt') as HTMLInputElement).value = g.alt_text;
+          (document.getElementById('g-judul') as HTMLInputElement).value = g.judul ?? '';
+          (document.getElementById('g-kategori') as HTMLInputElement).value = g.kategori ?? '';
+          (document.getElementById('g-urutan') as HTMLInputElement).value = g.urutan;
+          (document.getElementById('g-published') as HTMLInputElement).checked = g.is_published;
+          document.getElementById('modal-galeri-title')!.textContent = 'Edit Foto Galeri';
+          modal.show();
+        });
+      });
+
+      // Delete handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Yakin ingin menghapus foto ini dari galeri?')) return;
+          try {
+            await fetch('/api/admin/manage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'delete_gallery', payload: { id: btn.dataset.id } })
+            });
+          } catch {}
+          try { await sb.from('gallery').delete().eq('id', btn.dataset.id!); } catch {}
+          loadGaleri();
+        });
+      });
+    }
+
+    document.getElementById('galeri-search')?.addEventListener('input', (e) => {
+      searchGalleryQuery = (e.target as HTMLInputElement).value.trim();
+      applyGalleryFilterAndRender();
+    });
+
+    document.getElementById('btn-tambah')?.addEventListener('click', () => {
+      (document.getElementById('galeri-id') as HTMLInputElement).value = '';
+      (document.getElementById('galeri-form') as HTMLFormElement).reset();
+      setPreview(null);
+      if (statusText) {
+        statusText.textContent = 'Format WebP/PNG/JPG. Otomatis dioptimalkan.';
+        statusText.style.color = 'var(--sk-admin-text-muted)';
+      }
+      (document.getElementById('g-published') as HTMLInputElement).checked = true;
+      (document.getElementById('g-urutan') as HTMLInputElement).value = '0';
+      document.getElementById('modal-galeri-title')!.textContent = 'Tambah Foto Galeri';
+      modal.show();
+    });
+
+    document.getElementById('galeri-save')?.addEventListener('click', async () => {
+      const id = (document.getElementById('galeri-id') as HTMLInputElement).value;
+      const url = (document.getElementById('g-url') as HTMLInputElement).value.trim();
+      const alt = (document.getElementById('g-alt') as HTMLInputElement).value.trim();
+
+      if (!url || !alt) {
+        alert('Foto galeri dan Alt Text wajib diisi.');
+        return;
+      }
+
+      const payload: any = {
+        id: id || undefined,
+        gambar_url: url,
+        alt_text: alt,
+        judul: (document.getElementById('g-judul') as HTMLInputElement).value.trim() || null,
+        kategori: (document.getElementById('g-kategori') as HTMLInputElement).value.trim() || null,
+        urutan: Number((document.getElementById('g-urutan') as HTMLInputElement).value) || 0,
+        is_published: (document.getElementById('g-published') as HTMLInputElement).checked,
+      };
+
+      const saveBtn = document.getElementById('galeri-save') as HTMLButtonElement | null;
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        await fetch('/api/admin/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_gallery', payload })
+        });
+      } catch (e) {
+        console.warn('API save error:', e);
+      }
+
+      try {
+        if (id) await sb.from('gallery').update(payload).eq('id', id);
+        else await sb.from('gallery').insert(payload);
+      } catch {}
+
+      if (saveBtn) saveBtn.disabled = false;
+      modal.hide();
+      loadGaleri();
+    });
+
+    // Init modal & load data
+    (async () => {
+      modal = createModal('galeriModal');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const initSearch = urlParams.get('search');
+      if (initSearch) {
+        searchGalleryQuery = initSearch;
+        const sInput = document.getElementById('galeri-search') as HTMLInputElement | null;
+        if (sInput) sInput.value = initSearch;
+      }
+      if (urlParams.get('action') === 'tambah') {
+        setTimeout(() => document.getElementById('btn-tambah')?.click(), 300);
+      }
+
+      await loadGaleri();
+    })();
+  </script>
+</AdminLayout>

@@ -1,0 +1,73 @@
+---
+// src/layouts/BaseLayout.astro
+import SeoHead from '../components/SeoHead.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppFloat from '../components/WhatsAppFloat.astro';
+
+import '@fontsource-variable/newsreader';
+import '@fontsource-variable/hanken-grotesk';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/components.css';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  jsonLd?: object | object[];
+  settings?: {
+    wa_number?: string;
+    email?: string;
+    alamat?: string;
+    jam_kerja?: string;
+    instagram_url?: string;
+    facebook_url?: string;
+    tiktok_url?: string;
+  } | null;
+  currentPage?: string;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage,
+  noindex = false,
+  jsonLd,
+  settings,
+  currentPage,
+} = Astro.props;
+---
+<!doctype html>
+<html lang="id">
+  <head>
+    <SeoHead
+      title={title}
+      description={description}
+      canonical={canonical}
+      ogImage={ogImage}
+      noindex={noindex}
+      jsonLd={jsonLd}
+    />
+  </head>
+  <body>
+    <Navbar waNumber={settings?.wa_number} currentPage={currentPage} />
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <Footer settings={settings} />
+    <WhatsAppFloat waNumber={settings?.wa_number} pageName={currentPage} />
+
+    <!-- Bootstrap JS modules -->
+    <script>
+      import 'bootstrap/js/dist/collapse';
+      import 'bootstrap/js/dist/offcanvas';
+    </script>
+  </body>
+</html>

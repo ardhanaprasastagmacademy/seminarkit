@@ -1,0 +1,34 @@
+---
+// src/pages/404.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { getSiteSettings } from '../lib/queries';
+import { buildWaFromPage } from '../lib/wa';
+
+const settings = await getSiteSettings();
+const waUrl = buildWaFromPage(settings?.wa_number, '404 Halaman Tidak Ditemukan');
+---
+<BaseLayout
+  title="404 — Halaman Tidak Ditemukan"
+  description="Halaman yang Anda cari tidak ditemukan. Kembali ke beranda seminarkit."
+  settings={settings}
+  currentPage="404"
+  noindex={true}
+>
+  <PageBanner
+    judul="Halaman Tidak Ditemukan"
+    badgeText="Error 404"
+    badgeIcon="alert"
+    deskripsi="Halaman yang Anda cari tidak tersedia atau sudah dipindahkan. Silakan kembali ke beranda atau hubungi tim kami."
+    breadcrumbs={[{ label: '404' }]}
+  />
+
+  <section class="sk-section" style="padding: 60px 0 100px;">
+    <div class="container text-center">
+      <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="/" class="btn-sk btn-sk--primary">Kembali ke Beranda</a>
+        <a href={waUrl} class="btn-sk btn-sk--outline" target="_blank" rel="noopener noreferrer">Chat WhatsApp</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,385 @@
+---
+// src/pages/admin/index.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Dashboard" activePage="dashboard">
+  <!-- Content Grid: Center Workspace (Main) + Right Panel -->
+  <div class="sk-content-grid">
+    <!-- Center Column -->
+    <div class="sk-center-col">
+      <!-- Welcome Hero Banner (Ref: Welcome back, Stella Walton!) -->
+      <div class="sk-welcome-banner">
+        <div class="sk-welcome-content">
+          <h1 class="sk-welcome-title" id="welcome-title">Selamat datang kembali, Administrator!</h1>
+          <p class="sk-welcome-desc">
+            Kelola permintaan penawaran seminar kit, ketersediaan produk katalog, dan portofolio pesanan instansi.
+          </p>
+          <a href="/admin/pesan" class="sk-pill-btn">
+            Tinjau Pesan Masuk
+          </a>
+        </div>
+
+        <div class="sk-welcome-art d-none d-sm-flex">
+          <svg width="120" height="110" viewBox="0 0 120 110" fill="none">
+            <rect x="25" y="15" width="70" height="50" rx="10" fill="#2F4F4F" opacity="0.9"/>
+            <rect x="15" y="35" width="70" height="50" rx="10" fill="#BDB76B" opacity="0.85"/>
+            <rect x="35" y="50" width="70" height="45" rx="10" fill="#FFFFFF" stroke="#E2E0D4" stroke-width="2"/>
+            <circle cx="55" cy="72" r="8" fill="#2F4F4F"/>
+            <rect x="70" y="68" width="22" height="4" rx="2" fill="#BDB76B"/>
+            <rect x="70" y="76" width="16" height="4" rx="2" fill="#E2E0D4"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Feature Metrics Row (Ref: 'Classes' Cards) -->
+      <div>
+        <div class="sk-card-header-row">
+          <h2 class="sk-card-title">Ringkasan Operasional</h2>
+          <a href="/admin/produk" class="sk-card-action-link">Lihat Katalog &rsaquo;</a>
+        </div>
+
+        <div id="dashboard-stats" class="sk-stat-grid">
+          <!-- Card 1: Pesan Masuk -->
+          <a href="/admin/pesan" class="sk-color-card sk-color-card--slate">
+            <div>
+              <div class="sk-color-card-title">Pesan Masuk</div>
+              <div class="sk-color-card-meta">Inquiry Belum Dihubungi</div>
+            </div>
+            <div>
+              <div id="stat-pesan" class="sk-color-card-val">—</div>
+              <div class="sk-color-card-footer">
+                <span>Respon Pelanggan</span>
+                <span>Buka WhatsApp &rsaquo;</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Card 2: Katalog Produk -->
+          <a href="/admin/produk" class="sk-color-card sk-color-card--teal">
+            <div>
+              <div class="sk-color-card-title">Katalog Produk</div>
+              <div class="sk-color-card-meta">Paket & Souvenir Aktif</div>
+            </div>
+            <div>
+              <div id="stat-produk" class="sk-color-card-val">—</div>
+              <div class="sk-color-card-footer">
+                <span>Kelola Harga & Stok</span>
+                <span>Katalog &rsaquo;</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Card 3: Portofolio Galeri -->
+          <a href="/admin/galeri" class="sk-color-card sk-color-card--khaki">
+            <div>
+              <div class="sk-color-card-title">Dokumentasi Galeri</div>
+              <div class="sk-color-card-meta">Foto Hasil Pengerjaan</div>
+            </div>
+            <div>
+              <div id="stat-galeri" class="sk-color-card-val">—</div>
+              <div class="sk-color-card-footer">
+                <span>Portofolio Klien</span>
+                <span>Galeri &rsaquo;</span>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Hidden Stat element for artikel to preserve script compatibility -->
+        <span id="stat-artikel" style="display:none;">—</span>
+      </div>
+
+      <!-- Data Table Card (Ref: 'Lessons' Table) -->
+      <div class="sk-modern-card">
+        <div class="sk-card-header-row">
+          <h2 class="sk-card-title">Permintaan Penawaran Terbaru</h2>
+          <a href="/admin/pesan" class="sk-card-action-link">Lihat Semua Pesan &rsaquo;</a>
+        </div>
+
+        <div class="sk-modern-table-wrap">
+          <table class="sk-modern-table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Nama Klien</th>
+                <th>Instansi</th>
+                <th>Produk</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="dash-inquiries-tbody">
+              <tr>
+                <td colspan="6" class="text-center py-4" style="color:var(--sk-admin-text-muted);">
+                  Memuat data penawaran terbaru…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column (Profile, Calendar, Reminders) -->
+    <div class="sk-right-col">
+      <!-- Admin Profile Card -->
+      <div class="sk-modern-card sk-profile-card">
+        <div class="sk-avatar-circle" id="profile-avatar">A</div>
+        <h3 class="sk-profile-name" id="profile-name">Administrator</h3>
+        <p class="sk-profile-role" id="profile-email" style="text-transform:none;letter-spacing:normal;font-size:.8125rem;color:var(--sk-admin-text-muted);margin:0 0 16px;word-break:break-all;">
+          adminseminarkit@gmail.com
+        </p>
+        <button id="logout-btn-dashboard" type="button" class="sk-pill-btn sk-pill-btn--danger-outline w-100 btn-logout d-flex align-items-center justify-content-center gap-2" style="font-size:.8125rem;padding:7px 16px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Logout</span>
+        </button>
+      </div>
+
+      <!-- Mini Calendar Widget -->
+      <div class="sk-modern-card sk-calendar-widget">
+        <div class="sk-cal-header">
+          <span id="cal-month-title" class="sk-cal-month">Oktober 2026</span>
+          <div class="sk-cal-nav">
+            <button type="button" class="sk-cal-btn" id="cal-prev" aria-label="Bulan lalu">&lsaquo;</button>
+            <button type="button" class="sk-cal-btn" id="cal-next" aria-label="Bulan depan">&rsaquo;</button>
+          </div>
+        </div>
+
+        <div class="sk-cal-grid">
+          <div class="sk-cal-day-head">Sn</div>
+          <div class="sk-cal-day-head">Sl</div>
+          <div class="sk-cal-day-head">Rb</div>
+          <div class="sk-cal-day-head">Km</div>
+          <div class="sk-cal-day-head">Jm</div>
+          <div class="sk-cal-day-head">Sb</div>
+          <div class="sk-cal-day-head">Mg</div>
+        </div>
+        <div id="calendar-days-grid" class="sk-cal-grid mt-1">
+          <!-- Calendar dynamic numbers -->
+        </div>
+      </div>
+
+      <!-- Reminders Widget -->
+      <div class="sk-modern-card">
+        <div class="sk-card-header-row mb-3">
+          <h3 class="sk-card-title">Aktivitas & Catatan</h3>
+        </div>
+
+        <div class="sk-reminder-list">
+          <div class="sk-reminder-item">
+            <div class="sk-reminder-icon">
+              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+              <p class="sk-reminder-title">Pesan Masuk Baru</p>
+              <p class="sk-reminder-date">Segera follow up via WhatsApp</p>
+            </div>
+          </div>
+
+          <div class="sk-reminder-item">
+            <div class="sk-reminder-icon" style="background-color:var(--sk-admin-khaki-light);color:var(--sk-admin-khaki-dark);">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+              <p class="sk-reminder-title">Produk Unggulan</p>
+              <p class="sk-reminder-date">Tinjau paket populer di beranda</p>
+            </div>
+          </div>
+
+          <div class="sk-reminder-item">
+            <div class="sk-reminder-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            </div>
+            <div>
+              <p class="sk-reminder-title">Artikel SEO Blog</p>
+              <p class="sk-reminder-date">Update tips & panduan souvenir</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+    import { verifyActiveSession } from '../../lib/admin-client';
+    const sb = getSupabaseBrowser();
+
+    function esc(str: any): string {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    (async () => {
+      // 0. Update Profile Card from Session Email
+      try {
+        const user = await verifyActiveSession();
+        const email = user?.email || 'adminseminarkit@gmail.com';
+        if (email) {
+          const prefix = email.split('@')[0];
+          const formattedName = prefix
+            .replace(/[._-]+/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+          const initial = email.charAt(0).toUpperCase();
+
+          const avatarEl = document.getElementById('profile-avatar');
+          const nameEl = document.getElementById('profile-name');
+          const emailEl = document.getElementById('profile-email');
+          const welcomeTitle = document.getElementById('welcome-title');
+
+          if (avatarEl) avatarEl.textContent = initial;
+          if (nameEl) nameEl.textContent = formattedName;
+          if (emailEl) emailEl.textContent = email;
+          if (welcomeTitle) welcomeTitle.textContent = `Selamat datang kembali, ${formattedName}!`;
+        }
+      } catch (e) {
+        console.warn('Error reading session for profile:', e);
+      }
+
+      const set = (id: string, val: number | null) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = String(val ?? 0);
+      };
+
+      // 1. Fetch Key Counts
+      try {
+        const res = await fetch('/api/admin/manage?table=stats', { cache: 'no-store' }).then(r => r.json());
+        if (res.ok && res.data) {
+          set('stat-pesan', res.data.pesan);
+          set('stat-produk', res.data.produk);
+          set('stat-artikel', res.data.artikel);
+          set('stat-galeri', res.data.galeri);
+        } else {
+          throw new Error('Fallback to Supabase');
+        }
+      } catch {
+        try {
+          const [
+            { count: pesan },
+            { count: produk },
+            { count: artikel },
+            { count: galeri },
+          ] = await Promise.all([
+            sb.from('inquiries').select('*', { count: 'exact', head: true }).eq('status', 'baru'),
+            sb.from('products').select('*', { count: 'exact', head: true }),
+            sb.from('articles').select('*', { count: 'exact', head: true }),
+            sb.from('gallery').select('*', { count: 'exact', head: true }),
+          ]);
+          set('stat-pesan', pesan);
+          set('stat-produk', produk);
+          set('stat-artikel', artikel);
+          set('stat-galeri', galeri);
+        } catch {}
+      }
+
+      // 2. Fetch Latest Inquiries for the Dashboard Table
+      let latestInquiries: any[] = [];
+      try {
+        const res = await fetch('/api/admin/manage?table=inquiries').then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          latestInquiries = res.data.slice(0, 5);
+        } else {
+          throw new Error('Fallback to Supabase');
+        }
+      } catch {
+        try {
+          const { data } = await sb
+            .from('inquiries')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(5);
+          latestInquiries = data ?? [];
+        } catch {}
+      }
+
+      const tbody = document.getElementById('dash-inquiries-tbody');
+      if (tbody) {
+        if (!latestInquiries || latestInquiries.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4" style="color:var(--sk-admin-text-muted);">Belum ada permintaan penawaran masuk.</td></tr>';
+        } else {
+          tbody.innerHTML = latestInquiries.map(item => {
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', {
+              day: 'numeric', month: 'short'
+            }) : '—';
+            const cleanWa = String(item.no_wa || '').replace(/\D/g, '');
+            const waUrl = `https://wa.me/${cleanWa}`;
+
+            let statusClass = 'sk-status-pill--muted';
+            if (item.status === 'baru') statusClass = 'sk-status-pill--warning';
+            else if (item.status === 'selesai') statusClass = 'sk-status-pill--success';
+            else if (item.status === 'dihubungi' || item.status === 'penawaran') statusClass = 'sk-status-pill--info';
+
+            return `
+              <tr>
+                <td style="font-size:.8125rem;color:var(--sk-admin-text-muted);white-space:nowrap;">${esc(dateStr)}</td>
+                <td><strong style="color:var(--sk-admin-primary);">${esc(item.nama)}</strong></td>
+                <td>${esc(item.perusahaan || 'Pribadi')}</td>
+                <td>${esc(item.produk_diminati || 'Konsultasi')}</td>
+                <td>
+                  <span class="sk-status-pill ${statusClass}">
+                    <span class="sk-status-dot"></span>
+                    ${esc(item.status || 'baru')}
+                  </span>
+                </td>
+                <td>
+                  <a href="${esc(waUrl)}" target="_blank" rel="noopener noreferrer" class="btn-sk-action" style="font-size:.75rem;">
+                    Balas WA
+                  </a>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 3. Render Calendar
+      let calDate = new Date();
+      function renderCalendar(date: Date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+
+        const monthTitle = document.getElementById('cal-month-title');
+        if (monthTitle) {
+          monthTitle.textContent = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        }
+
+        const daysGrid = document.getElementById('calendar-days-grid');
+        if (!daysGrid) return;
+
+        const firstDay = new Date(year, month, 1).getDay(); // 0 is Sunday
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+
+        // Convert Sunday (0) to 7th col
+        const startOffset = (firstDay === 0 ? 7 : firstDay) - 1;
+
+        let html = '';
+        for (let i = 0; i < startOffset; i++) {
+          html += '<div class="sk-cal-day sk-cal-day--muted"></div>';
+        }
+
+        for (let day = 1; day <= totalDays; day++) {
+          const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+          html += `<div class="sk-cal-day ${isToday ? 'sk-cal-day--active' : ''}">${day}</div>`;
+        }
+
+        daysGrid.innerHTML = html;
+      }
+
+      renderCalendar(calDate);
+
+      document.getElementById('cal-prev')?.addEventListener('click', () => {
+        calDate.setMonth(calDate.getMonth() - 1);
+        renderCalendar(calDate);
+      });
+
+      document.getElementById('cal-next')?.addEventListener('click', () => {
+        calDate.setMonth(calDate.getMonth() + 1);
+        renderCalendar(calDate);
+      });
+    })();
+  </script>
+</AdminLayout>

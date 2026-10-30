@@ -1,0 +1,227 @@
+---
+// src/pages/admin/pengaturan.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Pengaturan Situs" activePage="pengaturan">
+  <div id="settings-notice" class="sk-notice mb-4" role="alert" aria-live="polite" style="display:none;"></div>
+
+  <form id="settings-form" style="max-width:880px;">
+    <!-- Section 1: Kontak & WhatsApp -->
+    <div class="sk-modern-card mb-4">
+      <div class="sk-card-header-row mb-3">
+        <h2 class="sk-card-title">1. Kontak Resmi & Layanan WhatsApp</h2>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="s-wa" class="sk-label">Nomor WhatsApp CS (Format 62xxx) <span>*</span></label>
+          <input
+            type="text"
+            id="s-wa"
+            class="form-control sk-input font-monospace"
+            placeholder="6281234567890"
+            required
+          />
+          <p style="font-size:.75rem;color:var(--sk-admin-text-muted);margin-top:4px;">Gunakan angka tanpa tanda + atau spasi (contoh: 6281234567890).</p>
+        </div>
+
+        <div class="col-md-6">
+          <label for="s-email" class="sk-label">Alamat Email Resmi</label>
+          <input
+            type="email"
+            id="s-email"
+            class="form-control sk-input"
+            placeholder="halo@seminarkit.id"
+          />
+          <p style="font-size:.75rem;color:var(--sk-admin-text-muted);margin-top:4px;">Email yang ditampilkan di header/footer untuk korespondensi formal.</p>
+        </div>
+
+        <div class="col-12">
+          <label for="s-wa-text" class="sk-label">Pesan WhatsApp Default</label>
+          <textarea
+            id="s-wa-text"
+            class="form-control sk-input"
+            rows="2"
+            placeholder="Halo seminarkit, saya ingin konsultasi mengenai pembuatan souvenir kantor dan paket seminar kit."
+          ></textarea>
+          <p style="font-size:.75rem;color:var(--sk-admin-text-muted);margin-top:4px;">Teks otomatis yang terisi saat pengunjung mengklik tombol WhatsApp di situs.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Operasional & Kantor -->
+    <div class="sk-modern-card mb-4">
+      <div class="sk-card-header-row mb-3">
+        <h2 class="sk-card-title">2. Operasional & Lokasi Kantor</h2>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="s-jam" class="sk-label">Jam Layanan Operasional</label>
+          <input
+            type="text"
+            id="s-jam"
+            class="form-control sk-input"
+            placeholder="Senin – Jumat: 08.00 – 17.00 WIB"
+          />
+          <p style="font-size:.75rem;color:var(--sk-admin-text-muted);margin-top:4px;">Jadwal aktif jam kerja customer service.</p>
+        </div>
+
+        <div class="col-12">
+          <label for="s-alamat" class="sk-label">Alamat Lengkap Workshop / Kantor</label>
+          <textarea
+            id="s-alamat"
+            class="form-control sk-input"
+            rows="2"
+            placeholder="Jl. Bisnis Raya No. 45, Jakarta Selatan"
+          ></textarea>
+        </div>
+
+        <div class="col-12">
+          <label for="s-maps" class="sk-label">URL Embed Google Maps (Iframe Src)</label>
+          <input
+            type="url"
+            id="s-maps"
+            class="form-control sk-input font-monospace"
+            placeholder="https://www.google.com/maps/embed?pb=..."
+          />
+          <p style="font-size:.75rem;color:var(--sk-admin-text-muted);margin-top:4px;">Salin link 'src' dari fitur Bagikan > Sematkan Peta pada Google Maps.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Media Sosial -->
+    <div class="sk-modern-card mb-4">
+      <div class="sk-card-header-row mb-3">
+        <h2 class="sk-card-title">3. Tautan Media Sosial</h2>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="s-ig" class="sk-label">Instagram URL</label>
+          <input
+            type="url"
+            id="s-ig"
+            class="form-control sk-input font-monospace"
+            placeholder="https://instagram.com/seminarkit"
+          />
+        </div>
+
+        <div class="col-md-4">
+          <label for="s-fb" class="sk-label">Facebook URL</label>
+          <input
+            type="url"
+            id="s-fb"
+            class="form-control sk-input font-monospace"
+            placeholder="https://facebook.com/seminarkit"
+          />
+        </div>
+
+        <div class="col-md-4">
+          <label for="s-tiktok" class="sk-label">TikTok URL</label>
+          <input
+            type="url"
+            id="s-tiktok"
+            class="form-control sk-input font-monospace"
+            placeholder="https://tiktok.com/@seminarkit"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Area -->
+    <div class="d-flex align-items-center gap-3">
+      <button type="submit" id="settings-save-btn" class="sk-pill-btn" style="padding:10px 28px;">
+        Simpan Seluruh Pengaturan
+      </button>
+      <span id="settings-save-indicator" style="font-size:.875rem;color:var(--sk-admin-text-muted);display:none;">
+        Menyimpan ke database…
+      </span>
+    </div>
+  </form>
+
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+    import { postAdminAction } from '../../lib/admin-client';
+    const sb = getSupabaseBrowser();
+    const notice = document.getElementById('settings-notice')!;
+    const saveBtn = document.getElementById('settings-save-btn') as HTMLButtonElement | null;
+    const saveIndicator = document.getElementById('settings-save-indicator');
+
+    async function load() {
+      let data: any = null;
+      try {
+        const res = await fetch('/api/admin/manage?table=site_settings').then(r => r.json());
+        if (res.ok && res.data) {
+          data = res.data;
+        }
+      } catch {}
+
+      if (!data) {
+        try {
+          const res = await sb.from('site_settings').select('*').eq('id', 1).single();
+          data = res.data;
+        } catch {}
+      }
+
+      if (!data) return;
+      (document.getElementById('s-wa') as HTMLInputElement).value = data.wa_number ?? '';
+      (document.getElementById('s-email') as HTMLInputElement).value = data.email ?? '';
+      (document.getElementById('s-alamat') as HTMLTextAreaElement).value = data.alamat ?? '';
+      (document.getElementById('s-jam') as HTMLInputElement).value = data.jam_kerja ?? '';
+      (document.getElementById('s-wa-text') as HTMLTextAreaElement).value = data.wa_default_text ?? '';
+      (document.getElementById('s-ig') as HTMLInputElement).value = data.instagram_url ?? '';
+      (document.getElementById('s-fb') as HTMLInputElement).value = data.facebook_url ?? '';
+      (document.getElementById('s-tiktok') as HTMLInputElement).value = data.tiktok_url ?? '';
+      (document.getElementById('s-maps') as HTMLInputElement).value = data.maps_embed_url ?? '';
+    }
+
+    document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (saveBtn) saveBtn.disabled = true;
+      if (saveIndicator) saveIndicator.style.display = 'inline';
+      if (notice) notice.style.display = 'none';
+
+      const payload = {
+        wa_number: (document.getElementById('s-wa') as HTMLInputElement).value.trim(),
+        email: (document.getElementById('s-email') as HTMLInputElement).value.trim() || null,
+        alamat: (document.getElementById('s-alamat') as HTMLTextAreaElement).value.trim() || null,
+        jam_kerja: (document.getElementById('s-jam') as HTMLInputElement).value.trim() || null,
+        wa_default_text: (document.getElementById('s-wa-text') as HTMLTextAreaElement).value.trim() || 'Halo seminarkit, saya ingin bertanya.',
+        instagram_url: (document.getElementById('s-ig') as HTMLInputElement).value.trim() || null,
+        facebook_url: (document.getElementById('s-fb') as HTMLInputElement).value.trim() || null,
+        tiktok_url: (document.getElementById('s-tiktok') as HTMLInputElement).value.trim() || null,
+        maps_embed_url: (document.getElementById('s-maps') as HTMLInputElement).value.trim() || null,
+      };
+
+      let success = false;
+      try {
+        const res = await postAdminAction('update_settings', payload);
+        if (res.ok) {
+          success = true;
+        }
+      } catch {}
+
+      try {
+        const { error } = await sb
+          .from('site_settings')
+          .upsert({ id: 1, ...payload });
+        if (!error) success = true;
+      } catch {}
+
+      if (saveBtn) saveBtn.disabled = false;
+      if (saveIndicator) saveIndicator.style.display = 'none';
+
+      if (!success) {
+        notice.textContent = 'Gagal menyimpan pengaturan.';
+        notice.className = 'sk-notice sk-notice--error mb-4';
+      } else {
+        notice.textContent = '✓ Pengaturan situs berhasil diperbarui.';
+        notice.className = 'sk-notice sk-notice--success mb-4';
+      }
+      notice.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    load();
+  </script>
+</AdminLayout>

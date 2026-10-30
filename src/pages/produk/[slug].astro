@@ -1,0 +1,644 @@
+---
+// src/pages/produk/[slug].astro
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import CTA from '../../components/CTA.astro';
+import { getSiteSettings, getProductBySlug, getRelatedProducts, getCategories } from '../../lib/queries';
+import { formatRupiah } from '../../lib/format';
+import { buildWaFromProduct } from '../../lib/wa';
+import { productSchema, breadcrumbSchema, organizationSchema } from '../../lib/seo';
+
+const { slug } = Astro.params;
+
+if (!slug) return Astro.redirect('/produk');
+
+const settings = await getSiteSettings();
+const product = await getProductBySlug(slug);
+
+if (!product) {
+  return new Response(null, { status: 404 });
+}
+
+// Fetch exactly 3 related products excluding current product
+const related = await getRelatedProducts(product.slug, 3);
+const categories = await getCategories();
+const categoryMap = new Map(categories.map(c => [c.id, c.nama]));
+
+const productCatName =
+  (Array.isArray(product.categories) ? product.categories[0]?.nama : product.categories?.nama) ||
+  (product.category_id ? categoryMap.get(product.category_id) : undefined);
+
+const waUrl = buildWaFromProduct(settings?.wa_number, product.nama);
+
+const spesifikasi = typeof product.spesifikasi === 'object' && product.spesifikasi
+  ? Object.entries(product.spesifikasi as Record<string, string>)
+  : [];
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Produk', url: siteUrl + '/produk' },
+    { name: product.nama, url: siteUrl + '/produk/' + product.slug },
+  ]),
+  productSchema(product),
+];
+---
+<BaseLayout
+  title={product.nama}
+  description={product.deskripsi_singkat}
+  ogImage={product.gambar_url ?? undefined}
+  settings={settings}
+  currentPage={product.nama}
+  jsonLd={schemas}
+>
+  <PageBanner
+    judul={product.nama}
+    badgeText={productCatName ? `Kategori: ${productCatName}` : 'Detail Produk'}
+    badgeIcon="box"
+    deskripsi={product.deskripsi_singkat || 'Rincian spesifikasi, bahan premium, opsi kustomisasi sablon/grafir, dan estimasi pengerjaan.'}
+    breadcrumbs={[
+      { label: 'Produk', href: '/produk' },
+      { label: product.nama },
+    ]}
+    waveFill="#FBFAF5"
+  />
+
+  <!-- Main Product Detail Section -->
+  <section class="sk-product-detail-section" aria-labelledby="detail-title-heading">
+    <div class="container">
+      <div class="row g-4 g-lg-5 align-items-start">
+        
+        <!-- Left: Image Showcase Card -->
+        <div class="col-lg-5 col-xl-5">
+          <div class="sk-detail-media-card">
+            <!-- Badge overlay -->
+            <div class="sk-detail-badge-pill">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Koleksi Resmi Teruji</span>
+            </div>
+
+            <div class="sk-detail-img-box">
+              {product.gambar_url ? (
+                <img
+                  src={product.gambar_url}
+                  alt={product.gambar_alt ?? product.nama}
+                  width="600"
+                  height="450"
+                  fetchpriority="high"
+                  decoding="async"
+                  class="sk-detail-main-img"
+                  onerror="this.src='/images/hero-seminar-kit.webp';"
+                />
+              ) : (
+                <div class="sk-detail-img-placeholder">
+                  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <span>Foto Sampel Fisik</span>
+                </div>
+              )}
+            </div>
+
+            <!-- Value Guarantees Strip under photo -->
+            <div class="sk-detail-trust-strip">
+              <div class="sk-trust-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Gratis Mockup Desain</span>
+              </div>
+              <div class="sk-trust-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Faktur Pajak Resmi (PPN)</span>
+              </div>
+              <div class="sk-trust-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Garansi Tepat Waktu</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Information, Pricing & Specs Card -->
+        <div class="col-lg-7 col-xl-7">
+          <div class="sk-detail-info-card">
+            
+            {productCatName && (
+              <div class="sk-detail-eyebrow">
+                {productCatName}
+              </div>
+            )}
+
+            <h1 id="detail-title-heading" class="sk-detail-heading">
+              {product.nama}
+            </h1>
+
+            <!-- Pricing & MOQ Highlight Block -->
+            <div class="sk-detail-pricing-panel">
+              <div class="sk-price-block">
+                <span class="sk-price-eyebrow">Estimasi Harga Pengadaan:</span>
+                <div class="sk-price-number-row">
+                  <span class="sk-price-main">{formatRupiah(product.harga_mulai)}</span>
+                  <span class="sk-price-unit-tag">/{product.satuan}</span>
+                </div>
+              </div>
+
+              {product.min_order && (
+                <div class="sk-moq-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                  <span>Minimal Pemesanan: <strong>{product.min_order} {product.satuan}</strong></span>
+                </div>
+              )}
+            </div>
+
+            <!-- Description -->
+            {(product.deskripsi_lengkap || product.deskripsi_singkat) && (
+              <div class="sk-detail-block">
+                <h2 class="sk-detail-section-title">Deskripsi Produk</h2>
+                <div class="sk-detail-prose">
+                  {product.deskripsi_lengkap || product.deskripsi_singkat}
+                </div>
+              </div>
+            )}
+
+            <!-- Specifications Table -->
+            {spesifikasi.length > 0 && (
+              <div class="sk-detail-block">
+                <h2 class="sk-detail-section-title">Spesifikasi &amp; Material</h2>
+                <div class="sk-spec-wrapper">
+                  <table class="sk-custom-spec-table">
+                    <tbody>
+                      {spesifikasi.map(([key, val]) => (
+                        <tr>
+                          <th scope="row" class="sk-spec-th">{key}</th>
+                          <td class="sk-spec-td">{val}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <!-- CTA Action Buttons -->
+            <div class="sk-detail-actions">
+              <a
+                href={waUrl}
+                class="sk-detail-btn-wa"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Pesan ${product.nama} via WhatsApp`}
+              >
+                <svg width="18" height="18" viewBox="0 0 448 512" fill="currentColor" aria-hidden="true">
+                  <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path>
+                </svg>
+                <span>Konsultasi &amp; Pesan via WhatsApp</span>
+              </a>
+            </div>
+
+            <!-- Fast note -->
+            <div class="sk-detail-note">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Respon Kilat: Simulasi penawaran harga &amp; mockup logo instansi Anda gratis dalam 1-2 jam kerja.</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Produk Terkait: Selalu Tampil 3 Card Sama Persis dengan Halaman Produk -->
+  {related.length > 0 && (
+    <section class="sk-related-section" aria-labelledby="related-heading">
+      <div class="container">
+        <div class="sk-related-header text-center">
+          <div class="sk-related-pill">Koleksi Terkait</div>
+          <h2 id="related-heading" class="sk-related-title">Produk Lainnya</h2>
+          <p class="sk-related-desc">
+            Pilihan paket seminar kit dan souvenir kantor unggulan lainnya yang sering dipesan bersamaan.
+          </p>
+        </div>
+
+        <div class="row g-4">
+          {related.map(r => {
+            const catName =
+              (Array.isArray(r.categories) ? r.categories[0]?.nama : r.categories?.nama) ||
+              (r.category_id ? categoryMap.get(r.category_id) : undefined);
+            return (
+              <div class="col-lg-4 col-md-6 col-12">
+                <ProductCard product={r} categoryName={catName} waNumber={settings?.wa_number} />
+              </div>
+            );
+          })}
+        </div>
+
+        <div class="text-center mt-5">
+          <a href="/produk" class="sk-btn-catalog-all">
+            Lihat Semua Katalog Produk
+          </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <CTA waUrl={waUrl} />
+</BaseLayout>
+
+<style>
+  /* ========================================================
+     PRODUCT DETAIL MODERN THEME (SPOROFORIA / ARTISAN SLATE)
+     ======================================================== */
+  .sk-product-detail-section {
+    position: relative;
+    z-index: 2;
+    margin-top: -3px; /* Overlap PageBanner bottom edge to eliminate any 1px subpixel dark seam on mobile */
+    padding: 60px 0 90px;
+    background-color: var(--sk-bg, #FBFAF5);
+  }
+
+  /* Left: Media Card */
+  .sk-detail-media-card {
+    background: #FFFFFF;
+    border: 1px solid #E8E2D6;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(27, 49, 49, 0.04);
+    position: sticky;
+    top: 90px;
+  }
+
+  .sk-detail-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #F4EFE6;
+    border: 1px solid #DED7C8;
+    color: #7A7232;
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .sk-detail-img-box {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #EDEAE1;
+    position: relative;
+  }
+
+  .sk-detail-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .sk-detail-media-card:hover .sk-detail-main-img {
+    transform: scale(1.03);
+  }
+
+  .sk-detail-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #8C9994;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  /* Trust Strip */
+  .sk-detail-trust-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #EDEAE1;
+  }
+
+  .sk-trust-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2F4F4F;
+    background: #F9F7F2;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #EBE6DC;
+  }
+
+  /* Right: Info Card */
+  .sk-detail-info-card {
+    background: #FFFFFF;
+    border: 1px solid #E8E2D6;
+    border-radius: 20px;
+    padding: 36px 36px 32px;
+    box-shadow: 0 10px 30px rgba(27, 49, 49, 0.04);
+  }
+
+  .sk-detail-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8C8436;
+    margin-bottom: 8px;
+  }
+
+  .sk-detail-heading {
+    font-family: var(--sk-font-serif, 'Newsreader Variable', Georgia, serif);
+    font-size: clamp(1.8rem, 3.2vw, 2.35rem);
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.22;
+    margin-bottom: 22px;
+    letter-spacing: -0.015em;
+  }
+
+  /* Pricing Panel */
+  .sk-detail-pricing-panel {
+    background: #FBFAF5;
+    border: 1px solid #E8E2D6;
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .sk-price-eyebrow {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #71827E;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sk-price-number-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .sk-price-main {
+    font-family: var(--sk-font-serif, 'Newsreader Variable', Georgia, serif);
+    font-size: 1.95rem;
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1;
+  }
+
+  .sk-price-unit-tag {
+    font-size: 0.9375rem;
+    color: #71827E;
+    font-weight: 500;
+  }
+
+  .sk-moq-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #FFFFFF;
+    border: 1px solid #DED7C8;
+    color: #4A5D57;
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-size: 0.8125rem;
+  }
+
+  .sk-moq-pill strong {
+    color: #1B3131;
+  }
+
+  /* Detail Blocks */
+  .sk-detail-block {
+    margin-bottom: 26px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid #EFEAE0;
+  }
+
+  .sk-detail-section-title {
+    font-family: var(--sk-font-serif, 'Newsreader Variable', Georgia, serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1B3131;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-detail-prose {
+    color: #4A5D57;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    white-space: pre-line;
+  }
+
+  /* Specifications Table */
+  .sk-spec-wrapper {
+    border: 1px solid #E8E2D6;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #FFFFFF;
+  }
+
+  .sk-custom-spec-table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+  }
+
+  .sk-custom-spec-table tr:not(:last-child) {
+    border-bottom: 1px solid #EDE7DC;
+  }
+
+  .sk-spec-th {
+    width: 38%;
+    background: #F9F7F2;
+    color: #1B3131;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 12px 18px;
+    vertical-align: middle;
+    text-align: left;
+    border-right: 1px solid #EDE7DC;
+  }
+
+  .sk-spec-td {
+    color: #4A5D57;
+    font-size: 0.875rem;
+    padding: 12px 18px;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+
+  /* CTA Buttons */
+  .sk-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 30px;
+    margin-bottom: 16px;
+  }
+
+  .sk-detail-btn-wa {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25D366;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 15px 28px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.25);
+  }
+
+  .sk-detail-btn-wa:hover {
+    background: #20BA5A;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  }
+
+  .sk-detail-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: #71827E;
+    line-height: 1.5;
+  }
+
+  /* Related Products Section */
+  .sk-related-section {
+    padding: 80px 0 95px;
+    background-color: #FFFFFF;
+    border-top: 1px solid #E8E2D6;
+    border-bottom: 1px solid #E8E2D6;
+  }
+
+  .sk-related-header {
+    max-width: 640px;
+    margin: 0 auto 48px;
+  }
+
+  .sk-related-pill {
+    display: inline-flex;
+    align-items: center;
+    background: #F4EFE6;
+    border: 1px solid #DED7C8;
+    color: #7A7232;
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .sk-related-title {
+    font-family: var(--sk-font-serif, 'Newsreader Variable', Georgia, serif);
+    font-size: clamp(2rem, 3.4vw, 2.6rem);
+    font-weight: 700;
+    color: #1B3131;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.015em;
+  }
+
+  .sk-related-desc {
+    color: #556963;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .sk-btn-catalog-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: #1B3131;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 50px;
+    padding: 13px 30px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(27, 49, 49, 0.15);
+  }
+
+  .sk-btn-catalog-all:hover {
+    background: #264242;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(27, 49, 49, 0.25);
+  }
+
+  @media (max-width: 991.98px) {
+    .sk-product-detail-section {
+      margin-top: -3px;
+      padding: 45px 0 65px;
+    }
+    .sk-detail-info-card {
+      padding: 24px 20px 24px;
+    }
+    .sk-detail-media-card {
+      position: static;
+      padding: 14px;
+    }
+    .sk-spec-th {
+      width: 44%;
+      padding: 10px 14px;
+    }
+    .sk-spec-td {
+      padding: 10px 14px;
+    }
+    .sk-related-section {
+      padding: 60px 0 75px;
+    }
+  }
+</style>

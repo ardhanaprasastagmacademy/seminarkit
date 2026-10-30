@@ -1,0 +1,30 @@
+---
+// src/components/Pagination.astro
+export interface Props {
+  currentPage: number;
+  totalPages: number;
+  baseUrl: string;
+}
+
+const { currentPage, totalPages, baseUrl } = Astro.props;
+
+function pageUrl(p: number) {
+  return p === 1 ? baseUrl : `${baseUrl}?page=${p}`;
+}
+---
+{totalPages > 1 && (
+  <nav class="sk-pagination mt-5" aria-label="Navigasi halaman">
+    {currentPage > 1 && (
+      <a href={pageUrl(currentPage - 1)}>Sebelumnya</a>
+    )}
+    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+      <a
+        href={pageUrl(p)}
+        aria-current={p === currentPage ? 'page' : undefined}
+      >{p}</a>
+    ))}
+    {currentPage < totalPages && (
+      <a href={pageUrl(currentPage + 1)}>Berikutnya</a>
+    )}
+  </nav>
+)}

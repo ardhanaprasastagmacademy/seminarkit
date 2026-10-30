@@ -1,0 +1,47 @@
+:root {
+  /* === Warna === */
+  --sk-slate-900: #1F3636;
+  --sk-slate-800: #264242;
+  --sk-slate-700: #2F4F4F;   /* darkslategrey */
+  --sk-slate-600: #3F6363;
+  --sk-khaki-500: #BDB76B;   /* darkkhaki */
+  --sk-khaki-600: #A8A25A;
+  --sk-khaki-300: #D9D58F;
+  --sk-khaki-700: #6B672F;
+  --sk-ink: #1F2D2D;
+  --sk-muted: #4F5F5F;
+  --sk-muted-on-dark: #C9D3D0;
+  --sk-bg: #FBFAF5;
+  --sk-bg-alt: #F2F0E2;
+  --sk-surface: #FFFFFF;
+  --sk-line: #DEDBC4;
+  --sk-field-border: #7F8C86;
+  --sk-focus: #2F4F4F;
+  --sk-focus-on-dark: #D9D58F;
+  --sk-error: #8C2F2F;
+
+  /* === Tipografi === */
+  --sk-font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+  --sk-font-sans: 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* === Bentuk === */
+  --sk-radius-sm: 2px;
+  --sk-radius-md: 4px;
+
+  /* === Pemetaan ke variabel Bootstrap 5.3 === */
+  --bs-body-font-family: var(--sk-font-sans);
+  --bs-body-font-size: 1.0625rem;
+  --bs-body-line-height: 1.65;
+  --bs-body-color: var(--sk-ink);
+  --bs-body-color-rgb: 31, 45, 45;
+  --bs-body-bg: var(--sk-bg);
+  --bs-body-bg-rgb: 251, 250, 245;
+  --bs-border-color: var(--sk-line);
+  --bs-border-radius: var(--sk-radius-md);
+  --bs-primary: #2F4F4F;
+  --bs-primary-rgb: 47, 79, 79;
+  --bs-link-color: #2F4F4F;
+  --bs-link-color-rgb: 47, 79, 79;
+  --bs-link-hover-color: #264242;
+  --bs-link-hover-color-rgb: 38, 66, 66;
+}

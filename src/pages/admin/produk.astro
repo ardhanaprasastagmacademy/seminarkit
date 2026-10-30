@@ -1,0 +1,809 @@
+---
+// src/pages/admin/produk.astro
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Produk & Kategori" activePage="produk">
+  <!-- Top Action & Filter Row -->
+  <div class="sk-modern-card mb-3 p-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" id="btn-tambah" class="sk-pill-btn" style="padding:8px 20px;font-size:.8125rem;">
+          + Tambah Produk
+        </button>
+        <button type="button" id="btn-tambah-cat" class="sk-pill-btn sk-pill-btn--outline" style="padding:8px 20px;font-size:.8125rem;">
+          Kelola Kategori
+        </button>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="sk-search-pill" style="width:260px;">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="search"
+            id="produk-search"
+            placeholder="Cari produk / kategori…"
+            style="padding-top:8px;padding-bottom:8px;font-size:.8125rem;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="produk-notice" class="sk-notice mb-3" role="alert" aria-live="polite" style="display:none;"></div>
+
+  <!-- Products Table Card -->
+  <div class="sk-modern-card">
+    <div class="sk-card-header-row">
+      <h2 class="sk-card-title">Katalog Produk & Paket Seminar Kit</h2>
+      <span id="produk-count" style="font-size:.8125rem;color:var(--sk-admin-text-muted);">Memuat katalog…</span>
+    </div>
+
+    <div class="sk-modern-table-wrap">
+      <table class="sk-modern-table">
+        <thead>
+          <tr>
+            <th style="width:70px;">Gambar</th>
+            <th>Nama Produk & Slug</th>
+            <th>Kategori</th>
+            <th>Harga Mulai</th>
+            <th style="width:100px;">Status Terbit</th>
+            <th style="width:100px;">Unggulan</th>
+            <th style="width:70px;">Urutan</th>
+            <th style="width:140px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="produk-tbody">
+          <tr>
+            <td colspan="8" class="text-center py-5" style="color:var(--sk-admin-text-muted);">
+              Memuat daftar produk…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit Produk -->
+  <div class="modal fade" id="produkModal" tabindex="-1" aria-label="Form Produk" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 font-weight-bold" id="modal-produk-title" style="color:var(--sk-admin-primary);">Tambah Produk</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="produk-form">
+            <input type="hidden" id="produk-id" />
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="p-nama" class="sk-label">Nama Produk <span>*</span></label>
+                <input type="text" id="p-nama" class="form-control sk-input" required maxlength="200" placeholder="Paket Seminar Kit Premium Kulit" />
+              </div>
+              <div class="col-md-6">
+                <label for="p-slug" class="sk-label">Slug URL <span>*</span></label>
+                <input type="text" id="p-slug" class="form-control sk-input" required placeholder="paket-seminar-kit-premium-kulit" />
+              </div>
+              <div class="col-md-6">
+                <label for="p-category" class="sk-label">Kategori</label>
+                <select id="p-category" class="form-select sk-input">
+                  <option value="">Pilih Kategori (Opsional)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="p-harga" class="sk-label">Harga Mulai (Rp) <span>*</span></label>
+                <input type="number" id="p-harga" class="form-control sk-input" required min="0" placeholder="45000" />
+              </div>
+              <div class="col-md-6">
+                <label for="p-satuan" class="sk-label">Satuan</label>
+                <input type="text" id="p-satuan" class="form-control sk-input" value="pcs" placeholder="pcs / paket" />
+              </div>
+              <div class="col-md-6">
+                <label for="p-minorder" class="sk-label">Minimal Order</label>
+                <input type="number" id="p-minorder" class="form-control sk-input" min="1" placeholder="50" />
+              </div>
+              <div class="col-12">
+                <label for="p-desc-singkat" class="sk-label">Deskripsi Singkat (Maks. 200 karakter) <span>*</span></label>
+                <textarea id="p-desc-singkat" class="form-control sk-input" required maxlength="200" rows="2" placeholder="Ringkasan spesifikasi paket..."></textarea>
+              </div>
+              <div class="col-12">
+                <label for="p-desc-lengkap" class="sk-label">Deskripsi Lengkap</label>
+                <textarea id="p-desc-lengkap" class="form-control sk-input" rows="4" placeholder="Detail kelengkapan isi paket, material bahan, custom logo, dll..."></textarea>
+              </div>
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="sk-label mb-0">Spesifikasi &amp; Material (Tabel Atribut)</label>
+                  <button type="button" id="btn-add-spec" class="btn btn-sm" style="background:var(--sk-admin-surface-subtle);border:1px solid var(--sk-admin-card-border);color:var(--sk-admin-primary);font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:6px;">
+                    + Tambah Baris
+                  </button>
+                </div>
+                <small style="color:var(--sk-admin-text-muted);font-size:.75rem;display:block;margin-bottom:8px;">
+                  Atribut teknis yang tampil pada tab "Spesifikasi &amp; Material" di halaman detail produk (e.g. Pulpen, Tumbler, Bahan Agenda, dll).
+                </small>
+                <div id="spesifikasi-container" class="d-flex flex-column gap-2 p-2 rounded" style="background:var(--sk-admin-surface-subtle);border:1px solid var(--sk-admin-card-border);min-height:50px;">
+                  <!-- Dynamic Spec Rows -->
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="sk-label">Foto Utama Produk</label>
+                <div class="sk-upload-box">
+                  <div id="p-preview-box" class="sk-upload-preview">
+                    <img id="p-preview" src="" alt="Preview" style="display:none;" />
+                    <span id="p-preview-placeholder" style="color:var(--sk-admin-text-muted);font-size:.6875rem;text-align:center;padding:4px;">Tanpa Gambar</span>
+                  </div>
+                  <div style="flex:1;">
+                    <input type="file" id="p-file" class="form-control sk-input form-control-sm" accept="image/webp,image/png,image/jpeg" />
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                      <small id="p-upload-status" style="color:var(--sk-admin-text-muted);font-size:.75rem;">Format WebP/PNG/JPG. Otomatis dioptimalkan.</small>
+                      <button type="button" id="p-hapus-gambar" class="btn btn-link p-0 text-danger" style="font-size:.75rem;text-decoration:none;display:none;">Hapus Gambar</button>
+                    </div>
+                    <input type="hidden" id="p-gambar" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="p-gambar-alt" class="sk-label">Alt Text Gambar</label>
+                <input type="text" id="p-gambar-alt" class="form-control sk-input" placeholder="Paket seminar kit eksklusif warna hitam" />
+              </div>
+              <div class="col-md-6">
+                <label for="p-urutan" class="sk-label">Urutan Tampil</label>
+                <input type="number" id="p-urutan" class="form-control sk-input" value="0" />
+              </div>
+              <div class="col-12 pt-2">
+                <div class="d-flex gap-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="p-published" checked />
+                    <label class="form-check-label font-weight-bold" for="p-published" style="font-size:.875rem;">Terbitkan Produk</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="p-featured" />
+                    <label class="form-check-label font-weight-bold" for="p-featured" style="font-size:.875rem;">Jadikan Produk Unggulan</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="sk-pill-btn sk-pill-btn--outline" data-bs-dismiss="modal" style="padding:6px 18px;font-size:.8125rem;">Batal</button>
+          <button type="button" id="produk-save" class="sk-pill-btn" style="padding:6px 20px;font-size:.8125rem;">Simpan Produk</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kelola Kategori -->
+  <div class="modal fade" id="kategoriModal" tabindex="-1" aria-label="Kelola Kategori" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 font-weight-bold" style="color:var(--sk-admin-primary);">Kelola Kategori Produk</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="kategori-form" class="mb-4 p-3" style="background:var(--sk-admin-surface-subtle);border:1px solid var(--sk-admin-card-border);border-radius:12px;">
+            <p style="font-size:.875rem;font-weight:700;color:var(--sk-admin-primary);margin-bottom:12px;">Tambah Kategori Baru</p>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label for="cat-nama" class="sk-label">Nama Kategori <span>*</span></label>
+                <input type="text" id="cat-nama" class="form-control sk-input" required placeholder="Souvenir Kantor" />
+              </div>
+              <div class="col-sm-6">
+                <label for="cat-slug" class="sk-label">Slug <span>*</span></label>
+                <input type="text" id="cat-slug" class="form-control sk-input" required placeholder="souvenir-kantor" />
+              </div>
+              <div class="col-12 mt-2">
+                <button type="button" id="cat-save" class="sk-pill-btn" style="padding:6px 18px;font-size:.8125rem;">
+                  Tambah Kategori
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <p class="sk-label">Daftar Kategori Tersimpan:</p>
+          <ul id="cat-list" class="list-unstyled d-flex flex-column gap-2 mb-0" style="max-height:220px;overflow-y:auto;">
+            <li style="font-size:.875rem;color:var(--sk-admin-text-muted);">Memuat kategori…</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="sk-pill-btn sk-pill-btn--outline" data-bs-dismiss="modal" style="padding:6px 18px;font-size:.8125rem;">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getSupabaseBrowser } from '../../lib/supabase';
+    import 'bootstrap/js/dist/modal';
+
+    const sb = getSupabaseBrowser();
+    let modal: any;
+    let catModal: any;
+    let allProducts: any[] = [];
+    let allCategories: any[] = [];
+    let searchProductQuery = '';
+
+    function esc(str: any): string {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    const fileInput = document.getElementById('p-file') as HTMLInputElement | null;
+    const previewImg = document.getElementById('p-preview') as HTMLImageElement | null;
+    const previewPlaceholder = document.getElementById('p-preview-placeholder') as HTMLElement | null;
+    const statusText = document.getElementById('p-upload-status') as HTMLElement | null;
+    const hapusBtn = document.getElementById('p-hapus-gambar') as HTMLButtonElement | null;
+    const hiddenUrlInput = document.getElementById('p-gambar') as HTMLInputElement | null;
+    const saveBtn = document.getElementById('produk-save') as HTMLButtonElement | null;
+
+    function setPreview(url: string | null) {
+      if (url) {
+        if (previewImg) {
+          previewImg.src = url;
+          previewImg.style.display = 'block';
+        }
+        if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+        if (hapusBtn) hapusBtn.style.display = 'inline-block';
+        if (hiddenUrlInput) hiddenUrlInput.value = url;
+      } else {
+        if (previewImg) {
+          previewImg.src = '';
+          previewImg.style.display = 'none';
+        }
+        if (previewPlaceholder) previewPlaceholder.style.display = 'block';
+        if (hapusBtn) hapusBtn.style.display = 'none';
+        if (hiddenUrlInput) hiddenUrlInput.value = '';
+        if (fileInput) fileInput.value = '';
+      }
+    }
+
+    function addSpecRow(key = '', val = '') {
+      const container = document.getElementById('spesifikasi-container');
+      if (!container) return;
+      const row = document.createElement('div');
+      row.className = 'sk-spec-row d-flex gap-2 align-items-center';
+      row.innerHTML = `
+        <input type="text" class="form-control sk-input form-control-sm spec-key" placeholder="Atribut (e.g. Bahan, Pulpen)" style="flex:1;" value="${esc(key)}" />
+        <input type="text" class="form-control sk-input form-control-sm spec-val" placeholder="Keterangan (e.g. Kulit Sintetis PU)" style="flex:1.5;" value="${esc(val)}" />
+        <button type="button" class="btn btn-sm btn-outline-danger btn-del-spec" style="padding:2px 8px;font-size:.875rem;line-height:1.2;" title="Hapus baris">&times;</button>
+      `;
+      row.querySelector('.btn-del-spec')?.addEventListener('click', () => row.remove());
+      container.appendChild(row);
+    }
+
+    function renderSpesifikasi(spesifikasiData: any) {
+      const container = document.getElementById('spesifikasi-container');
+      if (!container) return;
+      container.innerHTML = '';
+      if (spesifikasiData && typeof spesifikasiData === 'object' && !Array.isArray(spesifikasiData)) {
+        const entries = Object.entries(spesifikasiData);
+        if (entries.length > 0) {
+          entries.forEach(([k, v]) => addSpecRow(k, String(v)));
+          return;
+        }
+      }
+      addSpecRow('', '');
+    }
+
+    function getSpesifikasiPayload(): Record<string, string> | null {
+      const rows = document.querySelectorAll<HTMLElement>('.sk-spec-row');
+      const result: Record<string, string> = {};
+      rows.forEach(r => {
+        const k = (r.querySelector('.spec-key') as HTMLInputElement)?.value.trim();
+        const v = (r.querySelector('.spec-val') as HTMLInputElement)?.value.trim();
+        if (k) {
+          result[k] = v;
+        }
+      });
+      return Object.keys(result).length > 0 ? result : null;
+    }
+
+    async function compressImage(file: File): Promise<File> {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            const maxDimension = 1200;
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return resolve(file);
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const newName = file.name.replace(/\.[^.]+$/, '') + '.webp';
+                resolve(new File([blob], newName, { type: 'image/webp' }));
+              } else {
+                resolve(file);
+              }
+            }, 'image/webp', 0.85);
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadImageFile(file: File): Promise<string> {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('Sesi admin tidak ditemukan. Silakan login kembali.');
+
+      const compressed = await compressImage(file);
+      const fd = new FormData();
+      fd.append('file', compressed);
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal mengunggah gambar');
+      return data.url;
+    }
+
+    hapusBtn?.addEventListener('click', () => {
+      setPreview(null);
+      if (statusText) {
+        statusText.textContent = 'Gambar telah dihapus.';
+        statusText.style.color = 'var(--sk-admin-text-muted)';
+      }
+    });
+
+    fileInput?.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+
+      if (previewImg) {
+        previewImg.src = URL.createObjectURL(file);
+        previewImg.style.display = 'block';
+      }
+      if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+      if (hapusBtn) hapusBtn.style.display = 'inline-block';
+
+      if (statusText) {
+        statusText.textContent = 'Mengunggah & mengoptimalkan gambar...';
+        statusText.style.color = 'var(--sk-admin-primary)';
+      }
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        const uploadedUrl = await uploadImageFile(file);
+        if (hiddenUrlInput) hiddenUrlInput.value = uploadedUrl;
+        if (previewImg) previewImg.src = uploadedUrl;
+        if (statusText) {
+          statusText.textContent = '✓ Gambar berhasil diunggah';
+          statusText.style.color = '#2E8540';
+        }
+      } catch (err: any) {
+        if (statusText) {
+          statusText.textContent = 'Gagal unggah: ' + (err?.message || err);
+          statusText.style.color = 'var(--sk-error)';
+        }
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+      }
+    });
+
+    function createModal(modalId: string) {
+      const el = document.getElementById(modalId);
+      if (!el) return { show() {}, hide() {} };
+
+      function hide() {
+        const BS = (window as any).bootstrap?.Modal;
+        if (BS) {
+          try {
+            const inst = BS.getInstance ? BS.getInstance(el) : null;
+            if (inst) { inst.hide(); return; }
+          } catch {}
+        }
+        el.classList.remove('show');
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+        el.removeAttribute('aria-modal');
+        const remaining = Array.from(document.querySelectorAll<HTMLElement>('.modal.show'))
+          .filter(m => m !== el && m.style.display !== 'none');
+        if (remaining.length === 0) {
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        }
+      }
+
+      el.querySelectorAll('[data-bs-dismiss="modal"], .btn-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          hide();
+        });
+      });
+
+      el.addEventListener('click', (e) => {
+        if (e.target === el) hide();
+      });
+
+      return {
+        show() {
+          const BS = (window as any).bootstrap?.Modal;
+          if (BS) {
+            try {
+              const inst = BS.getOrCreateInstance ? BS.getOrCreateInstance(el) : new BS(el);
+              inst.show();
+              return;
+            } catch {}
+          }
+          el.classList.add('show');
+          el.style.display = 'block';
+          el.setAttribute('aria-modal', 'true');
+          el.removeAttribute('aria-hidden');
+          document.body.classList.add('modal-open');
+          let backdrop = document.querySelector('.modal-backdrop');
+          if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.addEventListener('click', hide);
+            document.body.appendChild(backdrop);
+          }
+        },
+        hide
+      };
+    }
+
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/admin/manage?table=categories').then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          allCategories = res.data;
+        } else {
+          const { data } = await sb.from('categories').select('*').order('urutan');
+          allCategories = data ?? [];
+        }
+      } catch {
+        const { data } = await sb.from('categories').select('*').order('urutan');
+        allCategories = data ?? [];
+      }
+
+      const catSelect = document.getElementById('p-category') as HTMLSelectElement | null;
+      if (catSelect) {
+        catSelect.innerHTML = '<option value="">Pilih Kategori (Opsional)</option>' +
+          allCategories.map(c => `<option value="${c.id}">${esc(c.nama)}</option>`).join('');
+      }
+
+      const catList = document.getElementById('cat-list');
+      if (catList) {
+        catList.innerHTML = allCategories.length ? allCategories.map(c => `
+          <li class="d-flex align-items-center justify-content-between p-2 border" style="background:#fff;border-radius:10px;font-size:.875rem;">
+            <span><strong>${esc(c.nama)}</strong> <small class="text-muted">(${esc(c.slug)})</small></span>
+            <button type="button" class="btn-sk-action btn-sk-action--danger del-cat-btn" data-id="${c.id}" style="padding:2px 8px;font-size:.75rem;">Hapus</button>
+          </li>
+        `).join('') : '<li style="font-size:.875rem;color:var(--sk-admin-text-muted);">Belum ada kategori.</li>';
+
+        catList.querySelectorAll<HTMLButtonElement>('.del-cat-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Hapus kategori ini?')) return;
+            try {
+              await fetch('/api/admin/manage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete_category', payload: { id: btn.dataset.id } })
+              });
+            } catch {}
+            try { await sb.from('categories').delete().eq('id', btn.dataset.id!); } catch {}
+            loadCategories();
+            loadProduk();
+          });
+        });
+      }
+    }
+
+    async function loadProduk() {
+      try {
+        const res = await fetch('/api/admin/manage?table=products').then(r => r.json());
+        if (res.ok && Array.isArray(res.data)) {
+          allProducts = res.data;
+        } else {
+          const { data } = await sb.from('products').select('*, categories(nama)').order('urutan');
+          allProducts = data ?? [];
+        }
+      } catch {
+        const { data } = await sb.from('products').select('*, categories(nama)').order('urutan');
+        allProducts = data ?? [];
+      }
+      applyProductSearchAndRender();
+    }
+
+    function applyProductSearchAndRender() {
+      let filtered = allProducts;
+      if (searchProductQuery) {
+        const q = searchProductQuery.toLowerCase();
+        filtered = filtered.filter(p =>
+          (p.nama && p.nama.toLowerCase().includes(q)) ||
+          (p.slug && p.slug.toLowerCase().includes(q)) ||
+          ((p as any).categories?.nama && (p as any).categories.nama.toLowerCase().includes(q))
+        );
+      }
+      renderProdukTable(filtered);
+    }
+
+    function renderProdukTable(products: any[]) {
+      const tbody = document.getElementById('produk-tbody')!;
+      const countEl = document.getElementById('produk-count');
+      if (countEl) countEl.textContent = `${products.length} produk terdaftar`;
+
+      if (!products.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-5">
+              <p style="font-weight:700;color:var(--sk-admin-primary);margin-bottom:4px;">Tidak ada produk ditemukan</p>
+              <p style="font-size:.875rem;color:var(--sk-admin-text-muted);margin:0;">Klik "+ Tambah Produk" untuk mendaftarkan paket baru.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = products.map(p => `
+        <tr>
+          <td>
+            ${p.gambar_url ? `<img src="${esc(p.gambar_url)}" alt="" width="52" height="40" style="object-fit:cover;border-radius:8px;border:1px solid var(--sk-admin-card-border);" onerror="this.src='/favicon.svg';">` : '<span style="color:var(--sk-admin-text-muted);font-size:.75rem;">—</span>'}
+          </td>
+          <td>
+            <div style="font-weight:700;color:var(--sk-admin-primary);">${esc(p.nama)}</div>
+            <code style="font-size:.75rem;color:var(--sk-admin-text-muted);">${esc(p.slug)}</code>
+          </td>
+          <td>${esc((p as any).categories?.nama ?? '—')}</td>
+          <td style="font-variant-numeric:tabular-nums;font-weight:700;color:var(--sk-admin-primary);">
+            Rp ${Number(p.harga_mulai).toLocaleString('id-ID')}
+            <span style="font-size:.75rem;font-weight:normal;color:var(--sk-admin-text-muted);">/${esc(p.satuan || 'pcs')}</span>
+          </td>
+          <td>
+            <span class="sk-status-pill ${p.is_published ? 'sk-status-pill--success' : 'sk-status-pill--muted'}">
+              <span class="sk-status-dot"></span>
+              ${p.is_published ? 'Terbit' : 'Draf'}
+            </span>
+          </td>
+          <td>
+            <span class="sk-status-pill ${p.is_featured ? 'sk-status-pill--info' : 'sk-status-pill--muted'}">
+              <span class="sk-status-dot"></span>
+              ${p.is_featured ? 'Ya' : 'Tidak'}
+            </span>
+          </td>
+          <td style="font-variant-numeric:tabular-nums;">${p.urutan}</td>
+          <td>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn-sk-action edit-btn" data-id="${esc(p.id)}">Edit</button>
+              <button type="button" class="btn-sk-action btn-sk-action--danger delete-btn" data-id="${esc(p.id)}" data-nama="${esc(p.nama)}">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Edit handlers
+      tbody.querySelectorAll<HTMLButtonElement>('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          let p = allProducts.find(x => x.id === btn.dataset.id);
+          if (!p) {
+            try {
+              const res = await sb.from('products').select('*').eq('id', btn.dataset.id!).single();
+              p = res.data;
+            } catch {}
+          }
+          if (!p) return;
+          (document.getElementById('produk-id') as HTMLInputElement).value = p.id;
+          (document.getElementById('p-nama') as HTMLInputElement).value = p.nama;
+          (document.getElementById('p-slug') as HTMLInputElement).value = p.slug;
+          (document.getElementById('p-harga') as HTMLInputElement).value = p.harga_mulai;
+          (document.getElementById('p-satuan') as HTMLInputElement).value = p.satuan;
+          (document.getElementById('p-minorder') as HTMLInputElement).value = p.min_order ?? '';
+          (document.getElementById('p-desc-singkat') as HTMLTextAreaElement).value = p.deskripsi_singkat;
+          (document.getElementById('p-desc-lengkap') as HTMLTextAreaElement).value = p.deskripsi_lengkap ?? '';
+          setPreview(p.gambar_url ?? null);
+          if (statusText) {
+            statusText.textContent = p.gambar_url ? 'Gambar terpasang.' : 'Format WebP/PNG/JPG.';
+            statusText.style.color = 'var(--sk-admin-text-muted)';
+          }
+          (document.getElementById('p-gambar-alt') as HTMLInputElement).value = p.gambar_alt ?? '';
+          (document.getElementById('p-urutan') as HTMLInputElement).value = p.urutan;
+          (document.getElementById('p-published') as HTMLInputElement).checked = p.is_published;
+          (document.getElementById('p-featured') as HTMLInputElement).checked = p.is_featured;
+
+          const catSelect = document.getElementById('p-category') as HTMLSelectElement | null;
+          if (catSelect) catSelect.value = p.category_id ?? '';
+
+          renderSpesifikasi(p.spesifikasi);
+
+          document.getElementById('modal-produk-title')!.textContent = 'Edit Produk';
+          modal.show();
+        });
+      });
+
+      // Delete (soft delete / remove)
+      tbody.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm(`Hapus/nonaktifkan produk "${btn.dataset.nama}"?`)) return;
+          try {
+            await fetch('/api/admin/manage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'delete_product', payload: { id: btn.dataset.id } })
+            });
+          } catch {}
+          try { await sb.from('products').delete().eq('id', btn.dataset.id!); } catch {}
+          loadProduk();
+        });
+      });
+    }
+
+    // Auto slug from name
+    const pNama = document.getElementById('p-nama') as HTMLInputElement;
+    const pSlug = document.getElementById('p-slug') as HTMLInputElement;
+    pNama?.addEventListener('input', () => {
+      const id = (document.getElementById('produk-id') as HTMLInputElement).value;
+      if (!id) {
+        pSlug.value = pNama.value
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-');
+      }
+    });
+
+    document.getElementById('produk-search')?.addEventListener('input', (e) => {
+      searchProductQuery = (e.target as HTMLInputElement).value.trim();
+      applyProductSearchAndRender();
+    });
+
+    document.getElementById('btn-tambah')?.addEventListener('click', () => {
+      (document.getElementById('produk-id') as HTMLInputElement).value = '';
+      (document.getElementById('produk-form') as HTMLFormElement).reset();
+      setPreview(null);
+      if (statusText) {
+        statusText.textContent = 'Format WebP/PNG/JPG. Otomatis dioptimalkan.';
+        statusText.style.color = 'var(--sk-admin-text-muted)';
+      }
+      (document.getElementById('p-published') as HTMLInputElement).checked = true;
+      (document.getElementById('p-satuan') as HTMLInputElement).value = 'pcs';
+      (document.getElementById('p-urutan') as HTMLInputElement).value = '0';
+      renderSpesifikasi(null);
+      document.getElementById('modal-produk-title')!.textContent = 'Tambah Produk';
+      modal.show();
+    });
+
+    // Add spec row button
+    document.getElementById('btn-add-spec')?.addEventListener('click', () => {
+      addSpecRow('', '');
+    });
+
+    // Category button & modal
+    document.getElementById('btn-tambah-cat')?.addEventListener('click', () => {
+      loadCategories();
+      catModal.show();
+    });
+
+    // Save category
+    document.getElementById('cat-save')?.addEventListener('click', async () => {
+      const nama = (document.getElementById('cat-nama') as HTMLInputElement).value.trim();
+      let slug = (document.getElementById('cat-slug') as HTMLInputElement).value.trim();
+      if (!slug) slug = nama.toLowerCase().replace(/\s+/g, '-');
+      if (!nama || !slug) {
+        alert('Harap isi nama dan slug kategori');
+        return;
+      }
+      try {
+        await fetch('/api/admin/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_category', payload: { nama, slug } })
+        });
+      } catch {}
+      try { await sb.from('categories').insert({ nama, slug }); } catch {}
+
+      (document.getElementById('cat-nama') as HTMLInputElement).value = '';
+      (document.getElementById('cat-slug') as HTMLInputElement).value = '';
+      loadCategories();
+      loadProduk();
+    });
+
+    document.getElementById('produk-save')?.addEventListener('click', async () => {
+      const id = (document.getElementById('produk-id') as HTMLInputElement).value;
+      const catVal = (document.getElementById('p-category') as HTMLSelectElement).value;
+
+      const payload: any = {
+        id: id || undefined,
+        nama: (document.getElementById('p-nama') as HTMLInputElement).value.trim(),
+        slug: (document.getElementById('p-slug') as HTMLInputElement).value.trim().toLowerCase(),
+        harga_mulai: Number((document.getElementById('p-harga') as HTMLInputElement).value),
+        satuan: (document.getElementById('p-satuan') as HTMLInputElement).value.trim() || 'pcs',
+        min_order: Number((document.getElementById('p-minorder') as HTMLInputElement).value) || null,
+        deskripsi_singkat: (document.getElementById('p-desc-singkat') as HTMLTextAreaElement).value.trim(),
+        deskripsi_lengkap: (document.getElementById('p-desc-lengkap') as HTMLTextAreaElement).value.trim() || null,
+        gambar_url: (document.getElementById('p-gambar') as HTMLInputElement).value.trim() || null,
+        gambar_alt: (document.getElementById('p-gambar-alt') as HTMLInputElement).value.trim() || null,
+        urutan: Number((document.getElementById('p-urutan') as HTMLInputElement).value) || 0,
+        is_published: (document.getElementById('p-published') as HTMLInputElement).checked,
+        is_featured: (document.getElementById('p-featured') as HTMLInputElement).checked,
+        category_id: catVal || null,
+        spesifikasi: getSpesifikasiPayload(),
+      };
+
+      if (!payload.nama || !payload.slug || isNaN(payload.harga_mulai) || !payload.deskripsi_singkat) {
+        alert('Nama, slug, harga, dan deskripsi singkat wajib diisi.');
+        return;
+      }
+
+      const saveBtn = document.getElementById('produk-save') as HTMLButtonElement | null;
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        await fetch('/api/admin/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_product', payload })
+        });
+      } catch (e) {
+        console.warn('API save error:', e);
+      }
+
+      try {
+        if (id) await sb.from('products').update(payload).eq('id', id);
+        else await sb.from('products').insert(payload);
+      } catch {}
+
+      if (saveBtn) saveBtn.disabled = false;
+      modal.hide();
+      loadProduk();
+    });
+
+    // Delete (unpublish/remove)
+    function attachDeleteHandler() {
+      document.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm(`Hapus/nonaktifkan produk "${btn.dataset.nama}"?`)) return;
+          try {
+            await fetch('/api/admin/manage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'delete_product', payload: { id: btn.dataset.id } })
+            });
+          } catch {}
+          try { await sb.from('products').update({ is_published: false }).eq('id', btn.dataset.id!); } catch {}
+          loadProduk();
+        };
+      });
+    }
+
+    // Init modals & load data immediately
+    (async () => {
+      modal = createModal('produkModal');
+      catModal = createModal('kategoriModal');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const initSearch = urlParams.get('search');
+      if (initSearch) {
+        searchProductQuery = initSearch;
+        const sInput = document.getElementById('produk-search') as HTMLInputElement | null;
+        if (sInput) sInput.value = initSearch;
+      }
+      if (urlParams.get('action') === 'tambah') {
+        setTimeout(() => document.getElementById('btn-tambah')?.click(), 300);
+      }
+
+      await loadCategories();
+      await loadProduk();
+    })();
+  </script>
+</AdminLayout>

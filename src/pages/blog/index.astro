@@ -1,0 +1,373 @@
+---
+// src/pages/blog/index.astro
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import Pagination from '../../components/Pagination.astro';
+import CTA from '../../components/CTA.astro';
+import { getSiteSettings, getArticles } from '../../lib/queries';
+import { buildWaFromPage } from '../../lib/wa';
+import { formatTanggal } from '../../lib/format';
+import { organizationSchema, breadcrumbSchema } from '../../lib/seo';
+
+const settings = await getSiteSettings();
+const waUrl = buildWaFromPage(settings?.wa_number, 'Blog');
+
+const url = Astro.url;
+const pageParam = url.searchParams.get('page');
+const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
+
+const { articles, count } = await getArticles(page);
+const totalPages = Math.ceil(count / 9);
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Blog', url: siteUrl + '/blog' },
+  ]),
+];
+---
+<BaseLayout
+  title="Blog & Article — Tips Souvenir & Seminar Kit"
+  description="Artikel, panduan, dan wawasan seputar souvenir kantor, seminar kit, goodie bag, dan merchandise perusahaan dari tim seminarkit."
+  settings={settings}
+  currentPage="Blog"
+  jsonLd={schemas}
+>
+  <!-- Page Banner (Compact & Consistent) -->
+  <PageBanner
+    judul="Blog & Artikel"
+    badgeText="Wawasan & Tips Pengadaan"
+    badgeIcon="book"
+    deskripsi="Tips, panduan praktis, dan wawasan seputar pemilihan souvenir kantor, paket seminar kit eksklusif, dan tren merchandise instansi."
+    breadcrumbs={[{ label: 'Blog' }]}
+  />
+
+  <!-- Blog Cards Grid Section -->
+  <section class="sk-blog-grid-section" aria-labelledby="blog-list-heading">
+    <div class="container">
+      <h2 id="blog-list-heading" class="visually-hidden">Daftar Artikel & Wawasan</h2>
+
+      {articles.length > 0 ? (
+        <div class="row g-4 g-lg-4 justify-content-center">
+          {articles.map(a => (
+            <div class="col-lg-4 col-md-6 d-flex">
+              <article class="sk-blog-card w-100">
+                <!-- Card Image Thumbnail -->
+                <a href={`/blog/${a.slug}`} class="sk-blog-card-media" tabindex="-1" aria-hidden="true">
+                  {a.cover_url ? (
+                    <img
+                      src={a.cover_url}
+                      alt={a.cover_alt ?? a.judul}
+                      width="800"
+                      height="500"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div class="sk-blog-placeholder-art">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                      <span>Seminarkit Wawasan</span>
+                    </div>
+                  )}
+                  <span class="sk-blog-cat-tag">{a.kategori || 'Wawasan & Tips'}</span>
+                </a>
+
+                <!-- Card Content -->
+                <div class="sk-blog-card-body">
+                  <!-- Meta Author & Date -->
+                  <div class="sk-blog-meta">
+                    <span class="sk-blog-meta-item">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      <span>{a.penulis || 'Tim Redaksi'}</span>
+                    </span>
+
+                    <span class="sk-blog-meta-item">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                      <span>{a.published_at ? formatTanggal(a.published_at) : 'Terbaru'}</span>
+                    </span>
+                  </div>
+
+                  <!-- Article Title -->
+                  <h3 class="sk-blog-title">
+                    <a href={`/blog/${a.slug}`}>
+                      {a.judul}
+                    </a>
+                  </h3>
+
+                  <!-- Excerpt Description -->
+                  <p class="sk-blog-excerpt">
+                    {a.meta_description}
+                  </p>
+
+                  <!-- "Baca Selengkapnya" Pill Button -->
+                  <div class="mt-auto pt-3">
+                    <a href={`/blog/${a.slug}`} class="sk-blog-pill-btn">
+                      Baca Selengkapnya
+                    </a>
+                  </div>
+                </div>
+              </article>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="sk-blog-empty-card text-center py-5">
+          <div class="sk-blog-empty-icon mb-3">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <h3 style="font-family:var(--sk-font-serif);font-size:1.5rem;font-weight:700;color:var(--sk-ink);margin-bottom:8px;">Artikel Sedang Disiapkan</h3>
+          <p style="color:var(--sk-muted);max-width:440px;margin:0 auto 20px;font-size:.9375rem;">Tim redaksi kami sedang menyiapkan ulasan menarik dan tips pengadaan seminar kit terbaik untuk Anda.</p>
+          <a href="/" class="sk-blog-pill-btn">Kembali ke Beranda</a>
+        </div>
+      )}
+
+      <!-- Pagination -->
+      {totalPages > 1 && (
+        <div class="sk-blog-pagination-wrap mt-5">
+          <Pagination currentPage={page} totalPages={totalPages} baseUrl="/blog" />
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Bottom Lead Generation CTA -->
+  <CTA waUrl={waUrl} />
+</BaseLayout>
+
+<style>
+  /* ---------- Blog Cards Grid Section ---------- */
+  .sk-blog-grid-section {
+    position: relative;
+    z-index: 2;
+    margin-top: -3px; /* Overlap PageBanner bottom edge to eliminate any 1px subpixel dark seam */
+    padding: 38px 0 85px;
+    background-color: var(--sk-bg);
+  }
+
+  /* Single Blog Card (Reference Lawncare Style) */
+  .sk-blog-card {
+    background: #FFFFFF;
+    border: 1px solid #E2DCCF;
+    border-radius: 26px;
+    padding: 22px 22px 26px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.28s ease;
+    box-shadow: 0 6px 20px rgba(31, 45, 45, 0.04);
+  }
+
+  .sk-blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 36px rgba(31, 45, 45, 0.09);
+    border-color: #D6CEBE;
+  }
+
+  .sk-blog-card-media {
+    display: block;
+    border-radius: 18px;
+    overflow: hidden;
+    height: 220px;
+    width: 100%;
+    position: relative;
+    background-color: #F4EFE6;
+    margin-bottom: 20px;
+    text-decoration: none;
+  }
+
+  .sk-blog-cat-tag {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    background: rgba(31, 45, 45, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+  }
+
+  .sk-blog-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+    display: block;
+  }
+
+  .sk-blog-card:hover .sk-blog-card-media img {
+    transform: scale(1.05);
+  }
+
+  .sk-blog-placeholder-art {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #F4EFE6 0%, #E9E3D5 100%);
+    color: var(--sk-khaki-600);
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .sk-blog-card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  /* Meta line (Author & Date) */
+  .sk-blog-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 0.8125rem;
+    color: #9E9850;
+    font-weight: 600;
+  }
+
+  .sk-blog-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #9E9850;
+  }
+
+  .sk-blog-meta-item svg {
+    color: var(--sk-khaki-600);
+    flex-shrink: 0;
+  }
+
+  /* Title */
+  .sk-blog-title {
+    font-family: var(--sk-font-serif);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .sk-blog-title a {
+    color: var(--sk-ink);
+    text-decoration: none !important;
+    outline: none;
+    transition: color 0.18s ease, font-weight 0.15s ease;
+  }
+
+  .sk-blog-title a:hover,
+  .sk-blog-card:hover .sk-blog-title a {
+    color: var(--sk-slate-900);
+    font-weight: 800;
+    text-decoration: none !important;
+    outline: none;
+  }
+
+  /* Excerpt */
+  .sk-blog-excerpt {
+    font-size: 0.9375rem;
+    color: var(--sk-muted);
+    line-height: 1.65;
+    margin-bottom: 22px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* "Baca Selengkapnya" Pill Button */
+  .sk-blog-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #BDB76B 0%, #A8A25A 100%);
+    color: #1F2D2D !important;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    border-radius: 50px;
+    padding: 10px 24px;
+    text-decoration: none;
+    border: none;
+    box-shadow: 0 4px 12px rgba(168, 162, 90, 0.25);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .sk-blog-pill-btn:hover {
+    background: linear-gradient(135deg, #A8A25A 0%, #948E44 100%);
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(168, 162, 90, 0.4);
+  }
+
+  /* Empty state */
+  .sk-blog-empty-card {
+    background: #FFFFFF;
+    border: 1px solid #E2DCCF;
+    border-radius: 28px;
+    padding: 50px 30px;
+    box-shadow: 0 10px 30px rgba(31, 45, 45, 0.04);
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .sk-blog-empty-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #F4EFE6;
+    color: var(--sk-slate-700);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  /* Pagination Wrap */
+  .sk-blog-pagination-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  :global(.sk-pagination a) {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    padding: 8px 16px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+    border-bottom: none !important;
+    color: var(--sk-slate-700);
+    background: #FFFFFF;
+    border: 1px solid #E2DCCF;
+  }
+
+  :global(.sk-pagination a:hover) {
+    background: var(--sk-bg-alt);
+    color: var(--sk-ink);
+  }
+
+  :global(.sk-pagination a[aria-current="page"]) {
+    background: var(--sk-slate-700) !important;
+    color: #FFFFFF !important;
+    border-color: var(--sk-slate-700) !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(47, 79, 79, 0.2);
+  }
+</style>

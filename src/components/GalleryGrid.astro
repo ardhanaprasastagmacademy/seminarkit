@@ -1,0 +1,768 @@
+---
+// src/components/GalleryGrid.astro
+// Pure Editorial Masonry Photo Collage (Tanpa Deskripsi, Menyerupai Referensi)
+
+export interface GalleryItem {
+  id: string;
+  judul?: string | null;
+  alt_text: string;
+  gambar_url: string;
+  kategori?: string | null;
+  urutan?: number;
+}
+
+export interface Props {
+  items: GalleryItem[];
+  waNumber?: string;
+}
+
+const { items = [], waNumber = '0822232730246' } = Astro.props;
+
+// Normalisasi kategori agar rapi (e.g. 'Souvenir' disatukan ke 'Souvenir Kantor')
+function getNormalizedCategory(cat?: string | null): string {
+  if (!cat) return 'Souvenir Kantor';
+  const trimmed = cat.trim();
+  if (trimmed.toLowerCase() === 'souvenir') return 'Souvenir Kantor';
+  return trimmed;
+}
+
+// Pola rasio aspek editorial (mosaic) menyerupai gambar referensi:
+// Campuran landscape (4/3, 16/10), portrait (3/4, 2/3), square (1/1), dan tall focal (9/14)
+const aspectRatios = [
+  '4 / 3',   // 0: landscape
+  '3 / 4',   // 1: portrait
+  '3 / 4',   // 2: portrait
+  '2 / 3',   // 3: tall portrait
+  '16 / 10', // 4: wide landscape
+  '4 / 3',   // 5: landscape
+  '4 / 3',   // 6: landscape
+  '9 / 14',  // 7: tall focal portrait
+  '3 / 4',   // 8: portrait
+  '1 / 1',   // 9: square
+  '16 / 10', // 10: wide landscape
+  '4 / 3',   // 11: landscape
+];
+
+const cleanWa = waNumber.replace(/\D/g, '');
+const formattedWa = cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa;
+
+const normalizedCategories = Array.from(
+  new Set(
+    items
+      .map((it) => getNormalizedCategory(it.kategori))
+      .filter((c): c is string => Boolean(c && c.length > 0))
+  )
+);
+---
+
+<div class="sk-gallery-wrapper" id="sk-gallery-root">
+  <!-- ========================================================
+       1. TIDY & INDIVIDUAL CATEGORY FILTER PILLS (RAPII TANPA BLOB)
+       ======================================================== -->
+  {normalizedCategories.length > 0 && (
+    <div class="sk-gallery-filter-wrap">
+      <div class="sk-filter-pills-list" role="tablist" aria-label="Filter kategori galeri">
+        <button
+          type="button"
+          class="sk-filter-pill is-active"
+          data-filter="all"
+          role="tab"
+          aria-selected="true"
+        >
+          <span>Semua</span>
+          <span class="sk-filter-count">{items.length}</span>
+        </button>
+
+        {normalizedCategories.map((cat) => {
+          const count = items.filter((it) => getNormalizedCategory(it.kategori) === cat).length;
+          return (
+            <button
+              type="button"
+              class="sk-filter-pill"
+              data-filter={cat}
+              role="tab"
+              aria-selected="false"
+            >
+              <span>{cat}</span>
+              <span class="sk-filter-count">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
+  <!-- ========================================================
+       2. EDITORIAL MASONRY PHOTO COLLAGE (TANPA DESKRIPSI)
+       ======================================================== -->
+  <div class="sk-masonry-gallery" id="sk-masonry-gallery" role="list">
+    {items.map((item, idx) => {
+      const categoryLabel = getNormalizedCategory(item.kategori);
+      const itemTitle = item.judul || item.alt_text || 'Hasil Produksi seminarkit';
+      const aspectRatio = aspectRatios[idx % aspectRatios.length];
+      const waText = encodeURIComponent(
+        `Halo seminarkit, saya tertarik dengan foto hasil produksi "${itemTitle}" di galeri dan ingin konsultasi pemesanan serupa.`
+      );
+      const itemWaUrl = `https://wa.me/${formattedWa}?text=${waText}`;
+
+      return (
+        <div
+          class="sk-masonry-card"
+          data-category={categoryLabel}
+          data-index={idx}
+          style={`--sk-aspect: ${aspectRatio};`}
+          role="listitem"
+        >
+          <button
+            type="button"
+            class="sk-masonry-trigger"
+            data-lb-src={item.gambar_url}
+            data-lb-alt={item.alt_text}
+            data-lb-title={itemTitle}
+            data-lb-category={categoryLabel}
+            data-lb-wa={itemWaUrl}
+            data-lb-index={idx}
+            aria-label={`Lihat foto: ${itemTitle}`}
+          >
+            <img
+              src={item.gambar_url}
+              alt={item.alt_text}
+              loading="lazy"
+              decoding="async"
+              class="sk-masonry-img"
+            />
+          </button>
+        </div>
+      );
+    })}
+  </div>
+
+  <!-- Empty Filter Notice -->
+  <div class="sk-gallery-empty" id="sk-gallery-empty" style="display: none;">
+    <div class="sk-empty-card">
+      <p class="sk-empty-text">Tidak ada foto untuk kategori ini.</p>
+      <button type="button" class="sk-pill-btn sk-pill-btn--dark" id="sk-reset-filter-btn">
+        Lihat Semua Foto
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       3. CLEAN LIGHTBOX MODAL
+       ======================================================== -->
+  <div
+    class="sk-artisan-lightbox"
+    id="sk-lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Penampil Foto Portofolio"
+    aria-hidden="true"
+  >
+    <div class="sk-lb-backdrop" id="sk-lb-backdrop"></div>
+
+    <div class="sk-lb-container">
+      <!-- Lightbox Top Controls -->
+      <header class="sk-lb-header">
+        <span class="sk-lb-counter-pill" id="lb-counter">Foto 1 / 11</span>
+
+        <button
+          type="button"
+          class="sk-lb-close-btn"
+          id="lb-close"
+          aria-label="Tutup penampil foto (Tekan ESC)"
+          title="Tutup"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Stage -->
+      <div class="sk-lb-stage">
+        <!-- Prev -->
+        <button
+          type="button"
+          class="sk-lb-nav-btn sk-lb-nav-btn--prev"
+          id="lb-prev"
+          aria-label="Foto Sebelumnya"
+          title="Sebelumnya (Panah Kiri)"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+
+        <!-- Center Image Display -->
+        <div class="sk-lb-image-frame" id="sk-lb-frame">
+          <img
+            id="lb-img"
+            src=""
+            alt=""
+            width="1000"
+            height="750"
+            class="sk-lb-img"
+          />
+        </div>
+
+        <!-- Next -->
+        <button
+          type="button"
+          class="sk-lb-nav-btn sk-lb-nav-btn--next"
+          id="lb-next"
+          aria-label="Foto Berikutnya"
+          title="Berikutnya (Panah Kanan)"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Lightbox Bottom Actions -->
+      <footer class="sk-lb-footer">
+        <h3 class="sk-lb-title" id="lb-title"></h3>
+
+        <a
+          id="lb-wa-btn"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="sk-lb-wa-action"
+          title="Chat WhatsApp untuk pesanan serupa"
+        >
+          <svg width="17" height="17" viewBox="0 0 448 512" fill="currentColor">
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path>
+          </svg>
+          <span>Pesan Seperti Ini</span>
+        </a>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    // 1. FILTER LOGIC
+    const filterPills = Array.from(document.querySelectorAll<HTMLButtonElement>('.sk-filter-pill'));
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.sk-masonry-card'));
+    const emptyNotice = document.getElementById('sk-gallery-empty');
+    const resetFilterBtn = document.getElementById('sk-reset-filter-btn');
+
+    function filterCategory(targetCat: string) {
+      let visibleCount = 0;
+
+      filterPills.forEach((p) => {
+        const isMatch = p.dataset.filter === targetCat;
+        p.classList.toggle('is-active', isMatch);
+        p.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+      });
+
+      cards.forEach((card) => {
+        const cardCat = card.dataset.category?.trim();
+        const shouldShow = targetCat === 'all' || cardCat === targetCat;
+        if (shouldShow) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (emptyNotice) {
+        emptyNotice.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    filterPills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        filterCategory(pill.dataset.filter || 'all');
+      });
+    });
+
+    if (resetFilterBtn) {
+      resetFilterBtn.addEventListener('click', () => {
+        filterCategory('all');
+      });
+    }
+
+    // 2. LIGHTBOX LOGIC
+    const lb = document.getElementById('sk-lightbox') as HTMLElement | null;
+    if (!lb) return;
+
+    const lbImg = document.getElementById('lb-img') as HTMLImageElement;
+    const lbTitle = document.getElementById('lb-title') as HTMLElement;
+    const lbCounter = document.getElementById('lb-counter') as HTMLElement;
+    const lbWaBtn = document.getElementById('lb-wa-btn') as HTMLAnchorElement;
+    const lbCloseBtn = document.getElementById('lb-close');
+    const lbPrevBtn = document.getElementById('lb-prev');
+    const lbNextBtn = document.getElementById('lb-next');
+    const lbBackdrop = document.getElementById('sk-lb-backdrop');
+
+    const triggers = Array.from(document.querySelectorAll<HTMLButtonElement>('.sk-masonry-trigger'));
+    let currentIndex = 0;
+
+    function getActiveTriggers(): HTMLButtonElement[] {
+      return triggers.filter((btn) => {
+        const card = btn.closest('.sk-masonry-card') as HTMLElement | null;
+        return card && card.style.display !== 'none';
+      });
+    }
+
+    function openLightbox(activeList: HTMLButtonElement[], activeIdx: number) {
+      if (!activeList.length || activeIdx < 0 || activeIdx >= activeList.length) return;
+      currentIndex = activeIdx;
+      const targetBtn = activeList[currentIndex];
+
+      const src = targetBtn.dataset.lbSrc || '';
+      const alt = targetBtn.dataset.lbAlt || '';
+      const title = targetBtn.dataset.lbTitle || alt;
+      const waUrl = targetBtn.dataset.lbWa || '#';
+
+      if (lbImg) {
+        lbImg.src = src;
+        lbImg.alt = alt;
+      }
+      if (lbTitle) lbTitle.textContent = title;
+      if (lbCounter) lbCounter.textContent = `Foto ${currentIndex + 1} / ${activeList.length}`;
+      if (lbWaBtn) lbWaBtn.href = waUrl;
+
+      lb?.classList.add('is-open');
+      lb?.removeAttribute('aria-hidden');
+      document.body.style.overflow = 'hidden';
+      lbCloseBtn?.focus();
+    }
+
+    function closeLightbox() {
+      lb?.classList.remove('is-open');
+      lb?.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      const activeList = getActiveTriggers();
+      activeList[currentIndex]?.focus();
+    }
+
+    function stepLightbox(direction: number) {
+      const activeList = getActiveTriggers();
+      if (!activeList.length) return;
+      const nextIdx = (currentIndex + direction + activeList.length) % activeList.length;
+      openLightbox(activeList, nextIdx);
+    }
+
+    triggers.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const activeList = getActiveTriggers();
+        const activeIdx = activeList.indexOf(btn);
+        openLightbox(activeList, activeIdx >= 0 ? activeIdx : 0);
+      });
+    });
+
+    lbCloseBtn?.addEventListener('click', closeLightbox);
+    lbBackdrop?.addEventListener('click', closeLightbox);
+    lbPrevBtn?.addEventListener('click', () => stepLightbox(-1));
+    lbNextBtn?.addEventListener('click', () => stepLightbox(1));
+
+    document.addEventListener('keydown', (e) => {
+      if (!lb?.classList.contains('is-open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') stepLightbox(-1);
+      else if (e.key === 'ArrowRight') stepLightbox(1);
+    });
+  })();
+</script>
+
+<style>
+  /* ========================================================
+     EDITORIAL MASONRY GALLERY (TANPA DESKRIPSI)
+     ======================================================== */
+  .sk-gallery-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  /* 1. TIDY FILTER BAR (TIDAK ADA BACKGROUND BLOB RAKSASA) */
+  .sk-gallery-filter-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 4px auto 30px;
+    max-width: 980px;
+    width: 100%;
+  }
+
+  .sk-filter-pills-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .sk-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid rgba(27, 49, 49, 0.15);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 0.84375rem;
+    font-weight: 600;
+    color: #2B453D;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(27, 49, 49, 0.03);
+  }
+
+  .sk-filter-count {
+    font-size: 0.71875rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: #ECE7DB;
+    color: #375046;
+    transition: all 0.2s ease;
+  }
+
+  .sk-filter-pill:hover {
+    background: #F4EFE6;
+    border-color: #8B9364;
+    color: #1B3131;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(27, 49, 49, 0.08);
+  }
+
+  .sk-filter-pill.is-active {
+    background: #1B3131;
+    border-color: #1B3131;
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(27, 49, 49, 0.24);
+  }
+
+  .sk-filter-pill.is-active .sk-filter-count {
+    background: rgba(255, 255, 255, 0.24);
+    color: #FFFFFF;
+  }
+
+  /* 2. MASONRY COLLAGE (SAMA PERSIS DENGAN REFERENSI) */
+  .sk-masonry-gallery {
+    column-count: 3;
+    column-gap: 14px;
+    column-fill: balance;
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .sk-masonry-card {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 14px;
+    border-radius: 6px; /* Sudut halus persis referensi */
+    overflow: hidden;
+    background-color: #E6E1D4;
+    position: relative;
+    aspect-ratio: var(--sk-aspect, 4 / 3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease;
+  }
+
+  .sk-masonry-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(27, 49, 49, 0.14);
+  }
+
+  .sk-masonry-trigger {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sk-masonry-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .sk-masonry-card:hover .sk-masonry-img {
+    transform: scale(1.05);
+  }
+
+  /* Empty state */
+  .sk-gallery-empty {
+    padding: 50px 20px;
+    text-align: center;
+  }
+
+  .sk-empty-card {
+    max-width: 360px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    padding: 32px 24px;
+    border-radius: 14px;
+    border: 1px dashed rgba(27, 49, 49, 0.2);
+  }
+
+  .sk-empty-text {
+    font-size: 0.9375rem;
+    color: #4C655A;
+    margin-bottom: 14px;
+  }
+
+  /* ========================================================
+     3. CLEAN LIGHTBOX
+     ======================================================== */
+  .sk-artisan-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .sk-artisan-lightbox.is-open {
+    display: flex;
+  }
+
+  .sk-lb-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 26, 24, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .sk-lb-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    max-height: 94vh;
+  }
+
+  /* Header */
+  .sk-lb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+  }
+
+  .sk-lb-counter-pill {
+    color: #FAF6ED;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 9999px;
+  }
+
+  .sk-lb-close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .sk-lb-close-btn:hover {
+    background: #FFFFFF;
+    color: #1B3131;
+    transform: rotate(90deg) scale(1.05);
+  }
+
+  /* Stage */
+  .sk-lb-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 380px;
+    margin: 6px 0;
+  }
+
+  .sk-lb-nav-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    transition: all 0.25s ease;
+  }
+
+  .sk-lb-nav-btn--prev {
+    left: -20px;
+  }
+
+  .sk-lb-nav-btn--next {
+    right: -20px;
+  }
+
+  .sk-lb-nav-btn:hover {
+    background: #BDB76B;
+    border-color: #BDB76B;
+    color: #1B3131;
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  .sk-lb-image-frame {
+    max-width: 860px;
+    width: 100%;
+    max-height: 68vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .sk-lb-img {
+    max-width: 100%;
+    max-height: 68vh;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Footer */
+  .sk-lb-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sk-lb-title {
+    font-family: var(--sk-font-serif, Georgia, serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  .sk-lb-wa-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #B6AD67;
+    color: #1B3131;
+    border: 1px solid #B6AD67;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .sk-lb-wa-action:hover {
+    background: #FAF6ED;
+    border-color: #FAF6ED;
+    color: #1B3131;
+    transform: translateY(-2px);
+  }
+
+  /* Responsive */
+  @media (max-width: 991.98px) {
+    .sk-masonry-gallery {
+      column-count: 2;
+      column-gap: 12px;
+    }
+    .sk-masonry-card {
+      margin-bottom: 12px;
+    }
+    .sk-lb-nav-btn--prev {
+      left: 6px;
+    }
+    .sk-lb-nav-btn--next {
+      right: 6px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sk-gallery-filter-wrap {
+      margin-bottom: 20px;
+      padding: 0 4px;
+    }
+    .sk-filter-pills-list {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 4px 6px 10px;
+      gap: 8px;
+    }
+    .sk-filter-pills-list::-webkit-scrollbar {
+      display: none;
+    }
+    .sk-filter-pill {
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .sk-masonry-gallery {
+      column-count: 2;
+      column-gap: 8px;
+    }
+    .sk-masonry-card {
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    .sk-lb-stage {
+      min-height: 260px;
+    }
+    .sk-lb-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .sk-lb-wa-action {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

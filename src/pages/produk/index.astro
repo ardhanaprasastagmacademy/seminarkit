@@ -1,0 +1,862 @@
+---
+// src/pages/produk/index.astro
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import CTA from '../../components/CTA.astro';
+import { getSiteSettings, getAllProducts, getCategories } from '../../lib/queries';
+import { buildWaFromPage } from '../../lib/wa';
+import { organizationSchema, breadcrumbSchema } from '../../lib/seo';
+
+const settings = await getSiteSettings();
+const waUrl = buildWaFromPage(settings?.wa_number, 'Produk');
+
+// Parse query params
+const url = Astro.url;
+const pageParam = url.searchParams.get('page');
+const kategoriParam = url.searchParams.get('kategori') ?? undefined;
+const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
+
+const categories = await getCategories();
+const { products, count } = await getAllProducts(page, kategoriParam);
+const totalPages = Math.ceil(count / 12);
+
+const baseUrl = '/produk' + (kategoriParam ? `?kategori=${encodeURIComponent(kategoriParam)}` : '');
+
+// Category Mapping & Accurate Count Calculation for Badges
+const categoryMap = new Map(categories.map(c => [c.id, c.nama]));
+
+let allItemsForCounts = products;
+if (kategoriParam) {
+  const allRes = await getAllProducts(1, undefined);
+  allItemsForCounts = allRes.products;
+}
+const totalCount = allItemsForCounts.length;
+const categoryCounts = new Map<string, number>();
+categories.forEach(c => {
+  const cnt = allItemsForCounts.filter(p => p.category_id === c.id).length;
+  categoryCounts.set(c.slug, cnt);
+});
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://seminarkit.id';
+const schemas = [
+  organizationSchema(),
+  breadcrumbSchema([
+    { name: 'Beranda', url: siteUrl + '/' },
+    { name: 'Produk', url: siteUrl + '/produk' },
+  ]),
+];
+
+// Active Category Name for Header context
+const activeCategoryName = kategoriParam
+  ? categories.find(c => c.slug === kategoriParam)?.nama
+  : null;
+---
+
+<BaseLayout
+  title="Katalog Produk Souvenir Kantor & Seminar Kit"
+  description="Temukan beragam souvenir kantor dan paket seminar kit dari seminarkit. Harga mulai Rp 15.000/pcs, minimum order fleksibel, kualitas cetak dan pengerjaan terpercaya."
+  settings={settings}
+  currentPage="Produk"
+  jsonLd={schemas}
+>
+  <!-- ========================================================
+       PAGE BANNER (SEAMLESS WAVE CUTOUT TRANSITION)
+       ======================================================== -->
+  <PageBanner
+    judul="Katalog Produk & Paket Seminar Kit"
+    badgeText="Koleksi Resmi & Pengadaan Instansi"
+    badgeIcon="box"
+    deskripsi="Pilihan paket seminar kit kustom dan souvenir kantor berkualitas dengan garansi pengerjaan tepat waktu."
+    breadcrumbs={[{ label: 'Produk' }]}
+    waveFill="#FBFAF5"
+  />
+
+  <!-- ========================================================
+       MAIN CATALOG CONTENT SECTION
+       ======================================================== -->
+  <section class="sk-catalog-page-section" aria-labelledby="produk-list-heading">
+    <div class="container">
+      <h2 id="produk-list-heading" class="visually-hidden">Daftar Produk Souvenir & Seminar Kit</h2>
+
+      <!-- ========================================================
+           FILTER PILLS & LIVE SEARCH BAR
+           ======================================================== -->
+      <div class="sk-filter-control-card">
+        <!-- Category Filter Pills (Refined, Matching Gallery Style) -->
+        {categories.length > 0 && (
+          <div class="sk-category-pills-row" role="tablist" aria-label="Filter kategori produk">
+            <a
+              href="/produk"
+              class={`sk-cat-pill ${!kategoriParam ? 'is-active' : ''}`}
+              role="tab"
+              aria-selected={!kategoriParam ? 'true' : 'false'}
+            >
+              <span>Semua</span>
+              <span class="sk-cat-count">{totalCount}</span>
+            </a>
+
+            {categories.map(cat => {
+              const catCount = categoryCounts.get(cat.slug) ?? 0;
+              const isActive = kategoriParam === cat.slug;
+              return (
+                <a
+                  href={`/produk?kategori=${encodeURIComponent(cat.slug)}`}
+                  class={`sk-cat-pill ${isActive ? 'is-active' : ''}`}
+                  role="tab"
+                  aria-selected={isActive ? 'true' : 'false'}
+                >
+                  <span>{cat.nama}</span>
+                  <span class="sk-cat-count">{catCount}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
+
+        <!-- Search & Sorting Action Row -->
+        <div class="sk-search-sort-bar">
+          <!-- Search Input Pill -->
+          <div class="sk-search-pill-box">
+            <svg class="sk-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="search"
+              id="sk-product-search-input"
+              class="sk-search-input"
+              placeholder="Cari souvenir, paket seminar, tumbler, agenda..."
+              aria-label="Cari produk"
+              autocomplete="off"
+            />
+            <button
+              type="button"
+              id="sk-search-clear-btn"
+              class="sk-search-clear-btn"
+              aria-label="Hapus kata kunci pencarian"
+              style="display:none;"
+            >
+              &times;
+            </button>
+          </div>
+
+          <!-- Sort Select (Custom Styled Dropdown) -->
+          <div class="sk-sort-pill-box">
+            <span class="sk-sort-label">Urutkan:</span>
+            <div class="sk-custom-sort-wrap" id="custom-sort-dropdown">
+              <select id="sk-product-sort-select" class="visually-hidden" aria-label="Urutkan produk" tabindex="-1">
+                <option value="default">Rekomendasi</option>
+                <option value="price-asc">Harga: Terendah</option>
+                <option value="price-desc">Harga: Tertinggi</option>
+                <option value="name-asc">Nama: A - Z</option>
+              </select>
+
+              <button
+                type="button"
+                id="custom-sort-trigger"
+                class="sk-custom-sort-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              >
+                <span id="custom-sort-label">Rekomendasi</span>
+                <svg class="sk-custom-sort-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+
+              <div id="custom-sort-menu" class="sk-custom-sort-menu" role="listbox" style="display:none;">
+                <div class="sk-custom-sort-item is-selected" data-val="default" role="option" aria-selected="true">
+                  Rekomendasi
+                </div>
+                <div class="sk-custom-sort-item" data-val="price-asc" role="option" aria-selected="false">
+                  Harga: Terendah
+                </div>
+                <div class="sk-custom-sort-item" data-val="price-desc" role="option" aria-selected="false">
+                  Harga: Tertinggi
+                </div>
+                <div class="sk-custom-sort-item" data-val="name-asc" role="option" aria-selected="false">
+                  Nama: A - Z
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Counter -->
+          <div class="sk-counter-display">
+            Menampilkan <strong id="sk-visible-count">{products.length}</strong> produk
+            {activeCategoryName ? ` (${activeCategoryName})` : ''}
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           3. PRODUCTS GRID
+           ======================================================== -->
+      {products.length > 0 ? (
+        <div class="row g-4" id="sk-product-grid">
+          {products.map(p => {
+            const catName = p.category_id ? categoryMap.get(p.category_id) : undefined;
+            return (
+              <div class="col-lg-4 col-md-6 col-12 sk-product-col" data-col-id={p.id}>
+                <ProductCard product={p} categoryName={catName} waNumber={settings?.wa_number} />
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <!-- Empty State Container (Server fallback & Client search fallback) -->
+      <div
+        id="sk-empty-products"
+        class="sk-empty-product-state"
+        style={products.length === 0 ? 'display:block;' : 'display:none;'}
+      >
+        <div class="sk-empty-inner-card">
+          <div class="sk-empty-icon-circle">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </div>
+          <h3 class="sk-empty-title">Produk Tidak Ditemukan</h3>
+          <p class="sk-empty-desc">
+            {kategoriParam
+              ? `Belum ada produk dalam kategori "${activeCategoryName || kategoriParam}". Kami juga melayani pengadaan paket kustom sesuai spesifikasi kebutuhan Anda.`
+              : 'Tidak ditemukan produk yang cocok dengan pencarian Anda. Silakan reset filter atau konsultasikan langsung produk yang Anda cari.'}
+          </p>
+          <div class="sk-empty-actions">
+            <a href="/produk" class="sk-pill-btn sk-pill-btn--dark">
+              Lihat Semua Katalog
+            </a>
+            <a href={waUrl} target="_blank" rel="noopener noreferrer" class="sk-pill-btn sk-pill-btn--khaki">
+              Konsultasi Kebutuhan Kustom
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      {totalPages > 1 && (
+        <div class="sk-pagination-wrap" id="sk-pagination-container">
+          <Pagination currentPage={page} totalPages={totalPages} baseUrl={baseUrl} />
+        </div>
+      )}
+
+    </div>
+  </section>
+
+  <!-- ========================================================
+       BOTTOM CTA SECTION
+       ======================================================== -->
+  <CTA waUrl={waUrl} />
+</BaseLayout>
+
+<!-- Client-side Interactive Search & Quick Sort Script -->
+<script>
+  (() => {
+    const searchInput = document.getElementById('sk-product-search-input') as HTMLInputElement | null;
+    const clearBtn = document.getElementById('sk-search-clear-btn');
+    const sortSelect = document.getElementById('sk-product-sort-select') as HTMLSelectElement | null;
+    const grid = document.getElementById('sk-product-grid');
+    const emptyBox = document.getElementById('sk-empty-products');
+    const counterEl = document.getElementById('sk-visible-count');
+    const pagination = document.getElementById('sk-pagination-container');
+
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('.sk-product-col'));
+
+    function applyFilterAndSort() {
+      const query = (searchInput?.value || '').trim().toLowerCase();
+      const sortMode = sortSelect?.value || 'default';
+
+      if (clearBtn) {
+        clearBtn.style.display = query ? 'inline-flex' : 'none';
+      }
+
+      let visibleCards = cards.filter(col => {
+        if (!query) return true;
+        const card = col.querySelector<HTMLElement>('.sk-product-card');
+        if (!card) return false;
+        const title = card.getAttribute('data-product-title') || '';
+        const desc = card.getAttribute('data-product-desc') || '';
+        return title.includes(query) || desc.includes(query);
+      });
+
+      // Apply Sort
+      visibleCards.sort((a, b) => {
+        const cardA = a.querySelector<HTMLElement>('.sk-product-card');
+        const cardB = b.querySelector<HTMLElement>('.sk-product-card');
+        const priceA = parseFloat(cardA?.getAttribute('data-product-price') || '0');
+        const priceB = parseFloat(cardB?.getAttribute('data-product-price') || '0');
+        const titleA = (cardA?.getAttribute('data-product-title') || '');
+        const titleB = (cardB?.getAttribute('data-product-title') || '');
+
+        if (sortMode === 'price-asc') return priceA - priceB;
+        if (sortMode === 'price-desc') return priceB - priceA;
+        if (sortMode === 'name-asc') return titleA.localeCompare(titleB);
+        return 0; // default order
+      });
+
+      // Render Grid
+      cards.forEach(col => {
+        col.style.display = 'none';
+      });
+
+      visibleCards.forEach(col => {
+        col.style.display = '';
+        grid.appendChild(col); // re-append in sorted order
+      });
+
+      if (counterEl) {
+        counterEl.textContent = String(visibleCards.length);
+      }
+
+      if (emptyBox) {
+        emptyBox.style.display = visibleCards.length === 0 ? 'block' : 'none';
+      }
+
+      // Hide server pagination during live search to avoid confusion
+      if (pagination) {
+        pagination.style.display = query ? 'none' : '';
+      }
+    }
+
+    searchInput?.addEventListener('input', applyFilterAndSort);
+
+    clearBtn?.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      applyFilterAndSort();
+    });
+
+    sortSelect?.addEventListener('change', applyFilterAndSort);
+
+    // Custom Sort Dropdown Controller
+    const sortWrap = document.getElementById('custom-sort-dropdown');
+    const sortTrigger = document.getElementById('custom-sort-trigger');
+    const sortLabel = document.getElementById('custom-sort-label');
+    const sortMenu = document.getElementById('custom-sort-menu');
+
+    if (sortWrap && sortTrigger && sortLabel && sortMenu && sortSelect) {
+      function openSort() {
+        sortWrap.classList.add('is-open');
+        sortMenu.style.display = 'block';
+        sortTrigger.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeSort() {
+        sortWrap.classList.remove('is-open');
+        sortMenu.style.display = 'none';
+        sortTrigger.setAttribute('aria-expanded', 'false');
+      }
+
+      sortTrigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (sortMenu.style.display === 'block') {
+          closeSort();
+        } else {
+          openSort();
+        }
+      });
+
+      sortMenu.querySelectorAll<HTMLElement>('.sk-custom-sort-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const val = item.getAttribute('data-val') || 'default';
+          sortSelect.value = val;
+          sortLabel.textContent = item.textContent?.trim() || 'Rekomendasi';
+
+          sortMenu.querySelectorAll('.sk-custom-sort-item').forEach(i => {
+            i.classList.remove('is-selected');
+            i.setAttribute('aria-selected', 'false');
+          });
+          item.classList.add('is-selected');
+          item.setAttribute('aria-selected', 'true');
+
+          closeSort();
+          applyFilterAndSort();
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!sortWrap.contains(e.target as Node)) {
+          closeSort();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSort();
+      });
+    }
+
+    // Ensure category pills row starts cleanly and doesn't cut off "Semua"
+    const pillsRow = document.querySelector<HTMLElement>('.sk-category-pills-row');
+    const activePill = pillsRow?.querySelector<HTMLElement>('.sk-cat-pill.is-active');
+    if (pillsRow) {
+      const isSemua = !activePill || activePill.getAttribute('href') === '/produk';
+      if (isSemua) {
+        pillsRow.scrollLeft = 0;
+      } else if (activePill) {
+        setTimeout(() => {
+          activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }, 50);
+      }
+    }
+  })();
+</script>
+
+<style>
+  /* ========================================================
+     CATALOG PAGE STYLES (WARM CANVAS & REFINED CONTROLS)
+     ======================================================== */
+  .sk-catalog-page-section {
+    background-color: #FBFAF5;
+    padding: 6px 0 70px;
+    margin-top: -3px; /* Overlap PageBanner bottom edge to eliminate any 1px subpixel dark seam */
+    position: relative;
+    z-index: 2;
+    min-height: 60vh;
+  }
+
+  /* Filter & Controls Card */
+  .sk-filter-control-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(27, 49, 49, 0.09);
+    border-radius: 20px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 18px rgba(27, 49, 49, 0.03);
+  }
+
+  .sk-category-pills-row {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 4px 14px;
+    border-bottom: 1px solid #ECE7DB;
+    margin-bottom: 16px;
+    width: 100%;
+    scroll-behavior: smooth;
+  }
+
+  .sk-category-pills-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sk-cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    background: #FFFFFF;
+    border: 1px solid rgba(27, 49, 49, 0.15);
+    border-radius: 50px;
+    padding: 6px 13px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2B453D;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(27, 49, 49, 0.03);
+    line-height: 1.3;
+  }
+
+  .sk-cat-count {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 20px;
+    background: #ECE7DB;
+    color: #375046;
+    transition: all 0.2s ease;
+    line-height: 1.2;
+  }
+
+  .sk-cat-pill:hover {
+    background: #F4EFE6;
+    border-color: #8B9364;
+    color: #1B3131;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(27, 49, 49, 0.08);
+  }
+
+  .sk-cat-pill.is-active {
+    background: #1B3131;
+    border-color: #1B3131;
+    color: #FFFFFF;
+    box-shadow: 0 3px 10px rgba(27, 49, 49, 0.18);
+  }
+
+  .sk-cat-pill.is-active .sk-cat-count {
+    background: rgba(255, 255, 255, 0.24);
+    color: #FFFFFF;
+  }
+
+  /* Search & Sort Bar */
+  .sk-search-sort-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .sk-search-pill-box {
+    display: flex;
+    align-items: center;
+    background: #FBFAF5;
+    border: 1px solid rgba(27, 49, 49, 0.15);
+    border-radius: 50px;
+    padding: 6px 16px;
+    min-width: 280px;
+    flex: 1;
+    max-width: 480px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .sk-search-pill-box:focus-within {
+    border-color: #1B3131;
+    box-shadow: 0 0 0 3px rgba(27, 49, 49, 0.08);
+    background: #FFFFFF;
+  }
+
+  .sk-search-icon {
+    color: #7A8B84;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+
+  .sk-search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.84375rem;
+    color: #1B3131;
+    width: 100%;
+    font-family: inherit;
+  }
+
+  .sk-search-input::placeholder {
+    color: #8C9C96;
+  }
+
+  .sk-search-clear-btn {
+    background: none;
+    border: none;
+    color: #8C9C96;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+
+  .sk-search-clear-btn:hover {
+    color: #1B3131;
+  }
+
+  .sk-sort-pill-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sk-sort-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #556660;
+    margin: 0;
+  }
+
+  .sk-custom-sort-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .sk-custom-sort-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FBFAF5;
+    border: 1px solid rgba(27, 49, 49, 0.15);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #1B3131;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .sk-custom-sort-trigger:hover,
+  .sk-custom-sort-wrap.is-open .sk-custom-sort-trigger {
+    border-color: #1B3131;
+    background: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(27, 49, 49, 0.08);
+  }
+
+  .sk-custom-sort-chevron {
+    color: #7A8B84;
+    transition: transform 0.2s ease;
+  }
+
+  .sk-custom-sort-wrap.is-open .sk-custom-sort-chevron {
+    transform: rotate(180deg);
+  }
+
+  .sk-custom-sort-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 160px;
+    background: #FFFFFF;
+    border: 1px solid rgba(27, 49, 49, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 10px 26px rgba(27, 49, 49, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    z-index: 50;
+    padding: 6px;
+  }
+
+  .sk-custom-sort-item {
+    padding: 7px 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #1B3131;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .sk-custom-sort-item:hover {
+    background-color: #F4EFE6;
+    color: #1B3131;
+  }
+
+  .sk-custom-sort-item.is-selected {
+    background-color: #1B3131;
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+
+  .sk-counter-display {
+    font-size: 0.8125rem;
+    color: #62726C;
+    margin-left: auto;
+  }
+
+  .sk-counter-display strong {
+    color: #1B3131;
+  }
+
+  /* Empty State */
+  .sk-empty-product-state {
+    padding: 40px 0;
+  }
+
+  .sk-empty-inner-card {
+    background: #FFFFFF;
+    border: 1px dashed rgba(27, 49, 49, 0.2);
+    border-radius: 20px;
+    padding: 48px 24px;
+    text-align: center;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  .sk-empty-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #F4EFE6;
+    color: #1B3131;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    border: 1px solid rgba(27, 49, 49, 0.08);
+  }
+
+  .sk-empty-title {
+    font-family: var(--sk-font-serif, 'Newsreader Variable', Georgia, serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #1B3131;
+    margin-bottom: 8px;
+  }
+
+  .sk-empty-desc {
+    font-size: 0.875rem;
+    color: #62726C;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .sk-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* Pagination Wrap */
+  .sk-pagination-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 48px;
+  }
+
+  /* Pill Buttons for Theme Consistency */
+  .sk-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.22s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .sk-pill-btn--dark {
+    background: #1B3131;
+    color: #FFFFFF;
+    padding: 10px 22px;
+    font-size: 0.875rem;
+  }
+
+  .sk-pill-btn--dark:hover {
+    background: #2F4F4F;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+
+  .sk-pill-btn--khaki {
+    background: #BDB76B;
+    color: #1B3131;
+    padding: 10px 24px;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 12px rgba(189, 183, 107, 0.3);
+  }
+
+  .sk-pill-btn--khaki:hover {
+    background: #A8A25A;
+    color: #1B3131;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(168, 162, 90, 0.38);
+  }
+
+  @media (max-width: 767.98px) {
+    .sk-filter-control-card {
+      padding: 14px 16px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+    .sk-category-pills-row {
+      padding: 6px 2px 12px;
+      gap: 5px;
+    }
+    .sk-cat-pill {
+      padding: 5px 11px;
+      font-size: 0.75rem;
+      gap: 5px;
+    }
+    .sk-cat-count {
+      font-size: 0.65625rem;
+      padding: 1px 5px;
+    }
+    .sk-search-sort-bar {
+      gap: 10px;
+    }
+    .sk-search-pill-box {
+      min-width: 100%;
+      max-width: 100%;
+      padding: 6px 14px;
+    }
+    .sk-search-input {
+      font-size: 0.8125rem;
+    }
+    .sk-sort-pill-box {
+      gap: 6px;
+    }
+    .sk-sort-label {
+      font-size: 0.71875rem;
+      letter-spacing: 0.01em;
+    }
+    .sk-custom-sort-trigger {
+      font-size: 0.71875rem;
+      padding: 4px 10px;
+      border-radius: 30px;
+      gap: 6px;
+    }
+    .sk-custom-sort-item {
+      font-size: 0.75rem;
+      padding: 6px 10px;
+    }
+    .sk-custom-sort-menu {
+      min-width: 145px;
+    }
+    .sk-counter-display {
+      margin-left: 0;
+      width: 100%;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sk-filter-control-card {
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
+    .sk-cat-pill {
+      padding: 4px 10px;
+      font-size: 0.71875rem;
+    }
+    .sk-cat-count {
+      font-size: 0.625rem;
+      padding: 1px 4px;
+    }
+    .sk-search-pill-box {
+      padding: 5px 12px;
+    }
+    .sk-search-input {
+      font-size: 0.78125rem;
+    }
+    .sk-sort-pill-box {
+      gap: 5px;
+    }
+    .sk-sort-label {
+      font-size: 0.6875rem;
+    }
+    .sk-custom-sort-trigger {
+      font-size: 0.6875rem;
+      padding: 3px 8px;
+    }
+    .sk-custom-sort-menu {
+      min-width: 135px;
+    }
+    .sk-custom-sort-item {
+      font-size: 0.71875rem;
+      padding: 5px 8px;
+    }
+    .sk-counter-display {
+      font-size: 0.6875rem;
+    }
+  }
+</style>
