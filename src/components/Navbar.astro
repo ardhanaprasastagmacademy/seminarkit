@@ -38,6 +38,8 @@ const isActive = (href: string) =>
       class="navbar-toggler border-0 shadow-none"
       type="button"
       id="sk-nav-toggler"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#nav-offcanvas"
       aria-controls="nav-offcanvas"
       aria-label="Buka menu navigasi"
     >
@@ -68,6 +70,7 @@ const isActive = (href: string) =>
           type="button"
           class="btn-close btn-close-white shadow-none"
           id="sk-nav-close"
+          data-bs-dismiss="offcanvas"
           aria-label="Tutup navigasi"
         ></button>
       </div>
@@ -113,67 +116,70 @@ const isActive = (href: string) =>
 <!-- Backdrop overlay for mobile drawer -->
 <div id="sk-nav-backdrop" class="sk-nav-backdrop d-lg-none" aria-hidden="true"></div>
 
-<script is:inline>
-  (function() {
-    const navbar = document.querySelector('.sk-navbar');
-    if (!navbar) return;
-
-    // 1. Mobile Offcanvas Navigation Toggle (Active on all pages)
+<script>
+  function initMobileDrawer() {
     const toggler = document.getElementById('sk-nav-toggler') || document.querySelector('.navbar-toggler');
     const offcanvasEl = document.getElementById('nav-offcanvas');
     const closeBtn = document.getElementById('sk-nav-close') || (offcanvasEl ? offcanvasEl.querySelector('.btn-close') : null);
     const backdrop = document.getElementById('sk-nav-backdrop');
 
-    if (toggler && offcanvasEl) {
-      function openDrawer(e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        offcanvasEl.classList.add('show', 'is-open');
-        offcanvasEl.style.visibility = 'visible';
-        offcanvasEl.style.transform = 'translateX(0)';
-        document.body.style.overflow = 'hidden';
-        if (backdrop) {
-          backdrop.classList.add('show');
-        }
+    if (!toggler || !offcanvasEl) return;
+
+    function openDrawer(e?: Event) {
+      if (e) {
+        e.preventDefault();
       }
-
-      function closeDrawer(e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        offcanvasEl.classList.remove('show', 'is-open');
-        offcanvasEl.style.transform = '';
-        offcanvasEl.style.visibility = '';
-        document.body.style.overflow = '';
-        if (backdrop) {
-          backdrop.classList.remove('show');
-        }
-      }
-
-      toggler.addEventListener('click', openDrawer);
-
-      if (closeBtn) {
-        closeBtn.addEventListener('click', closeDrawer);
-      }
-
+      offcanvasEl.classList.add('show', 'is-open');
+      offcanvasEl.style.visibility = 'visible';
+      offcanvasEl.style.transform = 'translateX(0)';
+      document.body.style.overflow = 'hidden';
       if (backdrop) {
-        backdrop.addEventListener('click', closeDrawer);
+        backdrop.classList.add('show');
       }
-
-      // Close when clicking any nav link
-      offcanvasEl.querySelectorAll('.nav-link, .sk-nav-cta-btn').forEach(function(link) {
-        link.addEventListener('click', function() {
-          closeDrawer();
-        });
-      });
-
-      // Close on Escape key
-      window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeDrawer();
-      });
     }
-  })();
+
+    function closeDrawer(e?: Event) {
+      if (e) {
+        e.preventDefault();
+      }
+      offcanvasEl.classList.remove('show', 'is-open');
+      offcanvasEl.style.transform = '';
+      offcanvasEl.style.visibility = '';
+      document.body.style.overflow = '';
+      if (backdrop) {
+        backdrop.classList.remove('show');
+      }
+    }
+
+    // Support both click and touchstart for instant mobile response
+    toggler.addEventListener('click', openDrawer);
+    toggler.addEventListener('touchstart', (e) => openDrawer(e), { passive: false });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeDrawer);
+      closeBtn.addEventListener('touchstart', (e) => closeDrawer(e), { passive: false });
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener('click', closeDrawer);
+      backdrop.addEventListener('touchstart', (e) => closeDrawer(e), { passive: false });
+    }
+
+    // Close when clicking any nav link
+    offcanvasEl.querySelectorAll('.nav-link, .sk-nav-cta-btn').forEach((link) => {
+      link.addEventListener('click', () => closeDrawer());
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+  }
+
+  // Initialize once DOM is ready (or immediately if already parsed)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileDrawer);
+  } else {
+    initMobileDrawer();
+  }
 </script>
