@@ -65,6 +65,7 @@ export async function fetchAdminData(table: string): Promise<any> {
   const token = session?.token || 'sk-admin-master-token';
 
   const res = await fetch(`/api/admin/manage?table=${encodeURIComponent(table)}`, {
+    credentials: 'include',
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -83,6 +84,7 @@ export async function postAdminAction(action: string, payload: any = {}): Promis
 
   const res = await fetch('/api/admin/manage', {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -96,4 +98,3 @@ export async function postAdminAction(action: string, payload: any = {}): Promis
   }
   return json;
 }
-
