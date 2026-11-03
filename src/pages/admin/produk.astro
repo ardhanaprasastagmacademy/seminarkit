@@ -714,11 +714,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       try {
         await fetch('/api/admin/manage', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'save_category', payload: { nama, slug } })
         });
-      } catch {}
-      try { await sb.from('categories').insert({ nama, slug }); } catch {}
+      } catch (e) {
+        console.warn('Save category error:', e);
+      }
 
       (document.getElementById('cat-nama') as HTMLInputElement).value = '';
       (document.getElementById('cat-slug') as HTMLInputElement).value = '';
@@ -754,24 +756,32 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       }
 
       const saveBtn = document.getElementById('produk-save') as HTMLButtonElement | null;
-      if (saveBtn) saveBtn.disabled = true;
-
-      try {
-        await fetch('/api/admin/manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'save_product', payload })
-        });
-      } catch (e) {
-        console.warn('API save error:', e);
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
       }
 
       try {
-        if (id) await sb.from('products').update(payload).eq('id', id);
-        else await sb.from('products').insert(payload);
-      } catch {}
+        const res = await fetch('/api/admin/manage', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_product', payload })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          alert('Gagal menyimpan: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e: any) {
+        console.warn('API save error:', e);
+        alert('Gagal menyimpan produk: ' + (e?.message || e));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Simpan Produk';
+        }
+      }
 
-      if (saveBtn) saveBtn.disabled = false;
       modal.hide();
       loadProduk();
     });
@@ -784,11 +794,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           try {
             await fetch('/api/admin/manage', {
               method: 'POST',
+              credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'delete_product', payload: { id: btn.dataset.id } })
             });
-          } catch {}
-          try { await sb.from('products').update({ is_published: false }).eq('id', btn.dataset.id!); } catch {}
+          } catch (e) {
+            console.warn('Delete product error:', e);
+          }
           loadProduk();
         };
       });

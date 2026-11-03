@@ -960,24 +960,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           modal.hide();
           loadBlog();
           return;
+        } else {
+          throw new Error(res.error || 'Gagal menyimpan artikel');
         }
-      } catch {}
-
-      let err;
-      if (id) {
-        ({ error: err } = await sb.from('articles').update(payload).eq('id', id));
-      } else {
-        ({ error: err } = await sb.from('articles').insert(payload));
-      }
-
-      if (err) {
-        notice.textContent = 'Gagal menyimpan: ' + err.message;
+      } catch (err: any) {
+        notice.textContent = 'Gagal menyimpan: ' + (err?.message || err);
         notice.className = 'sk-notice sk-notice--error mb-3';
         notice.style.display = 'block';
-      } else {
-        notice.style.display = 'none';
-        modal.hide();
-        loadBlog();
       }
     });
 

@@ -274,11 +274,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           try {
             await fetch('/api/admin/manage', {
               method: 'POST',
+              credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'delete_faq', payload: { id: btn.dataset.id } })
             });
-          } catch {}
-          try { await sb.from('faqs').delete().eq('id', btn.dataset.id!); } catch {}
+          } catch (e) {
+            console.warn('Delete FAQ error:', e);
+          }
           loadFaq();
         });
       });
@@ -317,24 +319,32 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       };
 
       const saveBtn = document.getElementById('faq-save') as HTMLButtonElement | null;
-      if (saveBtn) saveBtn.disabled = true;
-
-      try {
-        await fetch('/api/admin/manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'save_faq', payload })
-        });
-      } catch (e) {
-        console.warn('API save error:', e);
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
       }
 
       try {
-        if (id) await sb.from('faqs').update(payload).eq('id', id);
-        else await sb.from('faqs').insert(payload);
-      } catch {}
+        const res = await fetch('/api/admin/manage', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_faq', payload })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          alert('Gagal menyimpan: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e: any) {
+        console.warn('API save error:', e);
+        alert('Gagal menyimpan FAQ: ' + (e?.message || e));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Simpan FAQ';
+        }
+      }
 
-      if (saveBtn) saveBtn.disabled = false;
       modal.hide();
       loadFaq();
     });

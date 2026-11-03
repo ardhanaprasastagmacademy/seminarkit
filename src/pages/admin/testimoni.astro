@@ -311,11 +311,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           try {
             await fetch('/api/admin/manage', {
               method: 'POST',
+              credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'delete_testimonial', payload: { id: btn.dataset.id } })
             });
-          } catch {}
-          try { await sb.from('testimonials').delete().eq('id', btn.dataset.id!); } catch {}
+          } catch (e) {
+            console.warn('Delete error:', e);
+          }
           loadTestimoni();
         });
       });
@@ -359,24 +361,32 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       };
 
       const saveBtn = document.getElementById('testimoni-save') as HTMLButtonElement | null;
-      if (saveBtn) saveBtn.disabled = true;
-
-      try {
-        await fetch('/api/admin/manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'save_testimonial', payload })
-        });
-      } catch (e) {
-        console.warn('API save error:', e);
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
       }
 
       try {
-        if (id) await sb.from('testimonials').update(payload).eq('id', id);
-        else await sb.from('testimonials').insert(payload);
-      } catch {}
+        const res = await fetch('/api/admin/manage', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_testimonial', payload })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          alert('Gagal menyimpan: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e: any) {
+        console.warn('API save error:', e);
+        alert('Gagal menyimpan testimoni: ' + (e?.message || e));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Simpan Testimoni';
+        }
+      }
 
-      if (saveBtn) saveBtn.disabled = false;
       modal.hide();
       loadTestimoni();
     });

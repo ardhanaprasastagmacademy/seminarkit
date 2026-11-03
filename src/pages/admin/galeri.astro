@@ -446,11 +446,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           try {
             await fetch('/api/admin/manage', {
               method: 'POST',
+              credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'delete_gallery', payload: { id: btn.dataset.id } })
             });
-          } catch {}
-          try { await sb.from('gallery').delete().eq('id', btn.dataset.id!); } catch {}
+          } catch (e) {
+            console.warn('Delete error:', e);
+          }
           loadGaleri();
         });
       });
@@ -496,24 +498,32 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       };
 
       const saveBtn = document.getElementById('galeri-save') as HTMLButtonElement | null;
-      if (saveBtn) saveBtn.disabled = true;
-
-      try {
-        await fetch('/api/admin/manage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'save_gallery', payload })
-        });
-      } catch (e) {
-        console.warn('API save error:', e);
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
       }
 
       try {
-        if (id) await sb.from('gallery').update(payload).eq('id', id);
-        else await sb.from('gallery').insert(payload);
-      } catch {}
+        const res = await fetch('/api/admin/manage', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_gallery', payload })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          alert('Gagal menyimpan: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e: any) {
+        console.warn('API save error:', e);
+        alert('Gagal menyimpan foto: ' + (e?.message || e));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Simpan Foto';
+        }
+      }
 
-      if (saveBtn) saveBtn.disabled = false;
       modal.hide();
       loadGaleri();
     });
