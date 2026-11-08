@@ -140,10 +140,18 @@ export const GET: APIRoute = async ({ request, url }) => {
     try {
       const { data, error } = await sb.from('inquiries').select('*').order('created_at', { ascending: false });
       if (!error && Array.isArray(data)) {
-        return json(200, { ok: true, data });
+        const mapped = data.map((item) => ({
+          ...item,
+          status: item.status === 'selesai' ? 'terkonfirmasi' : item.status,
+        }));
+        return json(200, { ok: true, data: mapped });
       }
     } catch {}
-    return json(200, { ok: true, data: store.inquiries });
+    const localMapped = (store.inquiries || []).map((item) => ({
+      ...item,
+      status: item.status === 'selesai' ? 'terkonfirmasi' : item.status,
+    }));
+    return json(200, { ok: true, data: localMapped });
   }
 
   if (table === 'site_settings') {
@@ -623,8 +631,10 @@ export const POST: APIRoute = async ({ request }) => {
   // 14. UPDATE INQUIRY STATUS
   if (action === 'update_inquiry_status') {
     const { id, status } = payload;
+    // Map status 'terkonfirmasi' ke 'selesai' untuk Supabase agar memenuhi check constraint Postgres
+    const sbStatus = status === 'terkonfirmasi' ? 'selesai' : status;
     try {
-      await sb.from('inquiries').update({ status }).eq('id', id);
+      await sb.from('inquiries').update({ status: sbStatus }).eq('id', id);
     } catch (e) {
       console.warn('Supabase update inquiry status warning:', e);
     }

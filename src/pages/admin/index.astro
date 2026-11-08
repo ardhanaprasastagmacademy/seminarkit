@@ -307,10 +307,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             const cleanWa = String(item.no_wa || '').replace(/\D/g, '');
             const waUrl = `https://wa.me/${cleanWa}`;
 
+            const displayStatus = (item.status === 'selesai' || item.status === 'terkonfirmasi')
+              ? 'terkonfirmasi'
+              : (item.status || 'baru');
+
             let statusClass = 'sk-status-pill--muted';
-            if (item.status === 'baru') statusClass = 'sk-status-pill--warning';
-            else if (item.status === 'selesai') statusClass = 'sk-status-pill--success';
-            else if (item.status === 'dihubungi' || item.status === 'penawaran') statusClass = 'sk-status-pill--info';
+            if (displayStatus === 'baru') statusClass = 'sk-status-pill--warning';
+            else if (displayStatus === 'terkonfirmasi') statusClass = 'sk-status-pill--success';
+            else if (displayStatus === 'batal') statusClass = 'sk-status-pill--danger';
 
             return `
               <tr>
@@ -321,7 +325,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
                 <td>
                   <span class="sk-status-pill ${statusClass}">
                     <span class="sk-status-dot"></span>
-                    ${esc(item.status || 'baru')}
+                    ${esc(displayStatus.toUpperCase())}
                   </span>
                 </td>
                 <td>
