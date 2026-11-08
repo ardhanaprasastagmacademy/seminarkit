@@ -34,7 +34,7 @@ export async function getAdminStore(fresh = false): Promise<AdminStoreData> {
         id: 1,
         nama_brand: 'seminarkit',
         tagline: 'Vendor Souvenir Kantor & Paket Seminar Kit Terpercaya di Indonesia',
-        wa_number: '6281234567890',
+        wa_number: '6282232730246',
         wa_default_text: 'Halo seminarkit, saya ingin berkonsultasi mengenai paket seminar kit.',
         email: 'halo@seminarkit.id',
         alamat: 'Jl. Tebet Barat Dalam Raya No. 18, Jakarta Selatan',

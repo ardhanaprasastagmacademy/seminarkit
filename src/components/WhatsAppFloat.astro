@@ -1,14 +1,14 @@
 ---
 // src/components/WhatsAppFloat.astro
+import { buildWaFromPage } from '../lib/wa';
+
 export interface Props {
   waNumber?: string | null;
   pageName?: string;
 }
 
 const { waNumber, pageName = 'ini' } = Astro.props;
-const no = (waNumber ?? '6281234567890').replace(/\D/g, '');
-const text = `Halo seminarkit, saya melihat halaman *${pageName}* dan ingin bertanya.`;
-const waUrl = `https://wa.me/${no}?text=${encodeURIComponent(text)}`;
+const waUrl = buildWaFromPage(waNumber, pageName);
 ---
 
 <div class="wa-float" data-wa-float>

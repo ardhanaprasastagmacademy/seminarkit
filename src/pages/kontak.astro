@@ -5,26 +5,14 @@ export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
 import { getSiteSettings, getProductsForSelect } from '../lib/queries';
-import { buildWaFromPage } from '../lib/wa';
+import { buildWaFromPage, formatPhoneDisplay } from '../lib/wa';
 import { organizationSchema, breadcrumbSchema } from '../lib/seo';
 
 const settings = await getSiteSettings();
 const waUrl = buildWaFromPage(settings?.wa_number, 'Kontak');
 const products = await getProductsForSelect();
 
-function formatPhoneDisplay(num?: string | null): string {
-  if (!num) return '(+62) 811-2345-678';
-  const clean = String(num).replace(/\D/g, '');
-  if (clean.startsWith('62') && clean.length >= 10) {
-    return `+62 ${clean.slice(2, 5)}-${clean.slice(5, 9)}-${clean.slice(9)}`;
-  }
-  if (clean.startsWith('0') && clean.length >= 10) {
-    return `${clean.slice(0, 4)}-${clean.slice(4, 8)}-${clean.slice(8)}`;
-  }
-  return num;
-}
-
-const formattedWa = formatPhoneDisplay(settings?.wa_number);
+const formattedWa = formatPhoneDisplay(settings?.wa_number || '6282232730246');
 const rawJam = settings?.jam_kerja || 'Senin – Jumat: 08.00 – 17.00 WIB';
 const jamParts = rawJam.split('|').map(s => s.trim()).filter(Boolean);
 

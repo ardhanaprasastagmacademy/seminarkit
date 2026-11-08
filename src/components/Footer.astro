@@ -1,5 +1,7 @@
 ---
 // src/components/Footer.astro
+import { formatPhoneDisplay } from '../lib/wa';
+
 export interface Props {
   settings?: {
     wa_number?: string;
@@ -15,8 +17,11 @@ export interface Props {
 const { settings } = Astro.props;
 const year = new Date().getFullYear();
 
-const cleanWa = (settings?.wa_number || '628112651789').replace(/\D/g, '');
-const displayPhone = settings?.wa_number ? `+${settings.wa_number}` : '+62 811-2651-789';
+let cleanWa = (settings?.wa_number || '6282232730246').replace(/\D/g, '');
+if (cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.slice(1);
+else if (!cleanWa.startsWith('62')) cleanWa = '62' + cleanWa;
+
+const displayPhone = formatPhoneDisplay(settings?.wa_number || '6282232730246');
 ---
 
 <footer class="sk-footer-woodland" aria-label="Footer Resmi seminarkit">
@@ -410,7 +415,7 @@ const displayPhone = settings?.wa_number ? `+${settings.wa_number}` : '+62 811-2
       const waInput = document.getElementById('sk-footer-wa') as HTMLInputElement | null;
       const nama = namaInput?.value.trim() || '';
       const wa = waInput?.value.trim() || '';
-      const waTarget = form.dataset.wa || '628112651789';
+      const waTarget = form.dataset.wa || '6282232730246';
 
       const msg = `Halo seminarkit, saya *${nama}* (${wa}) ingin berkonsultasi mengenai kebutuhan paket seminar kit dan meminta katalog penawaran terbaru.`;
       const url = `https://wa.me/${waTarget}?text=${encodeURIComponent(msg)}`;

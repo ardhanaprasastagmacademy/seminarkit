@@ -1,10 +1,13 @@
 // src/lib/wa.ts — WhatsApp URL builder
-export { normalizeWa } from './format';
+export { normalizeWa, formatPhoneDisplay } from './format';
 
-const DEFAULT_WA = '6281234567890';
+const DEFAULT_WA = '6282232730246';
 
 export function buildWaUrl(number: string | null | undefined, text: string): string {
-  const no = (number ?? DEFAULT_WA).replace(/\D/g, '');
+  let no = (number ?? DEFAULT_WA).replace(/\D/g, '');
+  if (no.startsWith('0')) no = '62' + no.slice(1);
+  else if (no.startsWith('8')) no = '62' + no;
+  else if (!no.startsWith('62')) no = '62' + no;
   return `https://wa.me/${no}?text=${encodeURIComponent(text)}`;
 }
 

@@ -588,7 +588,12 @@ export const POST: APIRoute = async ({ request }) => {
       id: 1,
       nama_brand: String(payload.nama_brand || 'seminarkit').trim(),
       tagline: payload.tagline ? String(payload.tagline).trim() : null,
-      wa_number: String(payload.wa_number || '6281234567890').replace(/\D/g, ''),
+      wa_number: (() => {
+        let w = String(payload.wa_number || '6282232730246').replace(/\D/g, '');
+        if (w.startsWith('0')) w = '62' + w.slice(1);
+        else if (w.startsWith('8')) w = '62' + w;
+        return w || '6282232730246';
+      })(),
       wa_default_text: String(payload.wa_default_text || '').trim(),
       email: payload.email ? String(payload.email).trim() : null,
       alamat: payload.alamat ? String(payload.alamat).trim() : null,
