@@ -743,10 +743,24 @@
 }
 
 .sk-notice {
-  padding: 16px 20px;
+  padding: 14px 18px;
   background: var(--sk-bg-alt);
-  border-left: 3px solid var(--sk-khaki-500);
+  border-left: 4px solid var(--sk-khaki-500);
+  border-radius: 8px;
+  font-size: 0.9rem;
   color: var(--sk-ink);
+}
+
+.sk-notice--error {
+  background: #FEF2F2 !important;
+  border-left-color: #DC2626 !important;
+  color: #991B1B !important;
+}
+
+.sk-notice--success {
+  background: #F0FDF4 !important;
+  border-left-color: #16A34A !important;
+  color: #166534 !important;
 }
 
 /* ---------- Pagination (teks) ---------- */

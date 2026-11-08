@@ -1127,38 +1127,47 @@ const schemas = [
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        const json = await res.json();
+        const json = await res.json().catch(() => ({}));
 
         if (!res.ok && res.status !== 200) {
           if (json.errors) {
             Object.entries(json.errors).forEach(([field, msg]) => {
               showError('err-' + field, String(msg));
             });
+            notice.className = 'sk-notice sk-notice--error mb-4';
+            notice.textContent = json.message || 'Mohon lengkapi kolom yang bertanda merah.';
+            notice.style.display = 'block';
           } else if (json.error === 'captcha') {
-            showError('err-captcha', 'Verifikasi gagal. Muat ulang dan coba lagi.');
+            showError('err-captcha', 'Verifikasi keamanan gagal. Silakan muat ulang dan coba lagi.');
+            notice.className = 'sk-notice sk-notice--error mb-4';
+            notice.textContent = 'Verifikasi keamanan diperlukan.';
+            notice.style.display = 'block';
           } else {
-            notice.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+            notice.className = 'sk-notice sk-notice--error mb-4';
+            notice.textContent = json.message || 'Terjadi kesalahan saat memproses formulir. Silakan coba lagi.';
             notice.style.display = 'block';
           }
           return;
         }
 
         // Sukses
+        notice.className = 'sk-notice sk-notice--success mb-4';
         notice.innerHTML = json.saved
-          ? 'Pesan Anda berhasil diterima. Anda akan diarahkan ke WhatsApp.'
-          : 'Terjadi kendala teknis, tetapi kami tetap siapkan link WhatsApp untuk Anda.';
+          ? '<strong>Permintaan Terkirim!</strong> Data Anda telah kami terima dan kami sedang menyiapkan penawaran resmi. Anda akan dialihkan ke WhatsApp resmi kami…'
+          : 'Pesan konsultasi Anda telah siap. Klik tombol di bawah untuk membuka WhatsApp:';
         notice.style.display = 'block';
 
         if (json.waUrl) {
           waFallback.style.display = 'block';
           waFallbackLink.href = json.waUrl;
-          setTimeout(() => { location.assign(json.waUrl); }, 1000);
+          setTimeout(() => { location.assign(json.waUrl); }, 1200);
         }
       } catch {
-        notice.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
+        notice.className = 'sk-notice sk-notice--error mb-4';
+        notice.textContent = 'Terjadi gangguan koneksi internet. Silakan periksa koneksi Anda dan coba lagi.';
         notice.style.display = 'block';
       } finally {
-        submitBtn.textContent = 'Kirim';
+        submitBtn.textContent = 'Kirim Formulir via WhatsApp';
         submitBtn.removeAttribute('aria-disabled');
         submitBtn.disabled = false;
         (window as any).turnstile?.reset('#turnstile-widget');

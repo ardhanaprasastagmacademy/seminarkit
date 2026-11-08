@@ -591,6 +591,20 @@
   },
   "inquiries": [
     {
+      "id": "ed3270d6-f52b-47d8-930b-4ed4fa733266",
+      "nama": "Ardhanaaa Prasasta",
+      "no_wa": "62867253722",
+      "perusahaan": "Google",
+      "email": "ardhanaprasasta@gmail.com",
+      "produk_diminati": "Buku Agenda Softcover Doff A5",
+      "jumlah": 100,
+      "tanggal_dibutuhkan": "2026-11-18",
+      "pesan": "Konsultasi kebutuhan seminar kit kantor",
+      "status": "baru",
+      "source_page": "/kontak",
+      "created_at": "2026-11-08T13:15:39.720Z"
+    },
+    {
       "id": "inq-sample-1",
       "nama": "Ahmad Fadillah",
       "perusahaan": "PT Nusantara Jaya Mandiri",

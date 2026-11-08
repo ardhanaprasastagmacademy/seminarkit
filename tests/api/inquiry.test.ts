@@ -71,4 +71,56 @@ describe('POST /api/inquiry', () => {
     const data = await res.json();
     expect(data.error).toBe('captcha');
   });
+
+  it('mengizinkan origin Vercel preview/production dan menghasilkan response valid', async () => {
+    const request = new Request('https://seminarkit-tau.vercel.app/api/inquiry', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://seminarkit-tau.vercel.app',
+      },
+      body: JSON.stringify({
+        nama: 'Ardhanaaa Prasasta',
+        email: 'ardhanaprasasta@gmail.com',
+        noWa: '+62867253722',
+        perusahaan: 'Google',
+        produk: 'Buku Agenda Softcover Doff A5',
+        jumlah: '100',
+        tanggal: '2026-11-18',
+        pesan: 'Konsultasi kebutuhan seminar kit kantor',
+        turnstileToken: 'XXXX.DUMMY.TOKEN.XXXX',
+        sourcePage: '/kontak',
+        t: Date.now() - 4000,
+        website: '',
+      }),
+    });
+
+    const res = await (POST as any)({ request, clientAddress: '127.0.0.1' });
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.waUrl).toContain('https://wa.me/');
+    expect(data.waUrl).toContain('Ardhanaaa');
+  });
+
+  it('menolak origin penyerang lintas-situs (CORS/CSRF)', async () => {
+    const request = new Request('https://seminarkit-tau.vercel.app/api/inquiry', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://evil-attacker-site.com',
+      },
+      body: JSON.stringify({
+        nama: 'Spam Attack',
+        noWa: '081234567890',
+        turnstileToken: 'token',
+        t: Date.now() - 4000,
+      }),
+    });
+
+    const res = await (POST as any)({ request, clientAddress: '127.0.0.1' });
+    expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.error).toBe('origin');
+  });
 });
