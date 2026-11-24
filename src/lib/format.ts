@@ -12,10 +12,15 @@ export function formatRupiah(n: number): string {
 
 /** Format tanggal Indonesia: "25 Oktober 2026" */
 export function formatTanggal(d: string | Date): string {
-  const date = typeof d === 'string' ? new Date(d) : d;
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  }).format(date);
+  try {
+    const date = typeof d === 'string' ? new Date(d) : d;
+    if (!date || isNaN(date.getTime())) return 'Terbaru';
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    }).format(date);
+  } catch {
+    return 'Terbaru';
+  }
 }
 
 /** Normalisasi nomor WA ke format 62xxx */

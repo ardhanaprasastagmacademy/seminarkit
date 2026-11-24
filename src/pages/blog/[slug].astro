@@ -17,7 +17,7 @@ const settings = await getSiteSettings();
 const article = await getArticleBySlug(slug);
 
 if (!article) {
-  return Astro.redirect('/blog');
+  return new Response(null, { status: 404 });
 }
 
 const waUrl = buildWaFromPage(settings?.wa_number, article.judul);

@@ -1,7 +1,7 @@
-// src/lib/markdown.ts — Render Markdown cleanly with marked and sanitizeHtml
+// src/lib/markdown.ts — Render Markdown cleanly with marked
 import { marked } from 'marked';
-import sanitizeHtml from 'sanitize-html';
 
+// Custom renderer to format links safely with rel="noopener noreferrer" and prevent javascript: injection
 const renderer = new marked.Renderer();
 renderer.link = ({ href, title, text }) => {
   const cleanHref = typeof href === 'string' && href.trim().toLowerCase().startsWith('javascript:') ? '#' : href;
@@ -21,15 +21,11 @@ export function renderMarkdown(md: string): string {
       gfm: true,
     }) as string;
 
-    return sanitizeHtml(rawHtml, {
-      allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2', 'span']),
-      allowedAttributes: {
-        ...sanitizeHtml.defaults.allowedAttributes,
-        img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
-        a: ['href', 'title', 'target', 'rel'],
-      },
-      allowedSchemes: ['http', 'https', 'mailto', 'tel'],
-    });
+    // Filter dangerous script tags, iframes, and event handlers (onerror, onclick, etc.)
+    return rawHtml
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/\s+on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '');
   } catch (err) {
     console.error('Error rendering markdown:', err);
     return md;

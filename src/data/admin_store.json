@@ -591,6 +591,34 @@
   },
   "inquiries": [
     {
+      "id": "702757bc-79f2-4a3f-8032-888d3c9ad72e",
+      "nama": "Ardhanaaa Prasasta",
+      "no_wa": "62867253722",
+      "perusahaan": "Google",
+      "email": "ardhanaprasasta@gmail.com",
+      "produk_diminati": "Buku Agenda Softcover Doff A5",
+      "jumlah": 100,
+      "tanggal_dibutuhkan": "2026-11-18",
+      "pesan": "Konsultasi kebutuhan seminar kit kantor",
+      "status": "baru",
+      "source_page": "/kontak",
+      "created_at": "2026-11-24T14:58:45.336Z"
+    },
+    {
+      "id": "f1ddb3ef-4098-43cf-a19d-4fbc4630a5c6",
+      "nama": "Ardhanaaa Prasasta",
+      "no_wa": "62867253722",
+      "perusahaan": "Google",
+      "email": "ardhanaprasasta@gmail.com",
+      "produk_diminati": "Buku Agenda Softcover Doff A5",
+      "jumlah": 100,
+      "tanggal_dibutuhkan": "2026-11-18",
+      "pesan": "Konsultasi kebutuhan seminar kit kantor",
+      "status": "baru",
+      "source_page": "/kontak",
+      "created_at": "2026-11-24T14:35:59.580Z"
+    },
+    {
       "id": "ac75b1b6-7b82-4f8f-9ab4-4dd04237eb02",
       "nama": "Ardhanaaa Prasasta",
       "no_wa": "62867253722",
